@@ -2,20 +2,18 @@
   <name>MicroPython Support</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
-      <p>To be released:</p>
+      <p>0.1:</p>
       <ul>
-        <li>MicroPython facet for Python modules in IntelliJ</li>
-        <li>MicroPython settings section in PyCharm</li>
         <li>Code insight and documentation for Micro:bit Python API</li>
         <li>Run Python files on Micro:bit</li>
         <li>Micro:bit Python REPL</li>
       </ul>
     ]]></change-notes>
   <description><![CDATA[
-      <p>Support for MicroPython devices.</p>
+      <p>Support for MicroPython devices in IntelliJ IDEA and PyCharm.</p>
       <p>Features:</p>
       <ul>
-        <li>Code completion and docs for device-specific modules</li>
+        <li>Code completion and docs for MicroPython modules</li>
         <li>Flash a Python file to a device</li>
         <li>Run REPL on a device</li>
       </ul>
