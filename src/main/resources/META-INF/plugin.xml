@@ -1,0 +1,62 @@
+<idea-plugin url="http://example.com/">
+  <name>MicroPython Support</name>
+  <id>intellij-micropython</id>
+  <change-notes><![CDATA[
+      <p>To be released:</p>
+      <ul>
+        <li>MicroPython facet for Python modules in IntelliJ</li>
+        <li>MicroPython settings section in PyCharm</li>
+        <li>Code insight and documentation for Micro:bit Python API</li>
+        <li>Run Python files on Micro:bit</li>
+        <li>Micro:bit Python REPL</li>
+      </ul>
+    ]]></change-notes>
+  <description><![CDATA[
+      <p>Support for MicroPython devices.</p>
+      <p>Features:</p>
+      <ul>
+        <li>Code completion and docs for device-specific modules</li>
+        <li>Flash a Python file to a device</li>
+        <li>Run REPL on a device</li>
+      </ul>
+      <p>Currently the plugin supports only Micro:bit devices. Contributions are welcome!</p>
+    ]]></description>
+  <version>SNAPSHOT</version>
+  <vendor>JetBrains</vendor>
+
+  <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.python</depends>
+  <depends>org.jetbrains.plugins.terminal</depends>
+
+  <idea-version since-build="171.0"/>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.jetbrains.micropython.deviceProvider" interface="com.jetbrains.micropython.devices.MicroPythonDeviceProvider"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <facetType implementation="com.jetbrains.micropython.settings.MicroPythonFacetType"/>
+    <framework.detector implementation="com.jetbrains.micropython.settings.MicroPythonFacetDetector"/>
+    <configurationType implementation="com.jetbrains.micropython.run.MicroPythonConfigurationType"/>
+    <runConfigurationProducer implementation="com.jetbrains.micropython.run.MicroPythonRunConfigurationProducer"/>
+    <projectConfigurable groupId="language"
+                         id="com.jetbrains.micropython.configurable"
+                         provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
+    <localInspection language="Python"
+                     displayName="MicroPython requirements inspection"
+                     groupName="MicroPython"
+                     enabledByDefault="true"
+                     implementationClass="com.jetbrains.micropython.MicroPythonRequirementsInspection"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.jetbrains.micropython">
+    <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitDeviceProvider"/>
+  </extensions>
+
+  <actions>
+    <action id="RunMicroReplAction" class="com.jetbrains.micropython.RunMicroReplAction"
+            text="MicroPython REPL" description="Run MicroPython REPL in Terminal">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </action>
+  </actions>
+</idea-plugin>

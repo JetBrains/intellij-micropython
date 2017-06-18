@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'http://dl.bintray.com/jetbrains/intellij-plugin-service' }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.intellij' version '0.2.11'
+}
+
+apply plugin: 'kotlin'
+
+def hasPyCharm = project.hasProperty('pycharmPath')
+def hasPythonPlugin = project.hasProperty('pythonPlugin')
+
+intellij {
+    version ideaVersion
+    pluginName 'intellij-micropython'
+    downloadSources true
+    plugins = ['terminal']
+    if (hasPyCharm) {
+        alternativeIdePath pycharmPath
+    }
+    else if (hasPythonPlugin) {
+        plugins += [pythonPlugin]
+    }
+    else {
+        throw new StopActionException("Define either pycharmPath or pythonPlugin in your gradle.properties")
+    }
+}
+
+repositories {
+    mavenCentral()
+    if (hasPyCharm) {
+        flatDir {
+            dirs "$pycharmPath/lib"
+        }
+    }
+}
+
+dependencies {
+    if (hasPyCharm) {
+        compileOnly name: 'pycharm'
+    }
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+}
+
+task copyStubs(dependsOn: prepareSandbox, type: Copy) {
+    from(projectDir) {
+        include "typehints/"
+        include "scripts/"
+    }
+    into "${intellij.sandboxDirectory}/plugins/intellij-micropython"
+}
+
+buildPlugin.dependsOn copyStubs
+runIde.dependsOn copyStubs
