@@ -1,4 +1,4 @@
-<idea-plugin url="http://example.com/">
+<idea-plugin url="https://github.com/vlasovskikh/intellij-micropython">
   <name>MicroPython Support</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
@@ -17,7 +17,8 @@
         <li>Flash a Python file to a device</li>
         <li>Run REPL on a device</li>
       </ul>
-      <p>Currently the plugin supports only Micro:bit devices. Contributions are welcome!</p>
+      <p>Currently the plugin supports only Micro:bit devices. Your feedback and contributions are welcome!
+        See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
   <version>SNAPSHOT</version>
   <vendor>JetBrains</vendor>
