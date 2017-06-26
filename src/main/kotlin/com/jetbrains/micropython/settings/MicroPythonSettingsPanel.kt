@@ -57,8 +57,9 @@ class MicroPythonSettingsPanel : JPanel() {
 
     deviceTypeCombo.addActionListener {
       val provider = deviceTypeCombo.selectedItem as MicroPythonDeviceProvider
-      label.setHyperlinkText("Learn more about setting up ${provider.presentableName} devices")
       label.setHyperlinkTarget(provider.documentationURL)
+      label.setHyperlinkText("Learn more about setting up ${provider.presentableName} devices")
+      label.repaint()
     }
 
     add(container, BorderLayout.NORTH)
