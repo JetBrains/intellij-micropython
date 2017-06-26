@@ -22,10 +22,9 @@ import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
-import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
+import com.jetbrains.micropython.settings.MicroPythonUsbId
 import com.jetbrains.python.packaging.PyRequirement
-import com.jetbrains.python.sdk.PythonSdkType
 
 /**
  * @author vlan
@@ -37,15 +36,16 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val documentationURL: String
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro:bit"
 
+  override val usbId: MicroPythonUsbId
+    get() = MicroPythonUsbId(0x0D28, 0x0204)
+
   override val packageRequirements: List<PyRequirement> by lazy {
-    val requirements = listOf(
-        "uflash",
-        "pyserial")
-    requirements.map { PyRequirement(it) }
+    PyRequirement.fromText("""|uflash>=1.0.8,<1.1
+                              |pyserial>=3.3,<3.4""".trimMargin())
   }
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints("Micro:bit", "microbit/latest")
+    MicroPythonTypeHints("microbit/latest")
   }
 
   override val detectedModuleNames: Set<String>
@@ -61,12 +61,6 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
                                                    configuration.scriptPath))
       }
     }
-  }
-
-  override fun getReplTerminalCommand(facet: MicroPythonFacet): List<String> {
-    val pythonPath = PythonSdkType.findPythonSdk(facet.module)?.homePath ?: return emptyList()
-    val pluginPath = MicroPythonFacet.getPluginDescriptor().path
-    return listOf(pythonPath, "$pluginPath/scripts/microbit/microrepl.py")
   }
 
   override val isDefault: Boolean

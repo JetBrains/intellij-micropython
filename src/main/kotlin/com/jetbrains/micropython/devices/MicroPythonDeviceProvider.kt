@@ -21,8 +21,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
-import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
+import com.jetbrains.micropython.settings.MicroPythonUsbId
 import com.jetbrains.python.packaging.PyRequirement
 
 /**
@@ -44,6 +44,9 @@ interface MicroPythonDeviceProvider {
 
   val documentationURL: String
 
+  val usbId: MicroPythonUsbId?
+    get() = null
+
   val presentableName: String
     get() = persistentName
 
@@ -58,8 +61,6 @@ interface MicroPythonDeviceProvider {
 
   fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
                              environment: ExecutionEnvironment): CommandLineState? = null
-
-  fun getReplTerminalCommand(facet: MicroPythonFacet): List<String> = emptyList()
 
   val isDefault: Boolean
     get() = false

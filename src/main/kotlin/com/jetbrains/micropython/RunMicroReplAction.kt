@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.MicroPythonFacetType
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
@@ -35,10 +36,20 @@ import org.jetbrains.plugins.terminal.TerminalView
 class RunMicroReplAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent?) {
     val project = e?.project ?: return
+    val facet = getFacet(project) ?: return
+    val provider = facet.configuration.deviceProvider
+    val command = getReplTerminalCommand(facet)
+    if (command == null) {
+      Messages.showErrorDialog(project,
+                               "Cannot find the ${provider.presentableName} device. Make sure you have installed " +
+                                   "any necessary USB drivers and plugged the device into a USB port.",
+                               "Device Not Found")
+      return
+    }
+
     TerminalView.getInstance(project).createNewSession(project, object : LocalTerminalDirectRunner(project) {
       override fun getCommand(envs: MutableMap<String, String>?): Array<String> {
-        val facet = getFacet(project) ?: return emptyArray()
-        return facet.configuration.deviceProvider.getReplTerminalCommand(facet).toTypedArray()
+        return command.toTypedArray()
       }
 
       override fun createCloseAction(defaultExecutor: Executor?, myDescriptor: RunContentDescriptor?): AnAction {
@@ -64,4 +75,11 @@ class RunMicroReplAction : AnAction() {
       .asSequence()
       .map { MicroPythonFacet.getInstance(it) }
       .firstOrNull()
+
+  private fun getReplTerminalCommand(facet: MicroPythonFacet): List<String>? {
+    val pythonPath = facet.pythonPath ?: return null
+    val pluginPath = MicroPythonFacet.getPluginDescriptor().path
+    val port = facet.findSerialPorts().firstOrNull() ?: return null
+    return listOf(pythonPath, "$pluginPath/scripts/microrepl.py", port)
+  }
 }

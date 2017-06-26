@@ -16,6 +16,8 @@
 
 package com.jetbrains.micropython.settings
 
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
@@ -57,27 +59,28 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   }
 
   override fun updateLibrary() {
-    val typeHints = configuration.deviceProvider.typeHints ?: return
+    val typeHints = configuration.deviceProvider.typeHints
     val plugin = getPluginDescriptor()
-    FacetLibraryConfigurator.attachPythonLibrary(module, null, typeHints.libraryName,
-                                                 listOf("${plugin.path}/typehints/${typeHints.path}"))
+    val paths = if (typeHints != null) listOf("${plugin.path}/typehints/${typeHints.path}") else emptyList()
+    FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", paths)
+    removeLegacyLibraries()
   }
 
   override fun removeLibrary() {
-    val typeHints = configuration.deviceProvider.typeHints ?: return
-    FacetLibraryConfigurator.detachPythonLibrary(module, typeHints.libraryName)
+    FacetLibraryConfigurator.detachPythonLibrary(module, "MicroPython")
   }
 
   fun checkValid(): ValidationResult {
+    val provider = configuration.deviceProvider
     val sdk = PythonSdkType.findPythonSdk(module)
     if (sdk == null || PythonSdkType.isInvalid(sdk) || PythonSdkType.getLanguageLevelForSdk(sdk).isOlderThan(LanguageLevel.PYTHON35)) {
-      return ValidationResult("MicroPython support requires valid Python 3.5+ SDK")
+      return ValidationResult("${provider.presentableName} support requires valid Python 3.5+ SDK")
     }
     val packageManager = PyPackageManager.getInstance(sdk)
     val packages = packageManager.packages ?: return ValidationResult.OK
-    val requirements = configuration.deviceProvider.packageRequirements
+    val requirements = provider.packageRequirements
     if (requirements.any { it.match(packages) == null }) {
-      return ValidationResult("Packages required for MicroPython support not found",
+      return ValidationResult("Packages required for ${provider.presentableName} support not found",
                               object : FacetConfigurationQuickFix("Install requirements") {
         override fun run(place: JComponent?) {
           PyPackageManagerUI(module.project, sdk, null).install(requirements, listOf("-U"))
@@ -85,5 +88,25 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
       })
     }
     return ValidationResult.OK
+  }
+
+  fun findSerialPorts(): List<String> {
+    val TIMEOUT = 500
+    val pythonPath = pythonPath ?: return emptyList()
+    val pluginPath = MicroPythonFacet.getPluginDescriptor().path
+    val (vendorId, productId) = configuration.deviceProvider.usbId ?: return emptyList()
+    val process = CapturingProcessHandler(GeneralCommandLine(pythonPath, "$pluginPath/scripts/findusb.py",
+                                                             vendorId.toString(),
+                                                             productId.toString()))
+    val output = process.runProcess(TIMEOUT)
+    if (output.exitCode != 0) return emptyList()
+    return output.stdoutLines
+  }
+
+  val pythonPath: String?
+    get() = PythonSdkType.findPythonSdk(module)?.homePath
+
+  private fun removeLegacyLibraries() {
+    FacetLibraryConfigurator.detachPythonLibrary(module, "Micro:bit")
   }
 }
