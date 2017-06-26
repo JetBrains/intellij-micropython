@@ -42,6 +42,8 @@ interface MicroPythonDeviceProvider {
 
   val persistentName: String
 
+  val documentationURL: String
+
   val presentableName: String
     get() = persistentName
 

@@ -34,6 +34,9 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val persistentName: String
     get() = "Micro:bit"
 
+  override val documentationURL: String
+    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro:bit"
+
   override val packageRequirements: List<PyRequirement> by lazy {
     val requirements = listOf(
         "uflash",

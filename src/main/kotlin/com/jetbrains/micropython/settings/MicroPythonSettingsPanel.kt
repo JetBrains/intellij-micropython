@@ -21,27 +21,48 @@ import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import java.awt.BorderLayout
+import java.awt.Component
+import javax.swing.BoxLayout
 import javax.swing.JList
 import javax.swing.JPanel
 
 /**
  * @author vlan
  */
-class MicroPythonSettingsPanel : JPanel(BorderLayout()) {
+class MicroPythonSettingsPanel : JPanel() {
   val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers, JBUI.scale(300))
 
   init {
+    layout = BorderLayout()
     deviceTypeCombo.renderer = object: ListCellRendererWrapper<MicroPythonDeviceProvider>() {
       override fun customize(list: JList<*>, value: MicroPythonDeviceProvider, index: Int, selected: Boolean, hasFocus: Boolean) {
         setText(value.presentableName)
       }
     }
+
+    val container = JPanel()
+    container.layout = BoxLayout(container, BoxLayout.Y_AXIS)
+
     val contentPanel = FormBuilder.createFormBuilder().addLabeledComponent("Device:", deviceTypeCombo).panel
-    add(contentPanel, BorderLayout.NORTH)
-    // +5px (scaled) from the left added by FacetEditor
+    contentPanel.alignmentX = Component.LEFT_ALIGNMENT
+    container.add(contentPanel)
+
+    val label = SwingHelper.createWebHyperlink("")
+    label.alignmentX = Component.LEFT_ALIGNMENT
+    container.add(label)
+
+    deviceTypeCombo.addActionListener {
+      val provider = deviceTypeCombo.selectedItem as MicroPythonDeviceProvider
+      label.setHyperlinkText("Learn more about setting up ${provider.presentableName} devices")
+      label.setHyperlinkTarget(provider.documentationURL)
+    }
+
+    add(container, BorderLayout.NORTH)
+
     border = IdeBorderFactory.createEmptyBorder(UIUtil.PANEL_SMALL_INSETS)
   }
 
