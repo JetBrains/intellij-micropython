@@ -40,7 +40,10 @@ interface MicroPythonDeviceProvider {
       get() = providers.first { it.isDefault }
   }
 
+  val persistentName: String
+
   val presentableName: String
+    get() = persistentName
 
   val packageRequirements: List<PyRequirement>
     get() = emptyList()

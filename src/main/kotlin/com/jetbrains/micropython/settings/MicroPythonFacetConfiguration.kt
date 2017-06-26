@@ -25,7 +25,6 @@ import org.jdom.Element
  * @author vlan
  */
 class MicroPythonFacetConfiguration : FacetConfiguration {
-  // TODO: Persist the selected device
   var deviceProvider = MicroPythonDeviceProvider.default
 
   override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> {
@@ -36,8 +35,14 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
   }
 
   override fun readExternal(element: Element?) {
+    val deviceName = element?.getChild("device")?.getAttribute("name")?.value
+    val device = MicroPythonDeviceProvider.providers.filter { it.persistentName == deviceName }.firstOrNull()
+    deviceProvider = device ?: MicroPythonDeviceProvider.default
   }
 
   override fun writeExternal(element: Element?) {
+    val deviceElement = Element("device")
+    deviceElement.setAttribute("name", deviceProvider.persistentName)
+    element?.addContent(deviceElement)
   }
 }

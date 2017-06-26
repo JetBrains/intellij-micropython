@@ -31,7 +31,7 @@ import com.jetbrains.python.sdk.PythonSdkType
  * @author vlan
  */
 class MicroBitDeviceProvider : MicroPythonDeviceProvider {
-  override val presentableName: String
+  override val persistentName: String
     get() = "Micro:bit"
 
   override val packageRequirements: List<PyRequirement> by lazy {
