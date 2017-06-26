@@ -22,7 +22,8 @@ import javax.swing.JComponent
 /**
  * @author vlan
  */
-class MicroPythonFacetEditorTab(val configuration: MicroPythonFacetConfiguration) : FacetEditorTab() {
+class MicroPythonFacetEditorTab(val configuration: MicroPythonFacetConfiguration,
+                                val facet: MicroPythonFacet) : FacetEditorTab() {
   private val panel: MicroPythonSettingsPanel by lazy {
     MicroPythonSettingsPanel()
   }
@@ -35,6 +36,7 @@ class MicroPythonFacetEditorTab(val configuration: MicroPythonFacetConfiguration
 
   override fun apply() {
     panel.apply(configuration)
+    facet.updateLibrary()
   }
 
   override fun reset() {

@@ -61,6 +61,7 @@ class MicroPythonModuleConfigurable(val module: Module) : Configurable {
     if (enabledCheckbox.isSelected) {
       if (facet != null) {
         panel.apply(facet.configuration)
+        facet.updateLibrary()
       }
       else {
         val facetType = MicroPythonFacetType.getInstance()

@@ -28,10 +28,13 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
   var deviceProvider = MicroPythonDeviceProvider.default
 
   override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> {
+    val facet = editorContext.facet as MicroPythonFacet
     validatorsManager.registerValidator(object: FacetEditorValidator() {
-      override fun check(): ValidationResult = (editorContext.facet as MicroPythonFacet).checkValid()
+      override fun check(): ValidationResult {
+        return facet.checkValid()
+      }
     })
-    return arrayOf(MicroPythonFacetEditorTab(this))
+    return arrayOf(MicroPythonFacetEditorTab(this, facet))
   }
 
   override fun readExternal(element: Element?) {
