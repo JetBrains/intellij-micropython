@@ -30,7 +30,7 @@ class WemosD1MiniProDeviceProvider : MicroPythonDeviceProvider {
     get() = MicroPythonUsbId(0x10C4, 0xEA60)
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini"
+    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini-Pro"
 
   override val packageRequirements: List<PyRequirement> by lazy {
     PyRequirement.fromText("""pyserial>=3.3,<3.4""")
