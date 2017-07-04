@@ -64,6 +64,7 @@ def main(args: List[str]) -> None:
     else:
         to_upload = [os.path.relpath(root, os.getcwd())]
 
+    created_cache = set()
     for path in progress('Uploading files', to_upload):
         local_path = os.path.abspath(path)
         remote_path = os.path.normpath(path)
@@ -72,7 +73,7 @@ def main(args: List[str]) -> None:
                   file=sys.stderr)
         remote_dir = os.path.dirname(path)
         if remote_dir:
-            make_dirs(files, remote_dir)
+            make_dirs(files, remote_dir, created_cache)
         with open(local_path, 'rb') as fd:
             files.put(remote_path, fd.read())
 
