@@ -16,21 +16,23 @@
 """Upload files and directories onto a MicroPython device.
 
 Usage:
-    microupload PORT PATH [-v] [-X PATH]...
+    microupload PORT PATH [-X PATH]... [options]
 
 Options:
     -X --exclude=PATH       Path to exclude, may be repeated.
+    -C --chdir=PATH         Change current directory to path.
     -v --verbose            Verbose output.
 """
 
 import time
 import sys
 import os
-from typing import List, Iterable, TypeVar, Sequence
+from contextlib import suppress
+from typing import List, Iterable, TypeVar, Sequence, Set
 
 from docopt import docopt
 from ampy.pyboard import Pyboard
-from ampy.files import Files
+from ampy.files import Files, DirectoryExistsError
 
 
 __all__ = []
@@ -45,6 +47,10 @@ def main(args: List[str]) -> None:
     verbose = opts['--verbose']
     root = opts['PATH']
 
+    chdir = opts['--chdir']
+    if chdir:
+        os.chdir(chdir)
+
     port = opts['PORT']
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
@@ -52,18 +58,41 @@ def main(args: List[str]) -> None:
 
     wait_for_board()
 
-    to_upload = list_files(root, opts['--exclude'])
-    for path in progress('Uploading files', list(to_upload)):
-        local_path = os.path.abspath(os.path.join(root, path))
-        remote_path = path
+    if os.path.isdir(root):
+        to_upload = [os.path.join(root, x)
+                     for x in list_files(root, opts['--exclude'])]
+    else:
+        to_upload = [os.path.relpath(root, os.getcwd())]
+
+    for path in progress('Uploading files', to_upload):
+        local_path = os.path.abspath(path)
+        remote_path = os.path.normpath(path)
         if verbose:
             print('\n{} -> {}'.format(local_path, remote_path),
                   file=sys.stderr)
+        remote_dir = os.path.dirname(path)
+        if remote_dir:
+            make_dirs(files, remote_dir)
         with open(local_path, 'rb') as fd:
             files.put(remote_path, fd.read())
 
     print('Soft reboot', file=sys.stderr)
     soft_reset(board)
+
+
+def make_dirs(files: Files, path: str,
+              created_cache: Set[str] = None) -> None:
+    """Make all the directories the specified relative path consists of."""
+    if path == '.':
+        return
+    if created_cache is None:
+        created_cache = set()
+    parent = os.path.dirname(path)
+    if parent and parent not in created_cache:
+        make_dirs(files, parent, created_cache)
+    with suppress(DirectoryExistsError):
+        files.mkdir(path)
+        created_cache.add(path)
 
 
 def soft_reset(board: Pyboard) -> None:
@@ -74,17 +103,14 @@ def soft_reset(board: Pyboard) -> None:
 def list_files(path: str, excluded: List[str]) -> Iterable[str]:
     """List relative file paths inside the given path."""
     excluded = {os.path.abspath(x) for x in excluded}
-    if os.path.isdir(path):
-        for root, dirs, files in os.walk(path):
-            abs_root = os.path.abspath(root)
-            for d in list(dirs):
-                if os.path.join(abs_root, d) in excluded:
-                    dirs.remove(d)
-            for f in files:
-                if os.path.join(abs_root, f) not in excluded:
-                    yield os.path.relpath(os.path.join(root, f), path)
-    else:
-        yield os.path.basename(path)
+    for root, dirs, files in os.walk(path):
+        abs_root = os.path.abspath(root)
+        for d in list(dirs):
+            if os.path.join(abs_root, d) in excluded:
+                dirs.remove(d)
+        for f in files:
+            if os.path.join(abs_root, f) not in excluded:
+                yield os.path.relpath(os.path.join(root, f), path)
 
 
 def wait_for_board() -> None:
