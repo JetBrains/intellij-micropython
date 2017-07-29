@@ -31,7 +31,7 @@ contributions for other devices, especially for these ones:
 
 ## Requirements
 
-* IntelliJ 2017.1 or PyCharm 2017.1
+* IntelliJ 2017.2 or PyCharm 2017.2
 * Python 3.5+
 
 
@@ -53,7 +53,7 @@ IntelliJ and PyCharm. Google recently selected Kotlin as an officially supported
 The steps for setting up the development environment:
 
 1. Check out this project from GitHub
-2. Create a new project from existing sources in IntelliJ 2017.1 or later
+2. Create a new project from existing sources in IntelliJ 2017.2 or newer
 
 To just run the development version use `./gradlew clean runIde` from the command line.
 
