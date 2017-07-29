@@ -34,7 +34,7 @@ import javax.swing.JPanel
  * @author vlan
  */
 class MicroPythonSettingsPanel : JPanel() {
-  val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers, JBUI.scale(300))
+  private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers, JBUI.scale(300))
 
   init {
     layout = BorderLayout()

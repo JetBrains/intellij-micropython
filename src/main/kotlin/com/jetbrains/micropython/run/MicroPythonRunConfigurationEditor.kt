@@ -26,25 +26,23 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 
-class MicroPythonRunConfigurationEditor(val config: MicroPythonRunConfiguration) : SettingsEditor<MicroPythonRunConfiguration>() {
-  val scriptPathField = TextFieldWithBrowseButton()
+class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : SettingsEditor<MicroPythonRunConfiguration>() {
+  private val scriptPathField = TextFieldWithBrowseButton()
   init {
     val descriptor = object : FileChooserDescriptor(true, false, false, false, false, false) {
-      override fun isFileVisible(file: VirtualFile?, showHiddenFiles: Boolean): Boolean {
-        return file != null && (file.isDirectory || file.extension == null || Comparing.equal(file.extension, "py"));
-      }
-    };
+      override fun isFileVisible(file: VirtualFile?, showHiddenFiles: Boolean) =
+          file != null && (file.isDirectory || file.extension == null || Comparing.equal(file.extension, "py"))
+    }
     scriptPathField.addActionListener(ComponentWithBrowseButton.BrowseFolderActionListener("Select Script", "",
                                                                                            scriptPathField,
                                                                                            config.project, descriptor,
                                                                                            TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT))
   }
-  
-  override fun createEditor(): JComponent {
-    return FormBuilder.createFormBuilder()
-      .addLabeledComponent("Script:", scriptPathField)
-      .panel
-  }
+
+  override fun createEditor(): JComponent =
+      FormBuilder.createFormBuilder()
+          .addLabeledComponent("Script:", scriptPathField)
+          .panel
 
   override fun applyEditorTo(s: MicroPythonRunConfiguration) {
     s.scriptPath = scriptPathField.text

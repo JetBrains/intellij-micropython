@@ -48,13 +48,10 @@ class RunMicroReplAction : AnAction() {
     }
 
     TerminalView.getInstance(project).createNewSession(project, object : LocalTerminalDirectRunner(project) {
-      override fun getCommand(envs: MutableMap<String, String>?): Array<String> {
-        return command.toTypedArray()
-      }
+      override fun getCommand(envs: MutableMap<String, String>?) = command.toTypedArray()
 
-      override fun createCloseAction(defaultExecutor: Executor?, myDescriptor: RunContentDescriptor?): AnAction {
-        return super.createCloseAction(defaultExecutor, myDescriptor)
-      }
+      override fun createCloseAction(defaultExecutor: Executor?, myDescriptor: RunContentDescriptor?) =
+          super.createCloseAction(defaultExecutor, myDescriptor)
     })
   }
 

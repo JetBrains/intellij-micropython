@@ -29,7 +29,7 @@ import javax.swing.JPanel
 /**
  * @author vlan
  */
-class MicroPythonModuleConfigurable(val module: Module) : Configurable {
+class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
   private val panel: MicroPythonSettingsPanel by lazy {
     MicroPythonSettingsPanel()
   }

@@ -60,7 +60,6 @@ class MicroPythonRunConfigurationProducer :
     return FacetManager.getInstance(module)?.getFacetByType(MicroPythonFacetType.ID) != null
   }
 
-  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
-    return other.configuration is AbstractPythonRunConfiguration<*>
-  }
+  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext) =
+      other.configuration is AbstractPythonRunConfiguration<*>
 }

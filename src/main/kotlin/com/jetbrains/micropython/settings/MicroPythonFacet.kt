@@ -43,7 +43,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   : LibraryContributingFacet<MicroPythonFacetConfiguration>(facetType, module, name, configuration, underlyingFacet) {
 
   companion object {
-    val PLUGIN_ID = "intellij-micropython"
+    private val PLUGIN_ID = "intellij-micropython"
 
     fun getPluginDescriptor(): IdeaPluginDescriptor {
       val plugin = PluginManager.getPlugin(PluginId.getId(PLUGIN_ID))

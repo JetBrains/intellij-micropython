@@ -18,12 +18,14 @@ package com.jetbrains.micropython.run
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configuration.AbstractRunConfiguration
-import com.intellij.execution.configurations.*
+import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.facet.FacetManager
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
@@ -41,7 +43,7 @@ class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFacto
   var scriptPath: String = ""
   
   // Module is either set up in run configuration provider or the first suitable is used instead 
-  val module: Module?
+  private val module: Module?
     get() = modules.getOrElse(0, {validModules.firstOrNull()})
 
   // Find selected SDK properly
@@ -51,13 +53,12 @@ class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFacto
     return pySdk?.homePath
   }
 
-  override fun getValidModules(): MutableCollection<Module> {
-    return allModules.filter { FacetManager.getInstance(it)?.getFacetByType(MicroPythonFacetType.ID) != null }.toMutableList()
-  }
+  override fun getValidModules() =
+      allModules
+          .filter { FacetManager.getInstance(it)?.getFacetByType(MicroPythonFacetType.ID) != null }
+          .toMutableList()
 
-  override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
-    return MicroPythonRunConfigurationEditor(this)
-  }
+  override fun getConfigurationEditor() = MicroPythonRunConfigurationEditor(this)
 
   override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
     val m = module ?: return null
@@ -83,9 +84,7 @@ class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFacto
     }
   }
 
-  override fun suggestedName(): String? {
-    return "Flash ${PathUtil.getFileName(scriptPath)} to device"
-  }
+  override fun suggestedName() = "Flash ${PathUtil.getFileName(scriptPath)} to device"
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)

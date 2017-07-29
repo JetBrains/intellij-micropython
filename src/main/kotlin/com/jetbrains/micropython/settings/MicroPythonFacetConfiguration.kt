@@ -17,7 +17,10 @@
 package com.jetbrains.micropython.settings
 
 import com.intellij.facet.FacetConfiguration
-import com.intellij.facet.ui.*
+import com.intellij.facet.ui.FacetEditorContext
+import com.intellij.facet.ui.FacetEditorTab
+import com.intellij.facet.ui.FacetEditorValidator
+import com.intellij.facet.ui.FacetValidatorsManager
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import org.jdom.Element
 
@@ -30,16 +33,14 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
   override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> {
     val facet = editorContext.facet as MicroPythonFacet
     validatorsManager.registerValidator(object: FacetEditorValidator() {
-      override fun check(): ValidationResult {
-        return facet.checkValid()
-      }
+      override fun check() = facet.checkValid()
     })
     return arrayOf(MicroPythonFacetEditorTab(this, facet))
   }
 
   override fun readExternal(element: Element?) {
     val deviceName = element?.getChild("device")?.getAttribute("name")?.value
-    val device = MicroPythonDeviceProvider.providers.filter { it.persistentName == deviceName }.firstOrNull()
+    val device = MicroPythonDeviceProvider.providers.firstOrNull { it.persistentName == deviceName }
     deviceProvider = device ?: MicroPythonDeviceProvider.default
   }
 

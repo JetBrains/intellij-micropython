@@ -30,12 +30,11 @@ import javax.swing.Icon
  */
 class MicroPythonConfigurationType : ConfigurationType {
   companion object {
-    fun getInstance(): MicroPythonConfigurationType {
-      return ConfigurationTypeUtil.findConfigurationType(MicroPythonConfigurationType::class.java)
-    }
+    fun getInstance(): MicroPythonConfigurationType =
+        ConfigurationTypeUtil.findConfigurationType(MicroPythonConfigurationType::class.java)
   }
   
-  val factory = object : PythonConfigurationFactoryBase(this) {
+  private val factory = object : PythonConfigurationFactoryBase(this) {
     override fun createTemplateConfiguration(project: Project): RunConfiguration = MicroPythonRunConfiguration(project, this)
   }
 

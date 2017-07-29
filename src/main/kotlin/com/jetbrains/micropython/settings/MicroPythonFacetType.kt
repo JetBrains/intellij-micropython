@@ -42,9 +42,8 @@ class MicroPythonFacetType : FacetType<MicroPythonFacet, MicroPythonFacetConfigu
   override fun createDefaultConfiguration() = MicroPythonFacetConfiguration()
 
   override fun createFacet(module: Module, name: String, configuration: MicroPythonFacetConfiguration,
-                           underlyingFacet: Facet<*>?): MicroPythonFacet {
-    return MicroPythonFacet(this, module, name, configuration, underlyingFacet)
-  }
+                           underlyingFacet: Facet<*>?) =
+      MicroPythonFacet(this, module, name, configuration, underlyingFacet)
 
   override fun isSuitableModuleType(moduleType: ModuleType<*>?) = moduleType is PythonModuleTypeBase
 
