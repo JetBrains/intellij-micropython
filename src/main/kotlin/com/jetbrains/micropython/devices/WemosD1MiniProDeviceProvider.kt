@@ -16,6 +16,7 @@
 
 package com.jetbrains.micropython.devices
 
+import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
 import com.jetbrains.python.packaging.PyRequirement
 
@@ -31,6 +32,10 @@ class WemosD1MiniProDeviceProvider : MicroPythonDeviceProvider {
 
   override val documentationURL: String
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini-Pro"
+
+  override val typeHints: MicroPythonTypeHints by lazy {
+    MicroPythonTypeHints("esp8266/latest")
+  }
 
   override val packageRequirements: List<PyRequirement> by lazy {
     PyRequirement.fromText("""pyserial>=3.3,<3.4""")
