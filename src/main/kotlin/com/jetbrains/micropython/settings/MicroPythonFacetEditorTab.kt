@@ -25,7 +25,7 @@ import javax.swing.JComponent
 class MicroPythonFacetEditorTab(val configuration: MicroPythonFacetConfiguration,
                                 private val facet: MicroPythonFacet) : FacetEditorTab() {
   private val panel: MicroPythonSettingsPanel by lazy {
-    MicroPythonSettingsPanel()
+    MicroPythonSettingsPanel(facet.module)
   }
 
   override fun isModified(): Boolean = panel.isModified(configuration)

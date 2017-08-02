@@ -76,7 +76,7 @@ class RunMicroReplAction : AnAction() {
   private fun getReplTerminalCommand(facet: MicroPythonFacet): List<String>? {
     val pythonPath = facet.pythonPath ?: return null
     val pluginPath = MicroPythonFacet.getPluginDescriptor().path
-    val port = facet.findSerialPorts().firstOrNull() ?: return null
+    val port = facet.findSerialPorts(facet.configuration.deviceProvider).firstOrNull() ?: return null
     return listOf(pythonPath, "$pluginPath/scripts/microrepl.py", port)
   }
 }

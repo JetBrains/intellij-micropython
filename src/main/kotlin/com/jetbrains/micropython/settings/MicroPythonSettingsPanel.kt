@@ -16,66 +16,94 @@
 
 package com.jetbrains.micropython.settings
 
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.util.ui.FormBuilder
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import java.awt.BorderLayout
-import java.awt.Component
-import javax.swing.BoxLayout
+import javax.swing.JButton
 import javax.swing.JList
 import javax.swing.JPanel
 
 /**
  * @author vlan
  */
-class MicroPythonSettingsPanel : JPanel() {
-  private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers, JBUI.scale(300))
+class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
+  private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers)
+  private val label = SwingHelper.createWebHyperlink("")
+  private val devicePath = TextFieldWithBrowseButton()
 
   init {
     layout = BorderLayout()
-    deviceTypeCombo.renderer = object: ListCellRendererWrapper<MicroPythonDeviceProvider>() {
-      override fun customize(list: JList<*>, value: MicroPythonDeviceProvider, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value.presentableName)
+    border = IdeBorderFactory.createEmptyBorder(UIUtil.PANEL_SMALL_INSETS)
+
+    val contentPanel = FormBuilder.createFormBuilder()
+        .addLabeledComponent("Device type:", deviceTypeCombo)
+        .addLabeledComponent("Device path:", JPanel(BorderLayout()).apply {
+          add(devicePath, BorderLayout.CENTER)
+          add(JButton("Detect").apply {
+            addActionListener {
+              val detectPath = {
+                val facet = MicroPythonFacet.getInstance(module)
+                val detected = facet?.findSerialPorts(selectedProvider)?.firstOrNull() ?: ""
+                ApplicationManager.getApplication().invokeLater {
+                  devicePath.text = detected
+                }
+              }
+              val progress = ProgressManager.getInstance()
+              progress.runProcessWithProgressSynchronously(detectPath, "Detecting Serial Ports",
+                                                           false, module.project, this)
+            }
+          }, BorderLayout.EAST)
+        })
+        .addComponent(label)
+        .panel
+
+    add(contentPanel, BorderLayout.NORTH)
+
+    deviceTypeCombo.apply {
+      renderer = object: ListCellRendererWrapper<MicroPythonDeviceProvider>() {
+        override fun customize(list: JList<*>, value: MicroPythonDeviceProvider, index: Int, selected: Boolean,
+                               hasFocus: Boolean) {
+          setText(value.presentableName)
+        }
+      }
+      addActionListener {
+        label.apply {
+          setHyperlinkTarget(selectedProvider.documentationURL)
+          setHyperlinkText("Learn more about setting up ${selectedProvider.presentableName} devices")
+          repaint()
+        }
       }
     }
 
-    val container = JPanel()
-    container.layout = BoxLayout(container, BoxLayout.Y_AXIS)
-
-    val contentPanel = FormBuilder.createFormBuilder().addLabeledComponent("Device:", deviceTypeCombo).panel
-    contentPanel.alignmentX = Component.LEFT_ALIGNMENT
-    container.add(contentPanel)
-
-    val label = SwingHelper.createWebHyperlink("")
-    label.alignmentX = Component.LEFT_ALIGNMENT
-    container.add(label)
-
-    deviceTypeCombo.addActionListener {
-      val provider = deviceTypeCombo.selectedItem as MicroPythonDeviceProvider
-      label.setHyperlinkTarget(provider.documentationURL)
-      label.setHyperlinkText("Learn more about setting up ${provider.presentableName} devices")
-      label.repaint()
+    devicePath.apply {
+      val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
+      addBrowseFolderListener("My Title", null, module.project, descriptor)
     }
-
-    add(container, BorderLayout.NORTH)
-
-    border = IdeBorderFactory.createEmptyBorder(UIUtil.PANEL_SMALL_INSETS)
   }
 
-  fun isModified(configuration: MicroPythonFacetConfiguration): Boolean = deviceTypeCombo.selectedItem != configuration.deviceProvider
+  fun isModified(configuration: MicroPythonFacetConfiguration): Boolean =
+      deviceTypeCombo.selectedItem != configuration.deviceProvider
 
   fun getDisplayName(): String = "MicroPython"
 
   fun apply(configuration: MicroPythonFacetConfiguration) {
-    configuration.deviceProvider = deviceTypeCombo.selectedItem as MicroPythonDeviceProvider
+    configuration.deviceProvider = selectedProvider
   }
 
   fun reset(configuration: MicroPythonFacetConfiguration) {
     deviceTypeCombo.selectedItem = configuration.deviceProvider
   }
+
+  private val selectedProvider: MicroPythonDeviceProvider
+    get() = deviceTypeCombo.selectedItem as MicroPythonDeviceProvider
 }

@@ -31,7 +31,7 @@ import javax.swing.JPanel
  */
 class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
   private val panel: MicroPythonSettingsPanel by lazy {
-    MicroPythonSettingsPanel()
+    MicroPythonSettingsPanel(module)
   }
 
   private val enabledCheckbox by lazy {

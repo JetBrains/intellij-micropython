@@ -27,6 +27,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
+import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import com.jetbrains.python.facet.FacetLibraryConfigurator
 import com.jetbrains.python.facet.LibraryContributingFacet
 import com.jetbrains.python.packaging.PyPackageManager
@@ -90,11 +91,11 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     return ValidationResult.OK
   }
 
-  fun findSerialPorts(): List<String> {
+  fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider): List<String> {
     val TIMEOUT = 500
     val pythonPath = pythonPath ?: return emptyList()
     val pluginPath = MicroPythonFacet.getPluginDescriptor().path
-    val (vendorId, productId) = configuration.deviceProvider.usbId ?: return emptyList()
+    val (vendorId, productId) = deviceProvider.usbId ?: return emptyList()
     val process = CapturingProcessHandler(GeneralCommandLine(pythonPath, "$pluginPath/scripts/findusb.py",
                                                              vendorId.toString(),
                                                              productId.toString()))
