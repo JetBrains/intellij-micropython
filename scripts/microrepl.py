@@ -8,6 +8,7 @@ import sys
 import serial
 import serial.tools.miniterm
 from serial.tools.miniterm import Console, Miniterm, key_description
+from time import sleep
 
 console = Console()
 
@@ -81,6 +82,7 @@ def main():
     miniterm.set_rx_encoding('utf-8')
     miniterm.set_tx_encoding('utf-8')
     miniterm.start()
+    sleep(0.5)
     miniterm.serial.write(b'\x03')  # Connecting stops the running program.
     try:
         miniterm.join(True)
