@@ -21,6 +21,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ListCellRendererWrapper
@@ -53,9 +54,13 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
             addActionListener {
               val detectPath = {
                 val facet = MicroPythonFacet.getInstance(module)
-                val detected = facet?.findSerialPorts(selectedProvider)?.firstOrNull() ?: ""
+                val detected = facet?.findSerialPorts(selectedProvider)?.firstOrNull()
                 ApplicationManager.getApplication().invokeLater {
-                  devicePath.text = detected
+                  if (detected == null) {
+                    Messages.showErrorDialog(this,
+                                             "No devices detected. Specify the device path manually.")
+                  }
+                  devicePath.text = detected ?: ""
                 }
               }
               val progress = ProgressManager.getInstance()
