@@ -42,6 +42,7 @@
     <projectConfigurable groupId="language"
                          id="com.jetbrains.micropython.configurable"
                          provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
+    <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
     <localInspection language="Python"
                      displayName="MicroPython requirements inspection"
                      groupName="MicroPython"

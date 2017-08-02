@@ -27,6 +27,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
+import com.intellij.util.text.nullize
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import com.jetbrains.python.facet.FacetLibraryConfigurator
 import com.jetbrains.python.facet.LibraryContributingFacet
@@ -106,6 +107,12 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
 
   val pythonPath: String?
     get() = PythonSdkType.findPythonSdk(module)?.homePath
+
+  var devicePath: String?
+    get() = MicroPythonDevicesConfiguration.getInstance(module.project).devicePath.nullize(true)
+    set(value) {
+      MicroPythonDevicesConfiguration.getInstance(module.project).devicePath = value ?: ""
+    }
 
   private fun removeLegacyLibraries() {
     FacetLibraryConfigurator.detachPythonLibrary(module, "Micro:bit")

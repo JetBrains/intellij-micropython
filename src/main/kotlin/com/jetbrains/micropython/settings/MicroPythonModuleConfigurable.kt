@@ -48,7 +48,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
 
     if (enabledCheckbox.isSelected != enabled) return true
     val c = facet?.configuration ?: return false
-    return panel.isModified(c)
+    return panel.isModified(c, facet)
   }
 
   override fun getDisplayName() = "MicroPython"
@@ -60,13 +60,13 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
 
     if (enabledCheckbox.isSelected) {
       if (facet != null) {
-        panel.apply(facet.configuration)
+        panel.apply(facet.configuration, facet)
         facet.updateLibrary()
       }
       else {
         val facetType = MicroPythonFacetType.getInstance()
         val newFacet = facetManager.createFacet(facetType, facetType.defaultFacetName, null)
-        panel.apply(newFacet.configuration)
+        panel.apply(newFacet.configuration, newFacet)
 
         val facetModel = facetManager.createModifiableModel()
         facetModel.addFacet(newFacet)
@@ -100,7 +100,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
     update()
 
     if (facet != null) {
-      panel.reset(facet.configuration)
+      panel.reset(facet.configuration, facet)
     }
   }
 

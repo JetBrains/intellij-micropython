@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.util.text.nullize
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
@@ -96,17 +97,20 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     }
   }
 
-  fun isModified(configuration: MicroPythonFacetConfiguration): Boolean =
+  fun isModified(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet): Boolean =
       deviceTypeCombo.selectedItem != configuration.deviceProvider
+          || devicePath.text.nullize(true) != facet.devicePath
 
   fun getDisplayName(): String = "MicroPython"
 
-  fun apply(configuration: MicroPythonFacetConfiguration) {
+  fun apply(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     configuration.deviceProvider = selectedProvider
+    facet.devicePath = devicePath.text.nullize(true)
   }
 
-  fun reset(configuration: MicroPythonFacetConfiguration) {
+  fun reset(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     deviceTypeCombo.selectedItem = configuration.deviceProvider
+    devicePath.text = facet.devicePath ?: ""
   }
 
   private val selectedProvider: MicroPythonDeviceProvider
