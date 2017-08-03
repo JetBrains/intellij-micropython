@@ -5,10 +5,12 @@ in order to bring up the Python REPL.
 """
 
 import sys
+import errno
+from time import sleep
+
 import serial
 import serial.tools.miniterm
 from serial.tools.miniterm import Console, Miniterm, key_description
-from time import sleep
 
 console = Console()
 
@@ -32,7 +34,11 @@ def connect_miniterm(port):
                             xonxoff=False)
         return Miniterm(ser, echo=False)
     except serial.SerialException as e:
-        if e.errno == 16:
+        if e.errno == errno.ENOENT:
+            sys.stderr.write(
+                "Device %r not found. Check your "
+                "MicroPython device path settings.\n" % port)
+        elif e.errno == errno.EBUSY:
             # Device is busy. Explain what to do.
             sys.stderr.write(
                 "Found the device, but it is busy. "
@@ -41,19 +47,19 @@ def connect_miniterm(port):
                 "back of the device next to the yellow light; "
                 "then try again.\n"
             )
-        elif e.errno == 13:
+        elif e.errno == errno.EACCES:
             print("Found the device, but could not connect.".format(port),
                   file=sys.stderr)
             print(e, file=sys.stderr)
             print('On linux, try adding yourself to the "dialout" group',
                   file=sys.stderr)
             print('sudo usermod -a -G dialout <your-username>', file=sys.stderr)
-
         else:
             # Try to be as helpful as possible.
             sys.stderr.write("Found the device, but could not connect via" +
                              " port %r: %s\n" % (port, e))
             sys.stderr.write("I'm not sure what to suggest. :-(\n")
+        input("Press ENTER to continue")
         sys.exit(1)
 
 
@@ -65,10 +71,7 @@ def main():
         print("Usage: microrepl.py /path/to/device")
 
     port = sys.argv[1]
-    print('port', port)
-    if not port:
-        sys.stderr.write('Could not find the device. Is it plugged in?\n')
-        sys.exit(0)
+    print('Device path', port)
     serial.tools.miniterm.EXITCHARCTER = character(b'\x1d')
     miniterm = connect_miniterm(port)
     # Emit some helpful information about the program and MicroPython.
