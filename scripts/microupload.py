@@ -55,14 +55,15 @@ def main(args: List[str]) -> None:
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
     files = Files(board)
+    rel_root = os.path.relpath(root, os.getcwd())
 
     wait_for_board()
 
     if os.path.isdir(root):
-        to_upload = [os.path.join(root, x)
+        to_upload = [os.path.join(rel_root, x)
                      for x in list_files(root, opts['--exclude'])]
     else:
-        to_upload = [os.path.relpath(root, os.getcwd())]
+        to_upload = [rel_root]
 
     created_cache = set()
     for path in progress('Uploading files', to_upload):

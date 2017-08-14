@@ -30,7 +30,7 @@ class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : S
   private val pathField = TextFieldWithBrowseButton()
 
   init {
-    val descriptor = object : FileChooserDescriptor(true, false, false, false, false, false) {
+    val descriptor = object : FileChooserDescriptor(true, true, false, false, false, false) {
       override fun isFileVisible(file: VirtualFile?, showHiddenFiles: Boolean) =
           file != null && (file.isDirectory || file.extension == null || Comparing.equal(file.extension, "py"))
     }
