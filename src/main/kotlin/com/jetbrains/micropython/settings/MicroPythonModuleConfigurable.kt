@@ -43,7 +43,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
   }
 
   override fun isModified(): Boolean {
-    val facet = MicroPythonFacet.getInstance(module)
+    val facet = module.microPythonFacet
     val enabled = facet != null
 
     if (enabledCheckbox.isSelected != enabled) return true
@@ -54,7 +54,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
   override fun getDisplayName() = "MicroPython"
 
   override fun apply() {
-    val facet = MicroPythonFacet.getInstance(module)
+    val facet = module.microPythonFacet
     val application = ApplicationManager.getApplication()
     val facetManager = FacetManager.getInstance(module)
 
@@ -92,7 +92,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
   }
 
   override fun reset() {
-    val facet = MicroPythonFacet.getInstance(module)
+    val facet = module.microPythonFacet
     val enabled = facet != null
 
     enabledCheckbox.isSelected = enabled

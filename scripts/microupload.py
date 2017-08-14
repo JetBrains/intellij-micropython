@@ -70,14 +70,14 @@ def main(args: List[str]) -> None:
         remote_path = os.path.normpath(path)
         if verbose:
             print('\n{} -> {}'.format(local_path, remote_path),
-                  file=sys.stderr)
+                  file=sys.stderr, flush=True)
         remote_dir = os.path.dirname(path)
         if remote_dir:
             make_dirs(files, remote_dir, created_cache)
         with open(local_path, 'rb') as fd:
             files.put(remote_path, fd.read())
 
-    print('Soft reboot', file=sys.stderr)
+    print('Soft reboot', file=sys.stderr, flush=True)
     soft_reset(board)
 
 
@@ -123,11 +123,14 @@ def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:
     """Show progress while iterating over a sequence."""
     size = len(xs)
     sys.stderr.write('\r{}: 0% (0/{})'.format(msg, size))
+    sys.stderr.flush()
     for i, x in enumerate(xs, 1):
         yield x
         s = '{0}: {1}% ({2}/{3})'.format(msg, int(i * 100 / size), i, size)
         sys.stderr.write('\r' + s)
+        sys.stderr.flush()
     sys.stderr.write('\n')
+    sys.stderr.flush()
 
 
 if __name__ == '__main__':

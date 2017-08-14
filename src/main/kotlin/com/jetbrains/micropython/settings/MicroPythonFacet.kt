@@ -47,13 +47,12 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   companion object {
     private val PLUGIN_ID = "intellij-micropython"
 
-    fun getPluginDescriptor(): IdeaPluginDescriptor {
-      val plugin = PluginManager.getPlugin(PluginId.getId(PLUGIN_ID))
-      plugin ?: throw RuntimeException("The plugin cannot find itself")
-      return plugin
-    }
+    val scriptsPath: String
+      get() = "${pluginDescriptor.path}/scripts"
 
-    fun getInstance(module: Module) = FacetManager.getInstance(module).getFacetByType(MicroPythonFacetType.ID)
+    private val pluginDescriptor: IdeaPluginDescriptor
+      get() = PluginManager.getPlugin(PluginId.getId(PLUGIN_ID)) ?:
+          throw RuntimeException("The $PLUGIN_ID plugin cannot find itself")
   }
 
   override fun initFacet() {
@@ -62,7 +61,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
 
   override fun updateLibrary() {
     val typeHints = configuration.deviceProvider.typeHints
-    val plugin = getPluginDescriptor()
+    val plugin = pluginDescriptor
     val paths = if (typeHints != null) listOf("${plugin.path}/typehints/${typeHints.path}") else emptyList()
     FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", paths)
     removeLegacyLibraries()
@@ -95,9 +94,9 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider): List<String> {
     val TIMEOUT = 500
     val pythonPath = pythonPath ?: return emptyList()
-    val pluginPath = MicroPythonFacet.getPluginDescriptor().path
     val (vendorId, productId) = deviceProvider.usbId ?: return emptyList()
-    val process = CapturingProcessHandler(GeneralCommandLine(pythonPath, "$pluginPath/scripts/findusb.py",
+    val process = CapturingProcessHandler(GeneralCommandLine(pythonPath,
+                                                             "$scriptsPath/findusb.py",
                                                              vendorId.toString(),
                                                              productId.toString()))
     val output = process.runProcess(TIMEOUT)
@@ -118,3 +117,6 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     FacetLibraryConfigurator.detachPythonLibrary(module, "Micro:bit")
   }
 }
+
+val Module.microPythonFacet: MicroPythonFacet?
+  get() = FacetManager.getInstance(this).getFacetByType(MicroPythonFacetType.ID)

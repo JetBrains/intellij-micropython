@@ -27,28 +27,30 @@ import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 
 class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : SettingsEditor<MicroPythonRunConfiguration>() {
-  private val scriptPathField = TextFieldWithBrowseButton()
+  private val pathField = TextFieldWithBrowseButton()
+
   init {
     val descriptor = object : FileChooserDescriptor(true, false, false, false, false, false) {
       override fun isFileVisible(file: VirtualFile?, showHiddenFiles: Boolean) =
           file != null && (file.isDirectory || file.extension == null || Comparing.equal(file.extension, "py"))
     }
-    scriptPathField.addActionListener(ComponentWithBrowseButton.BrowseFolderActionListener("Select Script", "",
-                                                                                           scriptPathField,
-                                                                                           config.project, descriptor,
-                                                                                           TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT))
+    val listener = ComponentWithBrowseButton.BrowseFolderActionListener("Select Path", "",
+                                                                        pathField,
+                                                                        config.project, descriptor,
+                                                                        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
+    pathField.addActionListener(listener)
   }
 
   override fun createEditor(): JComponent =
       FormBuilder.createFormBuilder()
-          .addLabeledComponent("Script:", scriptPathField)
+          .addLabeledComponent("Path:", pathField)
           .panel
 
   override fun applyEditorTo(s: MicroPythonRunConfiguration) {
-    s.scriptPath = scriptPathField.text
+    s.path = pathField.text
   }
 
   override fun resetEditorFrom(s: MicroPythonRunConfiguration) {
-    scriptPathField.text = s.scriptPath
+    pathField.text = s.path
   }
 }

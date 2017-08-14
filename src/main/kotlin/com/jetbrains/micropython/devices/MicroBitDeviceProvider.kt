@@ -23,6 +23,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
+import com.jetbrains.micropython.settings.microPythonFacet
 import com.jetbrains.python.packaging.PyRequirement
 
 /**
@@ -51,14 +52,13 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
     get() = linkedSetOf("microbit")
 
   override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
-                                      environment: ExecutionEnvironment) =
-      object : CommandLineState(environment) {
-        override fun startProcess() =
-            OSProcessHandler(GeneralCommandLine(configuration.selectedSdkPath,
-                                                "-m",
-                                                "uflash",
-                                                configuration.scriptPath))
-      }
+                                      environment: ExecutionEnvironment): CommandLineState? {
+    val pythonPath = configuration.module?.microPythonFacet?.pythonPath ?: return null
+    return object : CommandLineState(environment) {
+      override fun startProcess() =
+          OSProcessHandler(GeneralCommandLine(pythonPath, "-m", "uflash", configuration.path))
+    }
+  }
 
   override val isDefault: Boolean
     get() = true

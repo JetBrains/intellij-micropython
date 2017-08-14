@@ -54,8 +54,7 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
           add(JButton("Detect").apply {
             addActionListener {
               val detectPath = {
-                val facet = MicroPythonFacet.getInstance(module)
-                val detected = facet?.findSerialPorts(selectedProvider)?.firstOrNull()
+                val detected = module.microPythonFacet?.findSerialPorts(selectedProvider)?.firstOrNull()
                 ApplicationManager.getApplication().invokeLater {
                   if (detected == null) {
                     Messages.showErrorDialog(this,

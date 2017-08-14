@@ -25,7 +25,9 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.jetbrains.micropython.settings.MicroPythonFacet
+import com.jetbrains.micropython.settings.MicroPythonFacet.Companion.scriptsPath
 import com.jetbrains.micropython.settings.MicroPythonFacetType
+import com.jetbrains.micropython.settings.microPythonFacet
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
 import org.jetbrains.plugins.terminal.TerminalView
 
@@ -70,13 +72,12 @@ class RunMicroReplAction : AnAction() {
 
   private fun getFacet(project: Project) = ModuleManager.getInstance(project).modules
       .asSequence()
-      .map { MicroPythonFacet.getInstance(it) }
+      .map { it.microPythonFacet }
       .firstOrNull()
 
   private fun getReplTerminalCommand(facet: MicroPythonFacet): List<String>? {
     val pythonPath = facet.pythonPath ?: return null
-    val pluginPath = MicroPythonFacet.getPluginDescriptor().path
     val devicePath = facet.devicePath ?: return null
-    return listOf(pythonPath, "$pluginPath/scripts/microrepl.py", devicePath)
+    return listOf(pythonPath, "$scriptsPath/microrepl.py", devicePath)
   }
 }

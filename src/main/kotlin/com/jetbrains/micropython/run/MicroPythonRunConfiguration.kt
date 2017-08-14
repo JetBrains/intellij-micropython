@@ -20,83 +20,69 @@ import com.intellij.execution.Executor
 import com.intellij.execution.configuration.AbstractRunConfiguration
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
-import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.facet.FacetManager
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.PathUtil
 import com.intellij.util.attribute
-import com.jetbrains.micropython.settings.MicroPythonFacet
-import com.jetbrains.micropython.settings.MicroPythonFacetType
-import com.jetbrains.python.sdk.PythonSdkType
+import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
 
 /**
  * @author Mikhail Golubev
  */
-class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFactory?) : AbstractRunConfiguration(project, factory),
-                                                                                       RunConfigurationWithSuppressedDefaultDebugAction {
-  var scriptPath: String = ""
+class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFactory?)
+  : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
+
+  var path: String = ""
   
-  // Module is either set up in run configuration provider or the first suitable is used instead 
-  private val module: Module?
-    get() = modules.getOrElse(0, {validModules.firstOrNull()})
-
-  // Find selected SDK properly
-  val selectedSdkPath: String? get() {
-    // TODO: find the actual module of a script 
-    val pySdk = PythonSdkType.findPythonSdk(module)
-    return pySdk?.homePath
-  }
-
   override fun getValidModules() =
-      allModules
-          .filter { FacetManager.getInstance(it)?.getFacetByType(MicroPythonFacetType.ID) != null }
-          .toMutableList()
+      allModules.filter { it.microPythonFacet != null }.toMutableList()
 
   override fun getConfigurationEditor() = MicroPythonRunConfigurationEditor(this)
 
-  override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
-    val m = module ?: return null
-    val deviceProvider = MicroPythonFacet.getInstance(m)?.configuration?.deviceProvider ?: return null
-    return deviceProvider.getRunCommandLineState(this, environment)
-  }
+  override fun getState(executor: Executor, environment: ExecutionEnvironment) =
+      module?.microPythonFacet?.configuration?.deviceProvider?.getRunCommandLineState(this, environment)
 
   override fun checkConfiguration() {
     super.checkConfiguration()
-    if (StringUtil.isEmpty(scriptPath)) {
-      throw RuntimeConfigurationError("Script is not specified")
+    if (StringUtil.isEmpty(path)) {
+      throw RuntimeConfigurationError("Path is not specified")
     }
-    if (selectedSdkPath == null) {
-      throw RuntimeConfigurationError("SDK is not selected")
+    val m = module ?: throw RuntimeConfigurationError("Module for path is not found")
+    val facet = m.microPythonFacet ?:
+        throw RuntimeConfigurationError("MicroPython support is not enabled for selected module")
+    val validationResult = facet.checkValid()
+    if (validationResult != ValidationResult.OK) {
+      throw RuntimeConfigurationError(validationResult.errorMessage)
     }
-    val activeModule = module
-    if (activeModule != null) {
-      val facet = FacetManager.getInstance(activeModule)?.getFacetByType(MicroPythonFacetType.ID)
-      val validationResult = facet?.checkValid()
-      if (validationResult != null && validationResult != ValidationResult.OK) {
-        throw RuntimeConfigurationError(validationResult.errorMessage)
-      }
-    }
+    facet.pythonPath ?: throw RuntimeConfigurationError("Python interpreter is not found")
   }
 
-  override fun suggestedName() = "Flash ${PathUtil.getFileName(scriptPath)} to device"
+  override fun suggestedName() = "Flash ${PathUtil.getFileName(path)}"
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
-    element.attribute("scriptPath", scriptPath)
+    element.attribute("path", path)
   }
 
   override fun readExternal(element: Element) {
     super.readExternal(element)
     configurationModule.readExternal(element)
-    element.getAttributeValue("scriptPath")?.let {
-      scriptPath = it
+    element.getAttributeValue("path")?.let {
+      path = it
     }
   }
+
+  val module: Module?
+    get() {
+      val file = StandardFileSystems.local().findFileByPath(path) ?: return null
+      return ModuleUtil.findModuleForFile(file, project)
+    }
 }
 
