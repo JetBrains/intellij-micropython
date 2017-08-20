@@ -65,11 +65,11 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     val boardTypeHints = configuration.deviceProvider.typeHints
 
     if (boardTypeHints != null) {
-        boardHintsPaths = boardTypeHints.paths.map {
-            "${plugin.path}/typehints/${it}"
-        }
+      boardHintsPaths = boardTypeHints.paths.map {
+          "${plugin.path}/typehints/${it}"
+      }
     } else {
-        boardHintsPaths = emptyList()
+      boardHintsPaths = emptyList()
     }
 
     FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
