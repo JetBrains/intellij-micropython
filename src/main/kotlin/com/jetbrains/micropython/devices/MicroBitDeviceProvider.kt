@@ -45,7 +45,7 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   }
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints("microbit")
+    MicroPythonTypeHints(listOf("microbit"))
   }
 
   override val detectedModuleNames: Set<String>

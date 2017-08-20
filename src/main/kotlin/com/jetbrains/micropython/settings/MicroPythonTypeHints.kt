@@ -19,4 +19,4 @@ package com.jetbrains.micropython.settings
 /**
  * @author vlan
  */
-data class MicroPythonTypeHints(val path: String)
+data class MicroPythonTypeHints(val paths: List<String>)

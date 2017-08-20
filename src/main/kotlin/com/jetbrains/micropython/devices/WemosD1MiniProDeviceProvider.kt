@@ -34,7 +34,7 @@ class WemosD1MiniProDeviceProvider : MicroPythonDeviceProvider {
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini-Pro"
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints("esp8266")
+    MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
   }
 
   override val packageRequirements: List<PyRequirement> by lazy {

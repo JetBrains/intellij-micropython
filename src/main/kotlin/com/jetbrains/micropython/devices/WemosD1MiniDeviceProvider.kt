@@ -25,7 +25,7 @@ class WemosD1MiniDeviceProvider : MicroPythonDeviceProvider {
     get() = MicroPythonUsbId(0x1A86, 0x7523)
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints("esp8266")
+    MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
   }
 
   override val packageRequirements: List<PyRequirement> by lazy {
