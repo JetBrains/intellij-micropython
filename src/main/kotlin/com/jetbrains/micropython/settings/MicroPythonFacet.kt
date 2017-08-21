@@ -60,7 +60,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   }
 
   override fun updateLibrary() {
-    val plugin = getPluginDescriptor()
+    val plugin = pluginDescriptor
     val boardHintsPaths: List<String>
     val boardTypeHints = configuration.deviceProvider.typeHints
 
