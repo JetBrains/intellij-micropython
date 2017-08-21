@@ -61,17 +61,9 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
 
   override fun updateLibrary() {
     val plugin = pluginDescriptor
-    val boardHintsPaths: List<String>
-    val boardTypeHints = configuration.deviceProvider.typeHints
-
-    if (boardTypeHints != null) {
-      boardHintsPaths = boardTypeHints.paths.map {
-          "${plugin.path}/typehints/${it}"
-      }
-    } else {
-      boardHintsPaths = emptyList()
-    }
-
+    val boardHintsPaths = configuration.deviceProvider.typeHints?.paths?.map {
+      "${plugin.path}/typehints/$it"
+    } ?: emptyList()
     FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
     removeLegacyLibraries()
   }
