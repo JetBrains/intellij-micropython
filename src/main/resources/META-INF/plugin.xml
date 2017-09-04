@@ -54,6 +54,7 @@
     <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.WemosD1MiniDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.WemosD1MiniProDeviceProvider"/>
+    <deviceProvider implementation="com.jetbrains.micropython.devices.PyboardDeviceProvider"/>
   </extensions>
 
   <actions>
