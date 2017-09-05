@@ -1,22 +1,34 @@
 """Find USB devices."""
 
 import sys
-from typing import Iterable
+from typing import Iterable, Tuple, List
 from serial.tools.list_ports import comports
 
 
-def find_devices(*, vendor_id: int, product_id: int) -> Iterable[str]:
+def find_devices(ids: List[Tuple[int, int]]) -> Iterable[str]:
     for port in comports():
-        if port.vid == vendor_id and port.pid == product_id:
+        if (port.vid, port.pid) in ids:
             yield port.device
 
 
+def parse_int(s: str) -> int:
+    if s.startswith('0x'):
+        return int(s, 16)
+    else:
+        return int(s)
+
+
+def parse_id(arg: str) -> Tuple[int, int]:
+    vendor_id, port_id = arg.split(':', 1)
+    return parse_int(vendor_id), parse_int(port_id)
+
+
 def main() -> None:
-    if len(sys.argv) != 3:
-        print('Usage: findusb.py vendor_id port_id', file=sys.stderr)
+    if len(sys.argv) < 2:
+        print('Usage: findusb.py vendor_id:port_id...', file=sys.stderr)
         sys.exit(1)
-    for device in find_devices(vendor_id=int(sys.argv[1]),
-                               product_id=int(sys.argv[2])):
+    ids = [parse_id(arg) for arg in sys.argv[1:]]
+    for device in find_devices(ids):
         print(device)
 
 

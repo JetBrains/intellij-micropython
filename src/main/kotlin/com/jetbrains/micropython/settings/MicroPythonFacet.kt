@@ -95,11 +95,9 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider): List<String> {
     val TIMEOUT = 500
     val pythonPath = pythonPath ?: return emptyList()
-    val (vendorId, productId) = deviceProvider.usbId ?: return emptyList()
-    val process = CapturingProcessHandler(GeneralCommandLine(pythonPath,
-                                                             "$scriptsPath/findusb.py",
-                                                             vendorId.toString(),
-                                                             productId.toString()))
+    val ids = deviceProvider.usbIds.map { (vendor_id, product_id) -> "$vendor_id:$product_id" }
+    val command = listOf(pythonPath, "$scriptsPath/findusb.py") + ids
+    val process = CapturingProcessHandler(GeneralCommandLine(command))
     val output = process.runProcess(TIMEOUT)
     if (output.exitCode != 0) return emptyList()
     return output.stdoutLines

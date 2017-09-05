@@ -27,8 +27,8 @@ class WemosD1MiniProDeviceProvider : MicroPythonDeviceProvider {
   override val persistentName: String
     get() = "WEMOS D1 mini Pro"
 
-  override val usbId: MicroPythonUsbId?
-    get() = MicroPythonUsbId(0x10C4, 0xEA60)
+  override val usbIds: List<MicroPythonUsbId>
+    get() = listOf(MicroPythonUsbId(0x10C4, 0xEA60))
 
   override val documentationURL: String
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini-Pro"

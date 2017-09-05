@@ -21,8 +21,8 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
     override val documentationURL: String
         get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard"
 
-    override val usbId: MicroPythonUsbId?
-        get() = MicroPythonUsbId(0xF055, 0x9800)
+    override val usbIds: List<MicroPythonUsbId>
+        get() = listOf(MicroPythonUsbId(0xF055, 0x9800))
 
     override val typeHints: MicroPythonTypeHints by lazy {
         MicroPythonTypeHints(listOf("stdlib", "micropython"))

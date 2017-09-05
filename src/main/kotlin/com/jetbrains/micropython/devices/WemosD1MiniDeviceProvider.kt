@@ -21,8 +21,8 @@ class WemosD1MiniDeviceProvider : MicroPythonDeviceProvider {
   override val documentationURL: String
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini"
 
-  override val usbId: MicroPythonUsbId?
-    get() = MicroPythonUsbId(0x1A86, 0x7523)
+  override val usbIds: List<MicroPythonUsbId>
+    get() = listOf(MicroPythonUsbId(0x1A86, 0x7523))
 
   override val typeHints: MicroPythonTypeHints by lazy {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
