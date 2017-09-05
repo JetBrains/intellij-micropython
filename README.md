@@ -14,8 +14,8 @@ That's all for now!
 This plugin is in its early beta. It will support more MicroPython devices eventually. We are interested in code
 contributions for other devices, especially for these ones:
 
-* PyBoard
-* ESP8266-based devices
+* PyBoard (initial support is available in master)
+* ESP8266-based devices (initial support is available in master)
 * Teensy
 
 
@@ -31,7 +31,7 @@ contributions for other devices, especially for these ones:
 
 ## Requirements
 
-* IntelliJ 2017.2 or PyCharm 2017.2
+* IntelliJ 2017.1 or PyCharm 2017.1 (the master branch requires IntelliJ 2017.2 or PyCharm 2017.2)
 * Python 3.5+
 
 
