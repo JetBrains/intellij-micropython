@@ -57,9 +57,11 @@
   </extensions>
 
   <actions>
-    <action id="RunMicroReplAction" class="com.jetbrains.micropython.RunMicroReplAction"
-            text="MicroPython REPL" description="Run MicroPython REPL in Terminal">
-      <add-to-group group-id="ToolsMenu" anchor="last"/>
-    </action>
+    <group text="MicroPython" id="micropython" popup="true" icon="/Logo.png">
+      <add-to-group group-id="ToolsMenu"/>
+      <action id="RunMicroReplAction" class="com.jetbrains.micropython.RunMicroReplAction"
+              text="MicroPython REPL" description="Run MicroPython REPL in Terminal" icon="/Logo.png">
+      </action>
+    </group>
   </actions>
 </idea-plugin>
