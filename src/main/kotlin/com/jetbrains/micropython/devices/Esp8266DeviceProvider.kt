@@ -14,15 +14,16 @@ import com.jetbrains.python.packaging.PyRequirement
 /**
  * @author vlan
  */
-class WemosD1MiniDeviceProvider : MicroPythonDeviceProvider {
+class Esp8266DeviceProvider : MicroPythonDeviceProvider {
   override val persistentName: String
-    get() = "WEMOS D1 mini"
+    get() = "ESP 8266"
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/WEMOS-D1-mini"
+    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/ESP-8266"
 
   override val usbIds: List<MicroPythonUsbId>
-    get() = listOf(MicroPythonUsbId(0x1A86, 0x7523))
+    get() = listOf(MicroPythonUsbId(0x1A86, 0x7523),
+                   MicroPythonUsbId(0x10C4, 0xEA60))
 
   override val typeHints: MicroPythonTypeHints by lazy {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
