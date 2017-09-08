@@ -16,8 +16,6 @@
 
 package com.jetbrains.micropython
 
-import com.intellij.execution.Executor
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,7 +31,6 @@ import org.jetbrains.plugins.terminal.TerminalView
 /**
  * @author Mikhail Golubev
  */
-
 class RunMicroReplAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent?) {
     val project = e?.project ?: return
@@ -50,9 +47,6 @@ class RunMicroReplAction : AnAction() {
 
     TerminalView.getInstance(project).createNewSession(project, object : LocalTerminalDirectRunner(project) {
       override fun getCommand(envs: MutableMap<String, String>?) = command.toTypedArray()
-
-      override fun createCloseAction(defaultExecutor: Executor?, myDescriptor: RunContentDescriptor?) =
-          super.createCloseAction(defaultExecutor, myDescriptor)
     })
   }
 
