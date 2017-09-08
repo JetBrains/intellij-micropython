@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jetbrains.micropython
+package com.jetbrains.micropython.actions
 
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.AnAction

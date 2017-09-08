@@ -59,7 +59,7 @@
   <actions>
     <group text="MicroPython" id="micropython" popup="true" icon="/Logo.png">
       <add-to-group group-id="ToolsMenu"/>
-      <action id="RunMicroReplAction" class="com.jetbrains.micropython.RunMicroReplAction"
+      <action id="RunMicroReplAction" class="com.jetbrains.micropython.actions.RunMicroReplAction"
               text="MicroPython REPL" description="Run MicroPython REPL in Terminal" icon="/Logo.png">
       </action>
     </group>
