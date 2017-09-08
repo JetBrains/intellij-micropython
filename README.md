@@ -1,5 +1,7 @@
 # MicroPython Support for IntelliJ and PyCharm
 
+[![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
+
 The plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA](https://www.jetbrains.com/idea/) and
 [PyCharm](https://www.jetbrains.com/pycharm/).
 
