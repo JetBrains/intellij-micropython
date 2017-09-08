@@ -47,7 +47,7 @@
                      displayName="MicroPython requirements inspection"
                      groupName="MicroPython"
                      enabledByDefault="true"
-                     implementationClass="com.jetbrains.micropython.MicroPythonRequirementsInspection"/>
+                     implementationClass="com.jetbrains.micropython.inspections.MicroPythonRequirementsInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.jetbrains.micropython">

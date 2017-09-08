@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jetbrains.micropython
+package com.jetbrains.micropython.inspections
 
 import com.intellij.codeInspection.*
 import com.intellij.facet.ui.FacetConfigurationQuickFix
