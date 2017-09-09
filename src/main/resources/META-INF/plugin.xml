@@ -2,6 +2,13 @@
   <name>MicroPython Support</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>Unreleased:</p>
+      <ul>
+        <li>Run files and REPL for ESP8266 and Pyboard devices</li>
+        <li>Initial code insight for ESP8266 and MicroPython standard library</li>
+        <li>Action for detecting the device path in the MicroPython settings</li>
+        <li>Action for removing all files from the device</li>
+      </ul>
       <p>0.1:</p>
       <ul>
         <li>Code insight and documentation for Micro:bit Python API</li>
@@ -13,12 +20,12 @@
       <p>Support for MicroPython devices in IntelliJ IDEA and PyCharm.</p>
       <p>Features:</p>
       <ul>
-        <li>Code completion and docs for MicroPython modules</li>
-        <li>Flash a Python file to a device</li>
+        <li>Code completion and docs for some ESP8266, Pyboard, and MicroPython modules</li>
+        <li>Flash a Python file or directory to a device</li>
         <li>Run REPL on a device</li>
       </ul>
-      <p>Currently the plugin supports only Micro:bit devices. Your feedback and contributions are welcome!
-        See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
+      <p>Currently the plugin supports ESP8266, Pyboard, and Micro:bit devices. Your feedback and contributions are
+        welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
   <version>SNAPSHOT</version>
   <vendor>JetBrains</vendor>
