@@ -27,6 +27,8 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import com.intellij.util.text.nullize
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import com.jetbrains.python.facet.FacetLibraryConfigurator
@@ -93,12 +95,12 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   }
 
   fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider): List<String> {
-    val TIMEOUT = 500
+    val timeout = 500
     val pythonPath = pythonPath ?: return emptyList()
     val ids = deviceProvider.usbIds.map { (vendor_id, product_id) -> "$vendor_id:$product_id" }
     val command = listOf(pythonPath, "$scriptsPath/findusb.py") + ids
     val process = CapturingProcessHandler(GeneralCommandLine(command))
-    val output = process.runProcess(TIMEOUT)
+    val output = process.runProcess(timeout)
     if (output.exitCode != 0) return emptyList()
     return output.stdoutLines
   }
@@ -119,3 +121,9 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
 
 val Module.microPythonFacet: MicroPythonFacet?
   get() = FacetManager.getInstance(this).getFacetByType(MicroPythonFacetType.ID)
+
+val Project.firstMicroPythonFacet: MicroPythonFacet?
+  get() = ModuleManager.getInstance(this).modules
+      .asSequence()
+      .map { it.microPythonFacet }
+      .firstOrNull()
