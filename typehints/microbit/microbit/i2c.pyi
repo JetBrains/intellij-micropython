@@ -24,6 +24,7 @@ additional pull-up resistors, to ensure noise-free communication.
 
 
 from typing import Union
+from . import pin19, pin20
 
 
 def init(freq: int = 100000, sda: int = pin20, scl: int = pin19) -> None:
