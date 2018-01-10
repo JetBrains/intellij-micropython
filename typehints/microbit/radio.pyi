@@ -44,7 +44,7 @@ def off() -> None:
     """Turns off the radio, thus saving power and memory."""
 
 
-def config(*, length: int = 32, queue: int = 3, channel: int = 7,
+def config(length: int = 32, queue: int = 3, channel: int = 7,
            power: int = 6, address: int = 0x75626974, group: int = 0,
            data_rate: int = RATE_1MBIT) -> None:
     """Configures various keyword based settings relating to the radio. The
