@@ -71,7 +71,10 @@ Usage Model::
     MED_POWER = int
     HIGH_POWER = int
 
-    def __init__(self, id: Any, mode: int = -1, pull: int = -1, *, value: int, drive: int, alt: int) -> None:
+    def __init__(self, id: Any, mode: int = -1, pull: int = -1, *,
+                 value: Optional[int] = None,
+                 drive: Optional[int] = None,
+                 alt: Optional[int] = None) -> None:
         """Access the pin peripheral (GPIO pin) associated with the given ``id``.  If
    additional arguments are given in the constructor then they are used to initialise
    the pin.  Any settings that are not specified will remain in their previous state.
