@@ -7,18 +7,18 @@ The plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA]
 
 ![Micro:bit development in IntelliJ](screenshot.png)
 
-Supported devices:
 
-* [BBC Micro:bit](http://microbit.org/)
+## Supported Devices
 
-That's all for now!
+The plugin supports these devices:
 
-This plugin is in its early beta. It will support more MicroPython devices eventually. We are interested in code
-contributions for other devices, especially for these ones:
+* [BBC Micro:bit](https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro%3Abit)
+* [ESP8266](https://github.com/vlasovskikh/intellij-micropython/wiki/ESP8266)
+* [PyBoard](https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard)
 
-* PyBoard (initial support is available in master)
-* ESP8266-based devices (initial support is available in master)
-* Teensy
+This plugin is still in its early days. It will support more MicroPython devices and more
+device-specific and MicroPython-specific modules eventually. We are interested in your
+contributions to the project. Feel free to open issues and send pull requests!
 
 
 ## Features
@@ -33,7 +33,7 @@ contributions for other devices, especially for these ones:
 
 ## Requirements
 
-* IntelliJ 2017.1 or PyCharm 2017.1 (the master branch requires IntelliJ 2017.2 or PyCharm 2017.2)
+* IntelliJ 2017.2+ or PyCharm 2017.2+
 * Python 3.5+
 
 
@@ -45,6 +45,13 @@ The setup steps differ for IntelliJ and PyCharm:
 
 * IntelliJ: Add the MicroPython facet to a Python module in your project structure
 * PyCharm: Enable MicroPython support in "File | Settings | Languages & Frameworks | MicroPython"
+
+
+## Known Issues
+
+* REPL doesn't start on Windows ([#12](https://github.com/vlasovskikh/intellij-micropython/issues/12))
+* References to `pyb` module are marked as unresolved ([#16](https://github.com/vlasovskikh/intellij-micropython/issues/16))
+* References to some modules from the MicroPython standard library are marked as unresolved
 
 
 ## Source Code

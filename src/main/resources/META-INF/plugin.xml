@@ -2,7 +2,7 @@
   <name>MicroPython Support</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
-      <p>Unreleased:</p>
+      <p>1.0:</p>
       <ul>
         <li>Run files and REPL for ESP8266 and Pyboard devices</li>
         <li>Initial code insight for ESP8266 and MicroPython standard library</li>
