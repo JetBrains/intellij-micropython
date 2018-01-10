@@ -15,13 +15,48 @@ and real hardware interrupts).
 """
 
 
-from typing import Callable, Optional, Collection, Tuple, Union
+from typing import Callable, Optional, Collection, Tuple, Union, Any
 
 
 IDLE = int
 
 
 class Pin(object):
+    """A pin object is used to control I/O pins (also known as GPIO - general-purpose
+input/output).  Pin objects are commonly associated with a physical pin that can
+drive an output voltage and read input voltages.  The pin class has methods to set the mode of
+the pin (IN, OUT, etc) and methods to get and set the digital logic level.
+For analog control of a pin, see the :class:`ADC` class.
+
+A pin object is constructed by using an identifier which unambiguously
+specifies a certain I/O pin.  The allowed forms of the identifier and the
+physical pin that the identifier maps to are port-specific.  Possibilities
+for the identifier are an integer, a string or a tuple with port and pin
+number.
+
+Usage Model::
+
+    from machine import Pin
+
+    # create an output pin on pin #0
+    p0 = Pin(0, Pin.OUT)
+
+    # set the value low then high
+    p0.value(0)
+    p0.value(1)
+
+    # create an input pin on pin #2, with a pull up resistor
+    p2 = Pin(2, Pin.IN, Pin.PULL_UP)
+
+    # read and print the pin value
+    print(p2.value())
+
+    # reconfigure pin #0 in input mode
+    p0.mode(p0.IN)
+
+    # configure an irq callback
+    p0.irq(lambda p:print(p))
+    """
 
     IRQ_FALLING = int
     IRQ_RISING = int
@@ -35,6 +70,67 @@ class Pin(object):
     LOW_POWER = int
     MED_POWER = int
     HIGH_POWER = int
+
+    def __init__(self, id: Any, mode: int = -1, pull: int = -1, *, value: int, drive: int, alt: int) -> None:
+        """Access the pin peripheral (GPIO pin) associated with the given ``id``.  If
+   additional arguments are given in the constructor then they are used to initialise
+   the pin.  Any settings that are not specified will remain in their previous state.
+
+   The arguments are:
+
+     - ``id`` is mandatory and can be an arbitrary object.  Among possible value
+       types are: int (an internal Pin identifier), str (a Pin name), and tuple
+       (pair of [port, pin]).
+
+     - ``mode`` specifies the pin mode, which can be one of:
+
+       - ``Pin.IN`` - Pin is configured for input.  If viewed as an output the pin
+         is in high-impedance state.
+
+       - ``Pin.OUT`` - Pin is configured for (normal) output.
+
+       - ``Pin.OPEN_DRAIN`` - Pin is configured for open-drain output. Open-drain
+         output works in the following way: if the output value is set to 0 the pin
+         is active at a low level; if the output value is 1 the pin is in a high-impedance
+         state.  Not all ports implement this mode, or some might only on certain pins.
+
+       - ``Pin.ALT`` - Pin is configured to perform an alternative function, which is
+         port specific.  For a pin configured in such a way any other Pin methods
+         (except :meth:`Pin.init`) are not applicable (calling them will lead to undefined,
+         or a hardware-specific, result).  Not all ports implement this mode.
+
+       - ``Pin.ALT_OPEN_DRAIN`` - The Same as ``Pin.ALT``, but the pin is configured as
+         open-drain.  Not all ports implement this mode.
+
+     - ``pull`` specifies if the pin has a (weak) pull resistor attached, and can be
+       one of:
+
+       - ``None`` - No pull up or down resistor.
+       - ``Pin.PULL_UP`` - Pull up resistor enabled.
+       - ``Pin.PULL_DOWN`` - Pull down resistor enabled.
+
+     - ``value`` is valid only for Pin.OUT and Pin.OPEN_DRAIN modes and specifies initial
+       output pin value if given, otherwise the state of the pin peripheral remains
+       unchanged.
+
+     - ``drive`` specifies the output power of the pin and can be one of: ``Pin.LOW_POWER``,
+       ``Pin.MED_POWER`` or ``Pin.HIGH_POWER``.  The actual current driving capabilities
+       are port dependent.  Not all ports implement this argument.
+
+     - ``alt`` specifies an alternate function for the pin and the values it can take are
+       port dependent.  This argument is valid only for ``Pin.ALT`` and ``Pin.ALT_OPEN_DRAIN``
+       modes.  It may be used when a pin supports more than one alternate function.  If only
+       one pin alternate function is supported the this argument is not required.  Not all
+       ports implement this argument.
+
+   As specified above, the Pin class allows to set an alternate function for a particular
+   pin, but it does not specify any further operations on such a pin.  Pins configured in
+   alternate-function mode are usually not used as GPIO but are instead driven by other
+   hardware peripherals.  The only operation supported on such a pin is re-initialising,
+   by calling the constructor or :meth:`Pin.init` method.  If a pin that is configured in
+   alternate-function mode is re-initialised with ``Pin.IN``, ``Pin.OUT``, or
+   ``Pin.OPEN_DRAIN``, the alternate function will be removed from the pin.        """
+        ...
 
     def init(self, value: int, drive: int, alt: int, mode: int = -1, pull: int = -1) -> None:
         """
