@@ -5,8 +5,6 @@
 The plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA](https://www.jetbrains.com/idea/) and
 [PyCharm](https://www.jetbrains.com/pycharm/).
 
-![Micro:bit development in IntelliJ](media/screenshot.png)
-
 
 ## Supported Devices
 
