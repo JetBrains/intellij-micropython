@@ -75,8 +75,9 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Source Code
 
-The plugin is written in [Kotlin](https://kotlinlang.org/). It's a new JVM language by JetBrains, the makers of
-IntelliJ and PyCharm. Google recently selected Kotlin as an officially supported language for Android development.
+The plugin is written in Python and [Kotlin](https://kotlinlang.org/). Kotlin a new JVM language by JetBrains, the
+makers of IntelliJ and PyCharm. Google recently selected Kotlin as an officially supported language for Android
+development.
 
 The steps for setting up the development environment:
 
