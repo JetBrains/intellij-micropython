@@ -55,8 +55,9 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
         .filterNotNull()
         .map { listOf("-X", it) }
         .flatten()
+        .toList()
     val command = listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py", "-C", rootDir.path) +
-        excludes + listOf("-v", devicePath, rootDir.path)
+        excludes + listOf("-v", devicePath, configuration.path)
 
     return object : CommandLineState(environment) {
       override fun startProcess() =
