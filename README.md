@@ -27,10 +27,12 @@ contributions to the project. Feel free to open issues and send pull requests!
 ### Code insight for MicroPython modules
 
 * Context-aware code completion and documentation
+    * Use <kbd>Ctrl+Q</kbd> (<kbd>F1</kbd> on macOS) for quick documentation window, you can dock it permanently
 
 ![Code completion](media/code-completion.png)
 
 * Syntax checking and type checking
+    * The plugin checks your code while you're typing it
 
 ![Type checking](media/type-checking.png)
 
@@ -38,10 +40,12 @@ contributions to the project. Feel free to open issues and send pull requests!
 ### Run code on MicroPython devices
 
 * Flash Python files to devices
+    * Use "MicroPython" run configurations to flash files or folders in <em>"Run | Edit Configurations..."</em> menu
 
 ![Run](media/run.png)
 
 * MicroPython REPL
+    * Use <em>"Tools | MicroPython | MicroPython REPL"</em> menu to run a MicroPython shell on your device
 
 ![REPL](media/repl.png)
 
@@ -54,12 +58,12 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Installation
 
-Install the "MicroPython" plugin from your IDE settings.
+1. Install the "MicroPython" plugin from your IDE settings.
 
-The setup steps differ for IntelliJ and PyCharm:
+2. The setup steps differ for IntelliJ and PyCharm:
 
 * IntelliJ: Add the MicroPython facet to a Python module in your project structure
-* PyCharm: Enable MicroPython support in "File | Settings | Languages & Frameworks | MicroPython"
+* PyCharm: Enable MicroPython support in <em>"File | Settings | Languages & Frameworks | MicroPython"</em>
 
 
 ## Known Issues
