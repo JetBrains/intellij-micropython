@@ -5,7 +5,7 @@
 The plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA](https://www.jetbrains.com/idea/) and
 [PyCharm](https://www.jetbrains.com/pycharm/).
 
-![Micro:bit development in IntelliJ](screenshot.png)
+![Micro:bit development in IntelliJ](media/screenshot.png)
 
 
 ## Supported Devices
@@ -23,12 +23,27 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Features
 
-* Code insight for MicroPython modules
-    * Context-aware code completion and documentation
-    * Syntax checking and type checking
-* Run code on MicroPython devices
-    * Flash Python files to devices
-    * MicroPython REPL
+
+### Code insight for MicroPython modules
+
+* Context-aware code completion and documentation
+
+![Code completion](media/code-completion.png)
+
+* Syntax checking and type checking
+
+![Type checking](media/type-checking.png)
+
+
+### Run code on MicroPython devices
+
+* Flash Python files to devices
+
+![Run](media/run.png)
+
+* MicroPython REPL
+
+![REPL](media/repl.png)
 
 
 ## Requirements
