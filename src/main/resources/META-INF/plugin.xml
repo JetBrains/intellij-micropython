@@ -1,5 +1,5 @@
 <idea-plugin url="https://github.com/vlasovskikh/intellij-micropython">
-  <name>MicroPython Support</name>
+  <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
       <p>1.0:</p>

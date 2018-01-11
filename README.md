@@ -1,4 +1,4 @@
-# MicroPython Support for IntelliJ and PyCharm
+# MicroPython Plugin for IntelliJ and PyCharm
 
 [![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
@@ -39,7 +39,7 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Installation
 
-Install the "MicroPython Support" plugin from your IDE settings.
+Install the "MicroPython" plugin from your IDE settings.
 
 The setup steps differ for IntelliJ and PyCharm:
 
