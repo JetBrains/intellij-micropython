@@ -63,6 +63,8 @@ contributions to the project. Feel free to open issues and send pull requests!
 * IntelliJ: Add the MicroPython facet to a Python module in your project structure
 * PyCharm: Enable MicroPython support in <em>"File | Settings | Languages & Frameworks | MicroPython"</em>
 
+![Configurable](media/configurable.png)
+
 
 ## Known Issues
 
