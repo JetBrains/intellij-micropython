@@ -2,6 +2,10 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.2:</p>
+      <ul>
+        <li>Restored compatibility with IntelliJ</li>
+      </ul>
       <p>1.0.1:</p>
       <ul>
         <li>Restored compatibility with 2017.2-2018.1</li>
