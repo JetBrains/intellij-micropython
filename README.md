@@ -52,6 +52,7 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 * IntelliJ 2017.2+ or PyCharm 2017.2+
 * Python 3.5+
+* Python plugin (IntelliJ only)
 
 
 ## Installation
