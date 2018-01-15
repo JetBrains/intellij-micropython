@@ -1,8 +1,9 @@
-# MicroPython Plugin for PyCharm
+# MicroPython Plugin for IntelliJ and PyCharm
 
 [![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
-The plugin for [MicroPython](http://micropython.org/) devices in [PyCharm](https://www.jetbrains.com/pycharm/).
+The plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA](https://www.jetbrains.com/idea/) and
+[PyCharm](https://www.jetbrains.com/pycharm/).
 
 
 ## Supported Devices
@@ -49,7 +50,7 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Requirements
 
-* PyCharm 2017.2+
+* IntelliJ 2017.2+ or PyCharm 2017.2+
 * Python 3.5+
 
 
@@ -57,7 +58,10 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 1. Install the "MicroPython" plugin from your IDE settings.
 
-2. Enable MicroPython support in <em>"File | Settings | Languages & Frameworks | MicroPython"</em>.
+2. The setup steps differ for IntelliJ and PyCharm:
+
+* IntelliJ: Add the MicroPython facet to a Python module in your project structure
+* PyCharm: Enable MicroPython support in <em>"File | Settings | Languages & Frameworks | MicroPython"</em>
 
 ![Configurable](media/configurable.png)
 
