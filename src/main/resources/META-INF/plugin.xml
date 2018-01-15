@@ -21,7 +21,7 @@
       </ul>
     ]]></change-notes>
   <description><![CDATA[
-      <p>Support for MicroPython devices in IntelliJ IDEA and PyCharm.</p>
+      <p>Support for MicroPython devices in PyCharm.</p>
       <p>Features:</p>
       <ul>
         <li>Code completion and docs for some ESP8266, Pyboard, and MicroPython modules</li>
