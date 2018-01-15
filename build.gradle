@@ -21,6 +21,7 @@ intellij {
     version ideaVersion
     pluginName 'intellij-micropython'
     downloadSources true
+    updateSinceUntilBuild false
     plugins = ['terminal']
     if (hasPyCharm) {
         alternativeIdePath pycharmPath
