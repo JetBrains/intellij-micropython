@@ -2,6 +2,10 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.1:</p>
+      <ul>
+        <li>Restored compatibility with 2017.2-2018.1</li>
+      </ul>
       <p>1.0:</p>
       <ul>
         <li>Run files and REPL for ESP8266 and Pyboard devices</li>
