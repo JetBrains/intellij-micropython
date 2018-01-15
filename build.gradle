@@ -31,6 +31,10 @@ intellij {
     else {
         throw new StopActionException("Define either pycharmPath or pythonPlugin in your gradle.properties")
     }
+    publishPlugin {
+        username publishUsername
+        password publishPassword
+    }
 }
 
 repositories {
