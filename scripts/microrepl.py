@@ -48,10 +48,10 @@ def connect_miniterm(port):
                 "then try again.\n"
             )
         elif e.errno == errno.EACCES:
-            sys.stderr.write("Found the device, but could not connect.".format(port))
-            sys.stderr.write(e)
-            sys.stderr.write('On linux, try adding yourself to the "dialout" group')
-            sys.stderr.write('sudo usermod -a -G dialout <your-username>')
+            sys.stderr.write("Found the device, but could not connect.\n".format(port))
+            sys.stderr.write('%s\n' % (str(e),))
+            sys.stderr.write('On linux, try adding yourself to the "dialout" group:\n')
+            sys.stderr.write('sudo usermod -a -G dialout <your-username>\n')
         else:
             # Try to be as helpful as possible.
             sys.stderr.write("Found the device, but could not connect via" +
