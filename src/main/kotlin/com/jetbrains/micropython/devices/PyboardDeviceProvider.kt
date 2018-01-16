@@ -45,7 +45,7 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
   }
 
   override val packageRequirements: List<PyRequirement> by lazy {
-    PyRequirement.fromText("""|pyserial>=3.3,<3.4
+    PyRequirement.fromText("""|pyserial>=3.3,<4.0
                               |docopt>=0.6.2,<0.7
                               |adafruit-ampy>=1.0.1,<1.1""".trimMargin())
   }

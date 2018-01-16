@@ -41,7 +41,7 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
 
   override val packageRequirements: List<PyRequirement> by lazy {
     PyRequirement.fromText("""|uflash>=1.0.8,<1.1
-                              |pyserial>=3.3,<3.4""".trimMargin())
+                              |pyserial>=3.3,<4.0""".trimMargin())
   }
 
   override val typeHints: MicroPythonTypeHints by lazy {
