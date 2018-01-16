@@ -20,7 +20,7 @@ def hasPythonPlugin = project.hasProperty('pythonPlugin')
 intellij {
     version ideaVersion
     pluginName 'intellij-micropython'
-    downloadSources true
+    downloadSources Boolean.valueOf(downloadIdeaSources)
     updateSinceUntilBuild false
     plugins = ['terminal']
     if (hasPyCharm) {
