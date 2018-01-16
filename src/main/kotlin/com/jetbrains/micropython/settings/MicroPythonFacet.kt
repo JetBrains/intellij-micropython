@@ -82,9 +82,10 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     }
     val packageManager = PyPackageManager.getInstance(sdk)
     val packages = packageManager.packages ?: return ValidationResult.OK
-    val requirements = provider.packageRequirements
-    if (requirements.any { it.match(packages) == null }) {
-      return ValidationResult("Packages required for ${provider.presentableName} support not found",
+    val requirements = provider.packageRequirements.filter { it.match(packages) == null }.toList()
+    if (requirements.isNotEmpty()) {
+      val requirementsText = requirements.joinToString(", ")
+      return ValidationResult("Packages required for ${provider.presentableName} support not found: $requirementsText",
                               object : FacetConfigurationQuickFix("Install requirements") {
         override fun run(place: JComponent?) {
           PyPackageManagerUI(module.project, sdk, null).install(requirements, listOf("-U"))
