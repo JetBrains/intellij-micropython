@@ -2,6 +2,11 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.3:</p>
+      <ul>
+        <li>Fixed the outdated pyserial version in requirements #26</li>
+        <li>Fixed the error message when getting EACCESS error for the device file #27</li>
+      </ul>
       <p>1.0.2:</p>
       <ul>
         <li>Restored compatibility with IntelliJ</li>
