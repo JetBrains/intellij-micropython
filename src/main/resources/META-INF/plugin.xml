@@ -2,6 +2,10 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.4:</p>
+      <ul>
+        <li>Fixed launching REPL on Windows #12</li>
+      </ul>
       <p>1.0.3:</p>
       <ul>
         <li>Fixed the outdated pyserial version in requirements #26</li>
