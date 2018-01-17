@@ -4,20 +4,17 @@ MicroPython device is connected and attempts to make a serial connection to it
 in order to bring up the Python REPL.
 """
 
-import sys
 import errno
+import sys
 from time import sleep
+import traceback
 
 import serial
 import serial.tools.miniterm
-from serial.tools.miniterm import Console, Miniterm, key_description
-
-console = Console()
-
+from serial.tools.miniterm import Miniterm, key_description
 
 BAUDRATE = 115200
 PARITY = 'N'
-ARM = 'https://developer.mbed.org/handbook/Windows-serial-configuration'
 
 
 if sys.version_info >= (3, 0):
@@ -79,7 +76,6 @@ def main():
     sys.stderr.write(shortcut_message.format(exit_char))
     sys.stderr.write(help_message)
     # Start everything.
-    console.setup()
     miniterm.set_rx_encoding('utf-8')
     miniterm.set_tx_encoding('utf-8')
     miniterm.start()
@@ -93,4 +89,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception:
+        sys.stderr.write(traceback.format_exc())
+        input("Press ENTER to continue")
+        sys.exit(1)
