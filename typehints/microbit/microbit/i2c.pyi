@@ -22,7 +22,7 @@ particularly long wires or large number of devices you may need to add
 additional pull-up resistors, to ensure noise-free communication.
 """
 
-
+from . import pin19, pin20
 from typing import Union
 
 

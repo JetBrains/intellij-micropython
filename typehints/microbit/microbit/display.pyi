@@ -10,7 +10,7 @@ you can use::
 """
 
 from . import Image
-from typing import overload
+from typing import overload, Iterable
 
 def get_pixel(x: int, y: int) -> int:
     """Return the brightness of the LED at column ``x`` and row ``y`` as an
