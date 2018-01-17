@@ -71,7 +71,6 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Known Issues
 
-* REPL doesn't start on Windows ([#12](https://github.com/vlasovskikh/intellij-micropython/issues/12))
 * References to `pyb` module are marked as unresolved ([#16](https://github.com/vlasovskikh/intellij-micropython/issues/16))
 * References to some modules from the MicroPython standard library are marked as unresolved
 
