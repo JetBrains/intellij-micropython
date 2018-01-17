@@ -144,23 +144,6 @@ class MicroBitAnalogDigitalPin(MicroBitDigitalPin):
         between 0 (meaning 0V) and 1023 (meaning 3.3V).
         """
 
-    def write_analog(self, value: int) -> None:
-        """Output a PWM signal on the pin, with the duty cycle proportional to
-        the provided ``value``. The ``value`` may be either an integer or a
-        floating point number between 0 (0% duty cycle) and 1023 (100% duty).
-        """
-
-    def set_analog_period(self, period: int) -> None:
-        """Set the period of the PWM signal being output to ``period`` in
-        milliseconds. The minimum valid value is 1ms.
-        """
-
-    def set_analog_period_microseconds(self, period: int) -> None:
-        """Set the period of the PWM signal being output to ``period`` in
-        microseconds. The minimum valid value is 35µs.
-        """
-
-
 class MicroBitTouchPin(MicroBitAnalogDigitalPin):
     def is_touched(self) -> bool:
         """Return ``True`` if the pin is being touched with a finger, otherwise
@@ -175,20 +158,10 @@ class MicroBitTouchPin(MicroBitAnalogDigitalPin):
 pin0: MicroBitTouchPin
 """Pad 0."""
 
-pin0: MicroBitAnalogDigitalPin
-"""Pad 0."""
-
-
 pin1: MicroBitTouchPin
 """Pad 1."""
 
-pin1: MicroBitAnalogDigitalPin
-"""Pad 1."""
-
 pin2: MicroBitTouchPin
-"""Pad 2."""
-
-pin2: MicroBitAnalogDigitalPin
 """Pad 2."""
 
 pin3: MicroBitAnalogDigitalPin
