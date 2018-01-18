@@ -106,28 +106,21 @@ class MicroBitDigitalPin:
     ``set_pull`` to change the pull mode from the default.
     """
 
-    PULL_UP: int
-    PULL_DOWN: int
-    NO_PULL: int
+    NO_PULL: int = 0
+    PULL_UP: int = 1
+    PULL_DOWN: int = 2
 
     def read_digital(self) -> int:
         """Return 1 if the pin is high, and 0 if it's low."""
 
-    def write_digital(self, value: int) -> None:
-        """Set the pin to high if ``value`` is 1, or to low, if it is 0."""
-
-    def set_pull(self, value: int) -> None:
+    def set_pull(self, value: int = (NO_PULL or PULL_UP or PULL_DOWN)) -> None:
         """Set the pull state to one of three possible values: ``pin.PULL_UP``,
         ``pin.PULL_DOWN`` or ``pin.NO_PULL`` (where ``pin`` is an instance of
         a pin). See below for discussion of default pull states.
         """
 
-
-class MicroBitAnalogDigitalPin(MicroBitDigitalPin):
-    def read_analog(self) -> int:
-        """Read the voltage applied to the pin, and return it as an integer
-        between 0 (meaning 0V) and 1023 (meaning 3.3V).
-        """
+    def write_digital(self, value: int) -> None:
+        """Set the pin to high if ``value`` is 1, or to low, if it is 0."""
 
     def write_analog(self, value: int) -> None:
         """Output a PWM signal on the pin, with the duty cycle proportional to
@@ -145,6 +138,11 @@ class MicroBitAnalogDigitalPin(MicroBitDigitalPin):
         microseconds. The minimum valid value is 35µs.
         """
 
+class MicroBitAnalogDigitalPin(MicroBitDigitalPin):
+    def read_analog(self) -> int:
+        """Read the voltage applied to the pin, and return it as an integer
+        between 0 (meaning 0V) and 1023 (meaning 3.3V).
+        """
 
 class MicroBitTouchPin(MicroBitAnalogDigitalPin):
     def is_touched(self) -> bool:
