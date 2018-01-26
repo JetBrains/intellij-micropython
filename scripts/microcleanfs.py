@@ -16,7 +16,10 @@
 """Remove the contents of the file system on a MicroPython device.
 
 Usage:
-    micrormdir PORT
+    micrormdir PORT [options]
+
+    Options:
+    -f --force     Remove ALL files from filesystem w/o preserving excludes
 """
 
 import traceback
@@ -29,22 +32,30 @@ from ampy.files import Files
 from ampy.pyboard import Pyboard, PyboardError
 from docopt import docopt
 
-
 def main(args: List[str]) -> None:
     opts = docopt(__doc__, argv=args)
     port = opts['PORT']
+    force = opts['--force']
 
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
     files = Files(board)
+    exclude_files = ['boot.py']     # Specifying subdirectories DOES NOT work as they will
+                                    # be deleted when the parent directory is deleted.
+                                    # Specifying top level directories DOES work.
 
     print('Removing the contents of the file system')
     wait_for_board()
     for name in files.ls():
-        try:
-            files.rm(name)
-        except (RuntimeError, PyboardError):
-            files.rmdir(name)
+        if force or not any(name == x for x in exclude_files):
+            try:
+                files.rm(name)
+            except (RuntimeError, PyboardError):
+                try:
+                    files.rmdir(name)
+                except (RuntimeError, PyboardError):
+                    print('Unknown Error removing file {}'.format(name), file=sys.stderr)
+
     print('Done')
 
 

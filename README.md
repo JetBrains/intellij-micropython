@@ -42,6 +42,16 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ![Run](media/run.png)
 
+* Create run configurations from Project navigator.
+    * Right click on the file and select <em>"Create Flash ..."</em>
+
+![Run](media/create-config.png)
+
+* Define project structure for device in order to flash all files
+    * Exclude the PyCharm <em>.idea</em> directory
+
+![Run](media/project-structure.png)
+
 * MicroPython REPL
     * Use <em>"Tools | MicroPython | MicroPython REPL"</em> menu to run a MicroPython shell on your device
 
@@ -68,6 +78,9 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ![Configurable](media/configurable.png)
 
+3. Windows Note:
+* There are usually two options for project interpreter under Windows: <em>python.exe</em> and <em>pythonw.exe</em>
+    * Make sure you select <em>**python.exe**</em> as the Project Interpreter or you will not be able to start a Micropython REPL
 
 ## Known Issues
 
