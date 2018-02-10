@@ -56,7 +56,8 @@ def main(args: List[str]) -> None:
                 try:
                     files.rmdir(name)
                 except (RuntimeError, PyboardError):
-                    print('Unknown Error removing file {}'.format(name), file=sys.stderr)
+                    print('Unknown Error removing file {}'.format(name),
+                          file=sys.stderr)
 
     print('Done')
 
