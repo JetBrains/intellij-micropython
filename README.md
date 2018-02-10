@@ -2,11 +2,11 @@
 
 [![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
-The Python code development plugin for [MicroPython](http://micropython.org/) devices in [IntelliJ IDEA](https://www.jetbrains.com/idea/) and
-[PyCharm](https://www.jetbrains.com/pycharm/).
+The Python code development plugin for [MicroPython](http://micropython.org/) devices in
+[IntelliJ IDEA](https://www.jetbrains.com/idea/) and [PyCharm](https://www.jetbrains.com/pycharm/).
 
 
-## Supported Devices
+## Supported devices
 
 The plugin supports these devices:
 
@@ -15,14 +15,14 @@ The plugin supports these devices:
 * [PyBoard](https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard)
 
 
-**Note:**
-This plugin is intended for the development, upload and execution of MicroPython **code files** using an attached MicroPython device.
-It does **NOT** support flashing the MicroPython **firmware image** to that device.
-For MicroPython firmware images and flashing instructions see [MicroPython Downloads](http://micropython.org/download).
+**Note:** This plugin is intended for the development, upload and execution of _Python files_ using an attached
+MicroPython device. It does **not** yet support flashing the MicroPython firmware image to that device. See
+[these instructions](http://micropython.org/download) flashing MicroPython firmware images to devices.
 
 This plugin is still in its early days. It will support more MicroPython devices and more
 device-specific and MicroPython-specific modules eventually. We are interested in your
 contributions to the project. Feel free to open issues and send pull requests!
+
 
 ## Features
 
@@ -53,7 +53,6 @@ contributions to the project. Feel free to open issues and send pull requests!
       ![REPL](media/repl.png)
 
 
-
 ## Requirements
 
 * IntelliJ 2017.2+ or PyCharm 2017.2+
@@ -75,10 +74,11 @@ contributions to the project. Feel free to open issues and send pull requests!
   ![Configurable](media/configurable.png)
 
 3. Windows Note:
-* There are usually two options for project interpreter under Windows: <em>python.exe</em> and <em>pythonw.exe</em>.
-  Make sure you select <em>**python.exe**</em> as the Project Interpreter or you will not be able to start the Micropython REPL
+* There are usually two options for project interpreter under Windows: `python.exe` and `pythonw.exe`. Make sure you
+  select `python.exe` as the Project Interpreter or you will not be able to start the Micropython REPL
 
-## Usage Details
+
+## Usage details
 
 
 ### Flash all project files
@@ -94,20 +94,24 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 * Name the <em>Run/Debug Configuration</em> and hit <em>OK</em> or <em>Apply</em>
 
-### Create Run Configurations for individual files
+
+### Create run configurations for individual files
 
 * Right click on the file and select <em>"Create Flash ..."</em>
 
     ![Quick Configuration Creation](media/create-config.png)
 
+
 ### Flash non-python files
 
-* Currently non-python files do not display in the <em>"Run/Debug Configurations"</em> file picker although they do display in the Project Navigator.
-* Non-python files can be uploaded to the board by manually typing the required filename/path components into the <em>"Path:"</em> dialog.
-* it is easier to select a python file in the same directory as the file to be uploaded using the file picker and then manually edit the filename.
-  This ensures that the path component of the file to be uploaded is correct.
-* Note that when flashing an entire project using the technique above, ALL files are uploaded to the device, including non-python files.
-  This is the reason the <em>.idea</em> directory should be excluded from the project structure.
+* Currently non-python files do not display in the <em>"Run/Debug Configurations"</em> file picker although they do
+  display in the Project Navigator.
+* Non-python files can be uploaded to the board by manually typing the required filename/path components into the
+  <em>"Path:"</em> dialog.
+* It is easier to select a python file in the same directory as the file to be uploaded using the file picker and then
+  manually edit the filename. This ensures that the path component of the file to be uploaded is correct
+* Note that when flashing an entire project using the technique above, ALL files are uploaded to the device, including
+  non-python files. This is the reason the <em>.idea</em> directory should be excluded from the project structure.
 
     ![Non-python File Upload](media/json-upload.png)
 
