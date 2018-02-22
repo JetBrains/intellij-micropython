@@ -1,5 +1,4 @@
-"""
-The ``machine`` module contains specific functions related to the hardware
+"""The ``machine`` module contains specific functions related to the hardware
 on a particular board. Most functions in this module allow to achieve
 direct and unrestricted access to and control of hardware blocks on a
 system (like CPU, timers, buses, etc.). Used incorrectly, this can
@@ -15,10 +14,19 @@ and real hardware interrupts).
 """
 
 
-from typing import Callable, Optional, Collection, Tuple, Union, Any
+from typing import Callable, Optional, Collection, Union, Any
 
 
-IDLE = int
+IDLE = ...  # type: int
+SLEEP = ...  # type: int
+DEEPSLEEP = ...  # type: int
+
+PWRON_RESET = ...  # type: int
+HARD_RESET = ...  # type: int
+WDT_RESET = ...  # type: int
+DEEPSLEEP_RESET = ...  # type: int
+PIN_WAKE = ...  # type: int
+RTC_WAKE = ... # type: int
 
 
 class Pin(object):
@@ -58,18 +66,18 @@ Usage Model::
     p0.irq(lambda p:print(p))
     """
 
-    IRQ_FALLING = int
-    IRQ_RISING = int
-    IRQ_LOWLEVEL = int
-    IRQ_HIGHLEVEL = int
-    IN = int
-    OUT = int
-    OPEN_DRAIN = int
-    PULL_UP = int
-    PULL_DOWN = int
-    LOW_POWER = int
-    MED_POWER = int
-    HIGH_POWER = int
+    IRQ_FALLING = ...  # type: int
+    IRQ_RISING = ...  # type: int
+    IRQ_LOWLEVEL = ...  # type: int
+    IRQ_HIGHLEVEL = ...  # type: int
+    IN = ...  # type: int
+    OUT = ...  # type: int
+    OPEN_DRAIN = ...  # type: int
+    PULL_UP = ...  # type: int
+    PULL_DOWN = ...  # type: int
+    LOW_POWER = ...  # type: int
+    MED_POWER = ...  # type: int
+    HIGH_POWER = ...  # type: int
 
     def __init__(self, id: Any, mode: int = -1, pull: int = -1, *,
                  value: Optional[int] = None,
@@ -136,8 +144,7 @@ Usage Model::
         ...
 
     def init(self, value: int, drive: int, alt: int, mode: int = -1, pull: int = -1) -> None:
-        """
-        Re-initialise the pin using the given parameters. Only those arguments
+        """Re-initialise the pin using the given parameters. Only those arguments
         that are specified will be set. The rest of the pin peripheral state
         will remain unchanged. See the constructor documentation for details
         of the arguments.
@@ -151,8 +158,7 @@ Usage Model::
         ...
 
     def value(self, x: Optional[int]) -> Optional[int]:
-        """
-        This method allows to set and get the value of the pin, depending on
+        """This method allows to set and get the value of the pin, depending on
         whether the argument **x** is supplied or not.
 
         If the argument is omitted then this method gets the digital logic
@@ -166,37 +172,29 @@ Usage Model::
 
         :param x: Value to set on a pin.
         :return: Current value of a pin.
-        :rtype: int
         """
         ...
 
     def __call__(self, x: Optional[int]) -> Optional[int]:
-        """
-        Pin objects are callable. The call method provides a (fast) shortcut
+        """Pin objects are callable. The call method provides a (fast) shortcut
         to set and get the value of the pin. It is equivalent to
         Pin.value([x]). See ``Pin.value()`` for more details.
 
         :param x: Value to set on a pin.
         :return: Current value of a pin.
-        :rtype: int
         """
         ...
 
     def on(self) -> None:
-        """
-        Set pin to “1” output level.
-        """
+        """Set pin to “1” output level."""
         ...
 
     def off(self) -> None:
-        """
-        Set pin to “0” output level.
-        """
+        """Set pin to “0” output level."""
         ...
 
     def mode(self, mode: Optional[int]) -> Optional[int]:
-        """
-        Get or set the pin mode.
+        """Get or set the pin mode.
 
         **mode** can be one of following values:
 
@@ -211,14 +209,12 @@ Usage Model::
         * ``Pin.ALT_OPEN_DRAIN`` - The Same as Pin.ALT, but the pin is configured as open-drain. Not all ports implement this mode.
 
         :param mode: Mode to be set on a pin.
-        :return: Current moded on a pin.
-        :rtype: int
+        :return: Current mode on a pin.
         """
         ...
 
     def pull(self, pull: Optional[int]) -> Optional[int]:
-        """
-        Get or set the pin pull state.
+        """Get or set the pin pull state.
 
         *pull* can be one of following values:
 
@@ -228,12 +224,11 @@ Usage Model::
 
         :param pull: Pull state.
         :return: Current pull state.
-        :rtype: int
         """
         ...
 
-    def irq(self, handler: Callable[Pin] = None, trigger: int = (IRQ_FALLING | IRQ_RISING),
-            priority: int = 1, wake: int = None) -> Callable[None]:
+    def irq(self, handler: Callable[[Pin], Any] = None, trigger: int = (IRQ_FALLING | IRQ_RISING),
+            priority: int = 1, wake: int = None) -> Callable[[Pin], Any]:
         """
         Configure an interrupt handler to be called when the trigger source
         of the pin is active.
@@ -267,16 +262,13 @@ Usage Model::
         :param priority: Priority level of the interrupt
         :param wake: Power mode in which this interrupt can wake up the system
         :return: Callback object.
-        :rtype: Callable[Pin]
         """
         ...
 
 
 class Signal(object):
-
     def __init__(self, pin_obj: Pin, invert: bool = False) -> None:
-        """
-        Create a Signal object.
+        """Create a Signal object.
 
         :param pin_obj: Existing Pin object.
         :param invert: If True, the signal will be inverted (active low).
@@ -284,8 +276,7 @@ class Signal(object):
         ...
 
     def value(self, x: Optional[bool]) -> None:
-        """
-        This method allows to set and get the value of the signal, depending
+        """This method allows to set and get the value of the signal, depending
         on whether the argument x is supplied or not.
 
         If the argument is omitted then this method gets the signal level, 1
@@ -308,24 +299,18 @@ class Signal(object):
         """
         ...
 
-    def on(self):
-        """
-        Activate signal.
-        """
+    def on(self) -> None:
+        """Activate signal."""
         ...
 
-    def off(self):
-        """
-        Deactivate signal.
-        """
+    def off(self) -> None:
+        """Deactivate signal."""
         ...
 
 
 class UART(object):
-
     def __init__(self, id: int, baudrate: int = 115200) -> None:
-        """
-        Init UART object with a given baudrate.
+        """Init UART object with a given baudrate.
 
         :param id: ID of UART "object" (either 0 or 1).
         :param baudrate: Rate of data transfer.
@@ -333,8 +318,7 @@ class UART(object):
 
     def init(self, baudrate: int, bits: int = 8, parity: Optional[int] = 0, stop: int = 1,
              timeout: int = 0, timeout_char: int = 0) -> None:
-        """
-        Init with a given parameters.
+        """Init with a given parameters.
 
         :param baudrate: Baud rate, that specifies how fast data is sent over serial line.
         :param bits: Bit length of data packet (can be 7, 8 or 9 depending on parity).
@@ -346,52 +330,42 @@ class UART(object):
         ...
 
     def deinit(self) -> None:
-        """
-        Turn off the UART bus.
-        """
+        """Turn off the UART bus."""
         ...
 
     def any(self) -> int:
-        """
-        Returns an integer counting the number of characters that can be read
+        """Returns an integer counting the number of characters that can be read
         without blocking. It will return 0 if there are no characters
         available and a positive number if there are characters. The method
         may return 1 even if there is more than one character available for reading.
 
         :return: Number of characters that can be read without blocking.
-        :rtype: int
         """
         ...
 
     def read(self, nbytes: Optional[int]) -> bytes:
-        """
-        Read characters. If ``nbytes`` is specified then read at most that many
+        """Read characters. If ``nbytes`` is specified then read at most that many
         bytes, otherwise read as much data as possible.
 
         :param nbytes: Upper limit on number of read characters.
         :return: Bytes read in.
-        :rtype: bytes
         """
         ...
 
     def readinto(self, buf: bytearray, nbytes: Optional[int]) -> Optional[int]:
-        """
-        Read bytes into the ``buf``. If ``nbytes`` is specified then read at most
+        """Read bytes into the ``buf``. If ``nbytes`` is specified then read at most
         that many bytes. Otherwise, read at most ``len(buf)`` bytes.
 
         :param buf: Buffer for holding read data.
         :param nbytes: Upper limit on number of read characters.
         :return: Number of bytes read in.
-        :rtype: Optional[int]
         """
         ...
 
     def readline(self) -> Optional[bytes]:
-        """
-        Read a line, ending in a newline character.
+        """Read a line, ending in a newline character.
 
         :return: The line read or ``None`` on timeout.
-        :rtype: Optional[bytes]
         """
         ...
 
@@ -401,7 +375,6 @@ class UART(object):
 
         :param buf: Data that needs to be written.
         :return: Number of bytes written or ``None`` on timeout.
-        :rtype: Optional[int]
         """
         ...
 
@@ -414,8 +387,8 @@ class UART(object):
 
 class SPI(object):
 
-    LSB = int
-    MSB = int
+    LSB = ...  # type: int
+    MSB = ...  # type: int
 
     def __init__(self, id: int) -> None:
         """
@@ -435,7 +408,7 @@ class SPI(object):
 
     def init(self, baudrate: int = 1000000, polarity: int = 0, phase: int = 0,
              bits: int = 8, firstbit: int = MSB, sck: Optional[Pin] = None,
-             mosi: Optional[Pin] = None, miso: Optional[Pin] = None):
+             mosi: Optional[Pin] = None, miso: Optional[Pin] = None) -> None:
         """
         Initialise the SPI bus with the given parameters.
 
@@ -451,45 +424,35 @@ class SPI(object):
         ...
 
     def deinit(self) -> None:
-        """
-        Turn off the SPI bus.
-        """
+        """Turn off the SPI bus."""
         ...
 
     def read(self, nbytes: int, write: int = 0x00) -> bytes:
-        """
-        Read a number of bytes specified by ``nbytes`` while continuously
+        """Read a number of bytes specified by ``nbytes`` while continuously
         writing the single byte given by ``write``. Returns a ``bytes``
         object with the data that was read.
 
         :param nbytes: Number of characters to read.
         :param write: Value to continiously write while reading data.
         :return: Bytes read in.
-        :rtype: bytes
         """
         ...
 
     def readinto(self, buf: bytearray, write: int = 0x00) -> None:
-        """
-        Read into the buffer specified by ``buf`` while continuously writing
+        """Read into the buffer specified by ``buf`` while continuously writing
         the single byte given by ``write``.
-
-        :param nbytes: Number of characters to read.
-        :param write: Value to continiously write while reading data.
         """
         ...
 
     def write(self, buf: bytes) -> None:
-        """
-        Write the bytes contained in ``buf``.
+        """Write the bytes contained in ``buf``.
 
         :param buf: Bytes to write.
         """
         ...
 
     def write_readinto(self, write_buf: bytearray, read_buf: bytearray) -> None:
-        """
-        Write the bytes from ``write_buf`` while reading into ``read_buf``. The
+        """Write the bytes from ``write_buf`` while reading into ``read_buf``. The
         buffers can be the same or different, but both buffers must have
         the same length.
 
@@ -501,8 +464,7 @@ class SPI(object):
 
 class I2C(object):
     def __init__(self, id: int, *, scl: Pin, sda: Pin, freq: int = 400000) -> None:
-        """
-        Construct and return a new I2C object.
+        """Construct and return a new I2C object.
 
         :param id: Particular I2C peripheral (-1 for software implementation).
         :param scl: Pin object specifying the pin to use for SCL.
@@ -522,29 +484,22 @@ class I2C(object):
         ...
 
     def scan(self) -> Collection[int]:
-        """
-        Scan all I2C addresses between *0x08* and *0x77* inclusive and return a
+        """Scan all I2C addresses between *0x08* and *0x77* inclusive and return a
         list of those that respond. A device responds if it pulls the SDA
         line low after its address (including a write bit) is sent on the bus.
-        :return:
         """
         ...
 
     def start(self) -> None:
-        """
-        Generate a START condition on the bus (SDA transitions to low while SCL is high).
-        """
+        """Generate a START condition on the bus (SDA transitions to low while SCL is high)."""
         ...
 
     def stop(self) -> None:
-        """
-        Generate a STOP condition on the bus (SDA transitions to high while SCL is high).
-        """
+        """Generate a STOP condition on the bus (SDA transitions to high while SCL is high)."""
         ...
 
     def readinto(self, buf: bytearray, nack: bool = True) -> None:
-        """
-        Reads bytes from the bus and stores them into ``buf``. The number of bytes
+        """Reads bytes from the bus and stores them into ``buf``. The number of bytes
         read is the length of ``buf``. An **ACK** will be sent on the bus after
         receiving all but the last byte. After the last byte is received,
         if ``nack`` is true then a **NACK** will be sent, otherwise an **ACK** will be
@@ -557,8 +512,7 @@ class I2C(object):
         ...
 
     def write(self, buf: bytearray) -> None:
-        """
-        Write the bytes from ``buf`` to the bus. Checks that an **ACK** is received
+        """Write the bytes from ``buf`` to the bus. Checks that an **ACK** is received
         after each byte and stops transmitting the remaining bytes if a
         **NACK** is received. The function returns the number of ACKs that
         were received.
@@ -567,20 +521,17 @@ class I2C(object):
         """
 
     def readfrom(self, addr: int, nbytes: int, stop: bool = True) -> bytes:
-        """
-        Read ``nbytes`` from the slave specified by ``addr``.
+        """Read ``nbytes`` from the slave specified by ``addr``.
 
         :param addr: Address of slave device.
         :param nbytes: Maximum amount of bytes to be read.
         :param stop: If true, then STOP condition is generated at the end of the transfer.
         :return: Data read.
-        :rtype: bytes
         """
         ...
 
     def readfrom_into(self, addr: int, buf: bytearray, stop: bool = True) -> None:
-        """
-        Read into ``buf`` from the slave specified by ``addr``. The number of
+        """Read into ``buf`` from the slave specified by ``addr``. The number of
         bytes read will be the length of buf. If ``stop`` is true then a **STOP**
         condition is generated at the end of the transfer.
 
@@ -591,8 +542,7 @@ class I2C(object):
         ...
 
     def writeto(self, addr: int, buf: bytearray, stop: bool = True) -> None:
-        """
-        Write the bytes from ``buf`` to the slave specified by ``addr``. If a **NACK** is
+        """Write the bytes from ``buf`` to the slave specified by ``addr``. If a **NACK** is
         received following the write of a byte from buf then the remaining
         bytes are not sent. If stop is true then a **STOP** condition is generated
         at the end of the transfer, even if a **NACK** is received.
@@ -605,8 +555,7 @@ class I2C(object):
         ...
 
     def readfrom_mem(self, addr: int, memaddr: int, addrsize: int = 8) -> bytes:
-        """
-        Read ``nbytes`` from the slave specified by ``addr`` starting from the memory
+        """Read ``nbytes`` from the slave specified by ``addr`` starting from the memory
         address specified by ``memaddr``. The argument ``addrsize`` specifies the
         address size in bits. Returns a bytes object with the data read.
 
@@ -614,13 +563,11 @@ class I2C(object):
         :param memaddr: Memory address location on a slave device to read from.
         :param addrsize: Address size in bits.
         :return: Data that has been read.
-        :rtype: bytes
         """
         ...
 
     def readfrom_mem_into(self, addr: int, memaddr: int, buf, *, addrsize=8) -> None:
-        """
-        Read into ``buf`` from the slave specified by addr starting from the memory
+        """Read into ``buf`` from the slave specified by addr starting from the memory
         address specified by ``memaddr``. The number of bytes read is the length
         of ``buf``. The argument ``addrsize`` specifies the address size in bits
         (on ESP8266 this argument is not recognised and the address size is
@@ -634,8 +581,7 @@ class I2C(object):
         ...
 
     def writeto_mem(self, addr: int, memaddr: int, *, addrsize=8) -> None:
-        """
-        Write ``buf`` to the slave specified by ``addr`` starting from the
+        """Write ``buf`` to the slave specified by ``addr`` starting from the
         memory address specified by ``memaddr``. The argument ``addrsize`` specifies
         the address size in bits (on ESP8266 this argument is not recognised
         and the address size is always 8 bits).
@@ -648,18 +594,15 @@ class I2C(object):
 
 
 class RTC(object):
-
     def __init__(self, id: int = 0) -> None:
-        """
-        Create an RTC object.
+        """Create an RTC object.
 
         :param id: ID of RTC device.
         """
         ...
 
-    def init(self, datetime: Tuple) -> None:
-        """
-        Initialise the RTC. Datetime is a tuple of the form:
+    def init(self, datetime: tuple) -> None:
+        """Initialise the RTC. Datetime is a tuple of the form:
 
         ``(year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]])``
 
@@ -667,24 +610,19 @@ class RTC(object):
         """
         ...
 
-    def now(self) -> Tuple:
-        """
-        Get get the current datetime tuple.
+    def now(self) -> tuple:
+        """Get get the current datetime tuple.
 
         :return: Current datetime tuple.
-        :rtype: tuple
         """
         ...
 
     def deinit(self) -> None:
-        """
-        Resets the RTC to the time of January 1, 2015 and starts running it again.
-        """
+        """Resets the RTC to the time of January 1, 2015 and starts running it again."""
         ...
 
-    def alarm(self, id: int, time: Union[int, Tuple], *, repeat: bool = False) -> None:
-        """
-        Set the RTC alarm. Time might be either a millisecond value to program the
+    def alarm(self, id: int, time: Union[int, tuple], *, repeat: bool = False) -> None:
+        """Set the RTC alarm. Time might be either a millisecond value to program the
         alarm to current ``time + time_in_ms`` in the future, or a ``datetimetuple``.
         If the ``time`` passed is in milliseconds, repeat can be set to True to
         make the alarm periodic.
@@ -723,14 +661,14 @@ class RTC(object):
         """
         ...
 
-    ALARM0 = int
+    ALARM0 = ...  # type: int
 
 
 class Timer(object):
-    ONE_SHOT = int
-    PERIODIC = int
+    ONE_SHOT = ...  # type: int
+    PERIODIC = ...  # type: int
 
-    def __init__(self, id):
+    def __init__(self, id: int) -> None:
         """
         Construct a new timer object of the given id. Id of -1 constructs a
         virtual timer (if supported by a board).
@@ -746,14 +684,11 @@ class Timer(object):
 
 
 def reset() -> None:
-    """
-    Resets the device in a manner similar to pushing the external RESET button.
-    """
+    """Resets the device in a manner similar to pushing the external RESET button."""
     ...
 
 def reset_cause() -> int:
-    """
-    Get the reset cause. Below are possible return values:
+    """Get the reset cause. Below are possible return values:
 
     * ``machine.PWRON_RESET``
     * ``machine.HARD_RESET``
@@ -767,8 +702,7 @@ def reset_cause() -> int:
     ...
 
 def disable_irq() -> int:
-    """
-    Disable interrupt requests. Returns the previous IRQ state which should
+    """Disable interrupt requests. Returns the previous IRQ state which should
     be considered an opaque value. This return value should be passed to
     the ``enable_irq`` function to restore interrupts to their original state,
     before ``disable_irq`` was called.
@@ -779,8 +713,7 @@ def disable_irq() -> int:
     ...
 
 def enable_irq(state: int) -> None:
-    """
-    Re-enable interrupt requests. The state parameter should be the value
+    """Re-enable interrupt requests. The state parameter should be the value
     that was returned from the most recent call to the ``disable_irq`` function.
 
     :param state: IRQ state, previously returned from ``disable_irq`` function.
@@ -792,27 +725,23 @@ def freq() -> int:
     Returns CPU frequency in hertz.
 
     :return: CPU frequency in hertz.
-    :rtype: int
     """
 
 def idle() -> None:
-    """
-    Gates the clock to the CPU, useful to reduce power consumption at any time
+    """Gates the clock to the CPU, useful to reduce power consumption at any time
     during short or long periods. Peripherals continue working and execution
     resumes as soon as any interrupt is triggered (on many ports this includes
     system timer interrupt occurring at regular intervals on the order of millisecond).
     """
 
 def sleep() -> None:
-    """
-    Stops the CPU and disables all peripherals except for WLAN. Execution is
+    """Stops the CPU and disables all peripherals except for WLAN. Execution is
     resumed from the point where the sleep was requested. For wake up to
     actually happen, wake sources should be configured first.
     """
 
 def deepsleep() -> None:
-    """
-    Stops the CPU and all peripherals (including networking interfaces, if
+    """Stops the CPU and all peripherals (including networking interfaces, if
     any). Execution is resumed from the main script, just as with a reset.
     The reset cause can be checked to know that we are coming from
     ``machine.DEEPSLEEP``. For wake up to actually happen, wake
@@ -820,15 +749,13 @@ def deepsleep() -> None:
     """
 
 def wake_reason() -> int:
-    """
-    Get the wake reason. Possible values are:
+    """Get the wake reason. Possible values are:
 
     * ``machine.WLAN_WAKE``
     * ``machine.PIN_WAKE``
     * ``machine.RTC_WAKE``
 
     :return: Wake reason.
-    :rtype: int
     """
     ...
 
@@ -839,7 +766,6 @@ def unique_id() -> bytearray:
     Length varies by hardware (so use substring of a full value if you expect
     a short ID). In some MicroPython ports, ID corresponds to the network MAC address.
     :return: Unique identifier of a board/SoC.
-    :rtype: bytearray
     """
     ...
 
@@ -863,6 +789,5 @@ def time_pulse_us(pin: Pin, pulse_level: int, timeout_us: int = 1000000) -> int:
     :param pulse_level: Level of pulse (*1* for high, *0* for low)
     :param timeout_us: Duration of wait for pin change conditions, in microsecond.
     :return: Result code (-1 or -2)
-    :rtype: int
     """
     ...
