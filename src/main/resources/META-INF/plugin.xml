@@ -2,6 +2,10 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.6:</p>
+      <ul>
+        <li>Fixed several bugs in <code>machine</code> stub</li>
+      </ul>
       <p>1.0.5:</p>
       <ul>
         <li>Don't delete boot.py when removing all files from the device #35</li>
