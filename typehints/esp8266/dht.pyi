@@ -7,7 +7,7 @@ measured as percentage of relative humidity and temperature is measured in Celsi
 
 
 class DHTBase:
-    def __init__(self, pin: object) -> None:
+    def __init__(self, pin: machine.Pin) -> None:
         """
         Initialise base class for both DHT-11 and DHT-22
         :param pin: GPIO pin object providing 1-wire data signal
@@ -24,38 +24,34 @@ class DHTBase:
 
 
 class DHT11(DHTBase):
-    def humidity(self) -> bytearray:
+    def humidity(self) -> int:
         """
         Gets the latest humidity reading as the percentage of relative humidity as whole number.
 
         :return: latest humidity reading.
-        :rtype bytearray
         """
 
 
-    def temperature(self) -> bytearray:
+    def temperature(self) -> int:
         """
         Gets the latest temperature reading in degrees celsius as whole number.
 
         :return: latest temperature reading
-        :rtype bytearray
         """
 
 
 class DHT22(DHTBase):
-    def humidity(self) -> bytearray:
+    def humidity(self) -> float:
         """
         Gets the latest humidity reading as the percentage of relative humidity accurate to one decimal place.
 
         :return: latest humidity reading
-        :rtype bytearray
         """
 
 
-    def temperature(self) -> bytearray:
+    def temperature(self) -> float:
         """
         Gets the latest temperature reading in degrees celsius accurate to one decimal place.
 
         :return: latest temperature reading
-        :rtype bytearray
         """
