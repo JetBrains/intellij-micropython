@@ -20,10 +20,12 @@ import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.projectRoots.Sdk
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
 import com.jetbrains.micropython.settings.microPythonFacet
+import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.packaging.PyRequirement
 
 /**
@@ -39,9 +41,10 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0x0D28, 0x0204))
 
-  override val packageRequirements: List<PyRequirement> by lazy {
-    PyRequirement.fromText("""|uflash>=1.0.8,<1.1
-                              |pyserial>=3.3,<4.0""".trimMargin())
+  override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
+    val manager = PyPackageManager.getInstance(sdk)
+    return manager.parseRequirements("""|uflash>=1.0.8,<1.1
+                                        |pyserial>=3.3,<4.0""".trimMargin())
   }
 
   override val typeHints: MicroPythonTypeHints by lazy {

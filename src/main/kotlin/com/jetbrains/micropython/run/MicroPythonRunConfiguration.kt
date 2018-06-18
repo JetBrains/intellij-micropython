@@ -36,7 +36,7 @@ import org.jdom.Element
 /**
  * @author Mikhail Golubev
  */
-class MicroPythonRunConfiguration(project: Project?, factory: ConfigurationFactory?)
+class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactory)
   : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
 
   var path: String = ""

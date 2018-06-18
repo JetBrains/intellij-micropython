@@ -82,7 +82,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     }
     val packageManager = PyPackageManager.getInstance(sdk)
     val packages = packageManager.packages ?: return ValidationResult.OK
-    val requirements = provider.packageRequirements.filter { it.match(packages) == null }.toList()
+    val requirements = provider.getPackageRequirements(sdk).filter { it.match(packages) == null }.toList()
     if (requirements.isNotEmpty()) {
       val requirementsText = requirements.joinToString(", ")
       return ValidationResult("Packages required for ${provider.presentableName} support not found: $requirementsText",

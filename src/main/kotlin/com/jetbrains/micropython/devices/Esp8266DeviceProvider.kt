@@ -4,6 +4,7 @@ import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
@@ -13,6 +14,7 @@ import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
 import com.jetbrains.micropython.settings.microPythonFacet
+import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.packaging.PyRequirement
 
 /**
@@ -33,10 +35,11 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
   }
 
-  override val packageRequirements: List<PyRequirement> by lazy {
-    PyRequirement.fromText("""|pyserial>=3.3,<4.0
-                              |docopt>=0.6.2,<0.7
-                              |adafruit-ampy>=1.0.1,<1.1""".trimMargin())
+  override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
+    val manager = PyPackageManager.getInstance(sdk)
+    return manager.parseRequirements("""|pyserial>=3.3,<4.0
+                                        |docopt>=0.6.2,<0.7
+                                        |adafruit-ampy>=1.0.1,<1.1""".trimMargin())
   }
 
   override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,

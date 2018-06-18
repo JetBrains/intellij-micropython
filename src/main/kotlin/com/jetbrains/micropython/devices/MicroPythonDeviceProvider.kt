@@ -20,6 +20,7 @@ import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.projectRoots.Sdk
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
@@ -50,8 +51,7 @@ interface MicroPythonDeviceProvider {
   val presentableName: String
     get() = persistentName
 
-  val packageRequirements: List<PyRequirement>
-    get() = emptyList()
+  fun getPackageRequirements(sdk: Sdk): List<PyRequirement> = emptyList()
 
   val typeHints: MicroPythonTypeHints?
     get() = null

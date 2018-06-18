@@ -55,7 +55,7 @@ contributions to the project. Feel free to open issues and send pull requests!
 
 ## Requirements
 
-* IntelliJ 2017.2+ or PyCharm 2017.2+
+* IntelliJ 2017.3+ or PyCharm 2017.3+
 * Python 3.5+
     * MicroPython language version is 3.5. If you select a newer version, turn on <em>"File | Settings | Editor |
       Inspections | Python | Code compatibility inspection"</em> and add Python 3.5 to the compatibility list there
@@ -131,7 +131,7 @@ development.
 The steps for setting up the development environment:
 
 1. Check out this project from GitHub
-2. Create a new project from existing sources in IntelliJ 2017.2 or newer
+2. Create a new project from existing sources in IntelliJ 2017.3 or newer
 
 To just run the development version use `./gradlew clean runIde` from the command line.
 
