@@ -2,6 +2,10 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.0.8:</p>
+      <ul>
+        <li>Compatibility with 2018.2 only</li>
+      </ul>
       <p>1.0.7:</p>
       <ul>
         <li>Compatibility with 2017.3-2018.2</li>
@@ -63,7 +67,7 @@
   <depends>com.intellij.modules.python</depends>
   <depends>org.jetbrains.plugins.terminal</depends>
 
-  <idea-version since-build="173.0" until-build="182.*"/>
+  <idea-version since-build="182.0" until-build="182.*"/>
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.jetbrains.micropython.deviceProvider"
