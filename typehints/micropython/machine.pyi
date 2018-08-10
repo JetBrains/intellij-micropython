@@ -15,6 +15,7 @@ and real hardware interrupts).
 
 
 from typing import Callable, Optional, Collection, Union, Any
+from enum import Enum
 
 
 IDLE = ...  # type: int
