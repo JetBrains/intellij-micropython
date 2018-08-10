@@ -192,7 +192,15 @@ Usage Model::
     def off(self) -> None:
         """Set pin to “0” output level."""
         ...
+	
+    def high(self) -> None:
+        """Set pin to “1” output level."""
+        ...
 
+    def low(self) -> None:
+        """Set pin to “0” output level."""
+        ...
+	
     def mode(self, mode: Optional[int]) -> Optional[int]:
         """Get or set the pin mode.
 
@@ -265,6 +273,12 @@ Usage Model::
         """
         ...
 
+    class board(Enum):
+        """ This Enum allows you to name any pin on your board. Please make sure, you only use pins available on your MicroPython board.
+        Wrong or incomplete values will result in errors at runtime.
+        As multiple boards are supported by this function no values are allowed or forbidden as the available pins vary greatly between boards
+        """
+        ...
 
 class Signal(object):
     def __init__(self, pin_obj: Pin, invert: bool = False) -> None:
