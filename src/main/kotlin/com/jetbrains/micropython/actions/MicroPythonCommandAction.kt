@@ -29,8 +29,8 @@ import org.jetbrains.plugins.terminal.TerminalView
  * @author vlan
  */
 abstract class MicroPythonCommandAction : AnAction() {
-  override fun actionPerformed(e: AnActionEvent?) {
-    val project = e?.project ?: return
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
     val facet = project.firstMicroPythonFacet ?: return
     val provider = facet.configuration.deviceProvider
     val command = getCommand(facet)
@@ -47,8 +47,8 @@ abstract class MicroPythonCommandAction : AnAction() {
     })
   }
 
-  override fun update(e: AnActionEvent?) {
-    val project = e?.project ?: return
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
     val facet = project.firstMicroPythonFacet
     if (facet != null) {
       e.presentation.isEnabled = facet.checkValid() == ValidationResult.OK
