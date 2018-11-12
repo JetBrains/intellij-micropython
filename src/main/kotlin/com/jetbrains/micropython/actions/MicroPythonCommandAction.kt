@@ -42,7 +42,7 @@ abstract class MicroPythonCommandAction : AnAction() {
       return
     }
 
-    TerminalView.getInstance(project).createNewSession(project, object : LocalTerminalDirectRunner(project) {
+    TerminalView.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
       override fun getCommand(envs: MutableMap<String, String>?) = command.toTypedArray()
     })
   }
