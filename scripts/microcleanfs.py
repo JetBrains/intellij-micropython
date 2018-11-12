@@ -48,7 +48,7 @@ def main(args: List[str]) -> None:
 
     print('Removing the contents of the file system')
     wait_for_board()
-    for name in files.ls():
+    for name in files.ls(long_format=False):
         if force or name not in exclude_files:
             try:
                 files.rm(name)
