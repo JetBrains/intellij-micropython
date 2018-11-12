@@ -19,7 +19,6 @@ package com.jetbrains.micropython.devices
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.projectRoots.Sdk
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
@@ -34,8 +33,8 @@ interface MicroPythonDeviceProvider {
     private val EP_NAME: ExtensionPointName<MicroPythonDeviceProvider> =
         ExtensionPointName.create("com.jetbrains.micropython.deviceProvider")
 
-    val providers: Array<MicroPythonDeviceProvider>
-      get() = Extensions.getExtensions(EP_NAME)
+    val providers: List<MicroPythonDeviceProvider>
+      get() = EP_NAME.extensionList
 
     val default: MicroPythonDeviceProvider
       get() = providers.first { it.isDefault }

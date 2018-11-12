@@ -39,7 +39,7 @@ import javax.swing.JPanel
  * @author vlan
  */
 class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
-  private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers)
+  private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers.toTypedArray())
   private val label = SwingHelper.createWebHyperlink("")
   private val devicePath = TextFieldWithBrowseButton()
 
