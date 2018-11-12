@@ -49,10 +49,10 @@ class MicroPythonFacetDetector : FacetBasedFrameworkDetector<MicroPythonFacet, M
           val psiFile = fileContent.psiFile
           return when (psiFile) {
             is PyFile -> {
-              return psiFile.importBlock.any {
-                when (it) {
-                  is PyFromImportStatement -> it.importSourceQName?.firstComponent in detected
-                  is PyImportStatement -> it.importElements.any { it.importedQName?.firstComponent in detected }
+              return psiFile.importBlock.any { imp ->
+                when (imp) {
+                  is PyFromImportStatement -> imp.importSourceQName?.firstComponent in detected
+                  is PyImportStatement -> imp.importElements.any { it.importedQName?.firstComponent in detected }
                   else -> false
                 }
               }

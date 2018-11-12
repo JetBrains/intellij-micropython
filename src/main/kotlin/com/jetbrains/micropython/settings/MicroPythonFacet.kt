@@ -47,7 +47,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   : LibraryContributingFacet<MicroPythonFacetConfiguration>(facetType, module, name, configuration, underlyingFacet) {
 
   companion object {
-    private val PLUGIN_ID = "intellij-micropython"
+    private const val PLUGIN_ID = "intellij-micropython"
 
     val scriptsPath: String
       get() = "${pluginDescriptor.path}/scripts"
