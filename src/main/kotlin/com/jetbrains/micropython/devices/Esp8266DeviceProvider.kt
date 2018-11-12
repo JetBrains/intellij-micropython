@@ -48,7 +48,8 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     val facet = module.microPythonFacet ?: return null
     val pythonPath = facet.pythonPath ?: return null
     val devicePath = facet.devicePath ?: return null
-    val rootDir = configuration.project.baseDir ?: return null
+    val rootPath = configuration.project.basePath ?: return null
+    val rootDir = StandardFileSystems.local().findFileByPath(rootPath) ?: return null
     val file = StandardFileSystems.local().findFileByPath(configuration.path) ?: return null
     val excludeRoots = ModuleRootManager.getInstance(module).excludeRoots
     val excludes = excludeRoots
@@ -59,7 +60,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
         .map { listOf("-X", it) }
         .flatten()
         .toList()
-    val command = listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py", "-C", rootDir.path) +
+    val command = listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py", "-C", rootPath) +
         excludes + listOf("-v", devicePath, configuration.path)
 
     return object : CommandLineState(environment) {
