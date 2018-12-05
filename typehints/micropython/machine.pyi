@@ -265,6 +265,49 @@ Usage Model::
         """
         ...
 
+class ADC:
+
+    ATTN_1DB: int
+    ATTN_2_5DB: int
+    ATTN_6DB: int
+    ATTN_11DB: int
+
+    def __init__(self, pin: Pin):
+        """
+        pin argument defines the gpio which will be used as adc input.
+        ESP32:
+        For ADC1 only GPIOs 32-39 can be used as ADC inputs.
+        For ADC2 gpios 4, 0, 2, 15, 13, 12, 14, 27, 25, 26 can be used as ADC inputs.
+        Be very carefull not to use the pins used by ESP32, especially the bootstrapping pins.
+
+        ESP8266 has a single pin (separate to the GPIO pins) which can be used to read analog
+        voltages and convert them to a digital value.
+        :param pin:
+        """
+        ...
+
+    def atten(self, atten: int):
+        """
+        For ESP32 only: Set the attenuation value.
+        The following attenuation constants can be used for value:
+        ATTN_0DB - attenuation 0 dB (range: 0 - 1.1 V)
+        ATTN_2_5DB - attenuation 2.5 dB (range 0 - 1.5 V)
+        ATTN_6DB - attenuation 6 dB (range: 0 - 2.5 V)
+        ATTN_11DB - attenuation 11 dB (range: 0 - 3.9 V'
+        :param atten: int
+        :return: None
+        """
+        ...
+
+    def read(self) -> int:
+        """
+        Read the ADC value as voltage (in mV)
+
+        Calibrated read is used.
+        For hall sensor readings, the raw value is returned.
+        :return:
+        """
+        ...
 
 class Signal(object):
     def __init__(self, pin_obj: Pin, invert: bool = False) -> None:
@@ -307,6 +350,49 @@ class Signal(object):
         """Deactivate signal."""
         ...
 
+class PWM(object):
+    """
+    Pulse width modulation (PWM) is a way to get an artificial analog output on a digital pin.
+    """
+
+    def __init__(self, pin: Pin, freq: Optional[int], duty: Optional[int]):
+        """
+        Initialize PWM on specified pin.
+        :param pin:
+        :param freq:
+        :param duty:
+        """
+        ...
+
+    def freq(self, freq: Optional[int] = None) -> Optional[int]:
+        """
+        Set or read frequency (read on empty params)
+        :param freq:
+        :return:
+        """
+        ...
+
+    def duty(self, duty: Optional[int] = None) -> Optional[int]:
+        """
+        Set or read value of duty. Setting duty starts PWM on the pin.
+        :param duty:
+        :return:
+        """
+        ...
+
+    def init(self):
+        """
+        Initialize PWM
+        :return:
+        """
+        ...
+
+    def deinit(self):
+        """
+        Deinitialize PWM
+        :return:
+        """
+        ...
 
 class UART(object):
     def __init__(self, id: int, baudrate: int = 115200) -> None:
@@ -463,8 +549,9 @@ class SPI(object):
 
 
 class I2C(object):
-    def __init__(self, id: int, *, scl: Pin, sda: Pin, freq: int = 400000) -> None:
-        """Construct and return a new I2C object.
+    def __init__(self, id: int=0, *, scl: Pin, sda: Pin, freq: int = 400000) -> None:
+        """
+        Construct and return a new I2C object.
 
         :param id: Particular I2C peripheral (-1 for software implementation).
         :param scl: Pin object specifying the pin to use for SCL.

@@ -91,6 +91,25 @@ def ticks_us() -> int:
     results from the latter functions."""
     ...
 
+def ticks_diff(time1: int, time2: int) -> int:
+    """
+    Measure ticks difference between values returned from ticks_ms(), ticks_us(), or ticks_cpu() functions, as a signed
+    value which may wrap around.
+
+    The argument order is the same as for subtraction operator, ticks_diff(ticks1, ticks2) has the same meaning as
+    ticks1 - ticks2. However, values returned by ticks_ms(), etc. functions may wrap around, so directly using
+    subtraction on them will produce incorrect result. That is why ticks_diff() is needed, it implements modular
+    (or more specifically, ring) arithmetics to produce correct result even for wrap-around values (as long as they not
+    too distant inbetween, see below). The function returns signed value in the range
+    [-TICKS_PERIOD/2 .. TICKS_PERIOD/2-1] (that’s a typical range definition for two’s-complement signed binary
+    integers). If the result is negative, it means that ticks1 occurred earlier in time than ticks2.
+
+    :param time1:
+    :param time2:
+    :return:
+    """
+    ...
+
 def ticks_cpu() -> int:
     """Similar to ``ticks_ms()`` and ``ticks_us()``, but with the highest possible
     resolution in the system. This is usually CPU clocks, and that’s why the
