@@ -29,7 +29,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.PathUtil
-import com.intellij.util.attribute
 import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
 
@@ -68,7 +67,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
-    element.attribute("path", path)
+    element.setAttribute("path", path)
   }
 
   override fun readExternal(element: Element) {
