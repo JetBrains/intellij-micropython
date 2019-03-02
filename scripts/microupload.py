@@ -93,7 +93,8 @@ def make_dirs(files: Files, path: str,
     if parent and parent not in created_cache:
         make_dirs(files, parent, created_cache)
     with suppress(DirectoryExistsError):
-        files.mkdir(path)
+        posix_path = path.replace(os.path.sep, '/')
+        files.mkdir(posix_path)
         created_cache.add(path)
 
 
