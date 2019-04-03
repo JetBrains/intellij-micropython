@@ -14,66 +14,35 @@
 
 
 """Remove the contents of the file system on a MicroPython device.
-
 Usage:
-    microcleanfs PORT [options]
-
-    Options:
-    -f --force     Remove ALL files from filesystem w/o preserving excludes
+    microcleanfs PORT
 """
-
 import traceback
-from typing import List
-
-import sys
 import time
-
-from ampy.files import Files
-from ampy.pyboard import Pyboard, PyboardError
-from docopt import docopt
-
+import sys
+import os
+from contextlib import suppress
+from typing import List, Iterable, TypeVar, Sequence, Set
 
 def main(args: List[str]) -> None:
-    opts = docopt(__doc__, argv=args)
-    port = opts['PORT']
-    force = opts['--force']
 
-    print('Connecting to {}'.format(port), file=sys.stderr)
-    board = Pyboard(port)
-    files = Files(board)
-
-    # Specifying subdirectories DOES NOT work as they will be deleted when the
-    # parent directory is deleted. Specifying top level directories DOES work.
-    exclude_files = ['boot.py']
-
-    print('Removing the contents of the file system')
-    wait_for_board()
-    for name in files.ls(long_format=False):
-        if force or name not in exclude_files:
-            try:
-                files.rm(name)
-            except (RuntimeError, PyboardError):
-                try:
-                    files.rmdir(name)
-                except (RuntimeError, PyboardError):
-                    print('Unknown Error removing file {}'.format(name),
-                          file=sys.stderr)
-
-    print('Done')
-
-
-def wait_for_board() -> None:
-    """Wait for some ESP8266 devices to become ready for REPL commands."""
-    time.sleep(0.5)
-
+    from mp.mpfshell import MpFileShell
+    # print(args)
+    # sys.arg
+    mpfs = MpFileShell(True, True, True, True)
+    mpfs.do_open(args[1])
+    files = mpfs.fe.ls(add_details=True)
+    print('Currently has internal files ', files)
+    for file, type in files:
+        mpfs.fe.rm(file)
+    files = mpfs.fe.ls(add_details=True)
+    print('The execution result', files if 0 != len(files) else 'success')
 
 if __name__ == '__main__':
     try:
-        main(sys.argv[1:])
-        exitcode = 0
-    except:
-        traceback.print_exc()
-        exitcode = 1
-    finally:
-        input('Press ENTER to continue')
-    sys.exit(exitcode)
+        main(sys.argv)
+        input("Press ENTER to exit")
+    except Exception:
+        sys.stderr.write(traceback.format_exc())
+        input("Press ENTER to continue")
+        sys.exit(1)
