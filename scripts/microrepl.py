@@ -12,24 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-A simple shim around PySerial that detects the correct port to which the
-MicroPython device is connected and attempts to make a serial connection to it
-in order to bring up the Python REPL.
-"""
-
 import errno
 import sys
 from time import sleep
 import traceback
-
-import serial
-import serial.tools.miniterm
-from serial.tools.miniterm import Miniterm, key_description
-
-BAUDRATE = 115200
-PARITY = 'N'
-
 
 if sys.version_info >= (3, 0):
     def character(b):
@@ -38,73 +24,34 @@ else:
     def character(b):
         return b
 
-
-def connect_miniterm(port):
-    try:
-        ser = serial.Serial(port, BAUDRATE, parity=PARITY, rtscts=False,
-                            xonxoff=False)
-        return Miniterm(ser, echo=False)
-    except serial.SerialException as e:
-        if e.errno == errno.ENOENT:
-            sys.stderr.write(
-                "Device %r not found. Check your "
-                "MicroPython device path settings.\n" % port)
-        elif e.errno == errno.EBUSY:
-            # Device is busy. Explain what to do.
-            sys.stderr.write(
-                "Found the device, but it is busy. "
-                "Wait up to 20 seconds, or "
-                "press the reset button on the "
-                "back of the device next to the yellow light; "
-                "then try again.\n"
-            )
-        elif e.errno == errno.EACCES:
-            sys.stderr.write("Found the device, but could not connect.\n".format(port))
-            sys.stderr.write('%s\n' % (str(e),))
-            sys.stderr.write('On linux, try adding yourself to the "dialout" group:\n')
-            sys.stderr.write('sudo usermod -a -G dialout <your-username>\n')
-        else:
-            # Try to be as helpful as possible.
-            sys.stderr.write("Found the device, but could not connect via" +
-                             " port %r: %s\n" % (port, e))
-            sys.stderr.write("I'm not sure what to suggest. :-(\n")
-        input("Press ENTER to continue")
-        sys.exit(1)
-
-
 def main():
-    """
-    The function that actually runs the REPL.
-    """
-    if len(sys.argv) != 2:
-        print("Usage: microrepl.py /path/to/device")
 
-    port = sys.argv[1]
-    print('Device path', port)
-    serial.tools.miniterm.EXITCHARCTER = character(b'\x1d')
-    miniterm = connect_miniterm(port)
-    # Emit some helpful information about the program and MicroPython.
-    shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
-    help_message = 'Type \'help()\' (without the quotes) then press ENTER.\n'
-    exit_char = key_description(serial.tools.miniterm.EXITCHARCTER)
-    sys.stderr.write(shortcut_message.format(exit_char))
-    sys.stderr.write(help_message)
-    # Start everything.
-    miniterm.set_rx_encoding('utf-8')
-    miniterm.set_tx_encoding('utf-8')
-    miniterm.start()
-    sleep(0.5)
-    miniterm.serial.write(b'\x03')  # Connecting stops the running program.
-    try:
-        miniterm.join(True)
-    except KeyboardInterrupt:
-        pass
-    sys.stderr.write('\nEXIT - see you soon... :-)\n')
+    import sys
 
+    print(sys.argv)
+
+    if len(sys.argv) == 1:
+        sys.argv.append("")
+
+    if len(sys.argv[1]) == 0:
+
+        import serial.tools.list_ports
+        print("looking for computer port...")
+        plist = list(serial.tools.list_ports.comports())
+        if len(plist) <= 0:
+            print("serial not found!")
+        else:
+            sys.argv[1] = plist[len(plist) - 1][0].split('/')[-1]
+    
+    from mp.mpfshell import main
+
+    sys.argv = [sys.argv[0], '-c', 'open', sys.argv[1] + ';', 'repl;', '-n', '--nocolor', '--nohelp']
+    main()
 
 if __name__ == '__main__':
     try:
         main()
+        input("Press ENTER to exit")
     except Exception:
         sys.stderr.write(traceback.format_exc())
         input("Press ENTER to continue")
