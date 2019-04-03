@@ -38,13 +38,21 @@ def parse_id(arg: str) -> Tuple[int, int]:
 
 
 def main() -> None:
+    # print(sys.argv)
     if len(sys.argv) < 2:
         print('Usage: findusb.py vendor_id:port_id...', file=sys.stderr)
         sys.exit(1)
-    ids = [parse_id(arg) for arg in sys.argv[1:]]
-    for device in find_devices(ids):
-        print(device)
 
+    ids = [parse_id(arg) for arg in sys.argv[1:]]
+    devs = find_devices(ids)
+    flag = False
+    for device in devs:
+        flag = True
+        print(device)
+    if flag is False:
+        plist = list(comports())
+        print(plist[len(plist) - 1][0])
 
 if __name__ == '__main__':
+    main()
     main()
