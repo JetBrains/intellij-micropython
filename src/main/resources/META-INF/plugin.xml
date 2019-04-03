@@ -2,6 +2,14 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
+      <p>1.1.1:</p>
+      <ul>
+        <li>fix remove all files function and allow execfile other disk paths on windows.</li>
+      </ul>
+      <p>1.1.0:</p>
+      <ul>
+        <li>Adjust to the mpfshell support base</li>
+      </ul>
       <p>1.0.11:</p>
       <ul>
         <li>Compatibility with 2018.3-2019.1</li>

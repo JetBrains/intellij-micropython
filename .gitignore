@@ -3,3 +3,4 @@
 build/
 venv/
 tmp/
+.gradle/
