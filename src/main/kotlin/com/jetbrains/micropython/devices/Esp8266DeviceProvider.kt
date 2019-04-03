@@ -38,8 +38,8 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
   override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
     val manager = PyPackageManager.getInstance(sdk)
     return manager.parseRequirements("""|pyserial>=3.3,<4.0
-                                        |docopt>=0.6.2,<0.7
-                                        |adafruit-ampy>=1.0.5,<1.1""".trimMargin())
+                                        |mpfshell-lite>=0.8.2,<1.0.0
+                                        |websocket_client>=0.54.0,<0.60.0""".trimMargin())
   }
 
   override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
