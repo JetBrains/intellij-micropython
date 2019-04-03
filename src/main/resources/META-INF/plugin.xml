@@ -114,7 +114,9 @@
       <action class="com.jetbrains.micropython.actions.RunMicroReplAction" id="RunMicroReplAction"
               text="MicroPython REPL" description="Run MicroPython REPL in Terminal" icon="/Logo.png"/>
       <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"
-              text="Remove All Files from MicroPython Device"/>
+              text="Remove All Files from MicroPython Device" icon="/Logo.png" />
+      <action class="com.jetbrains.micropython.actions.RunMpfshellToolsAction" id="RunMpfshellToolsAction"
+              text="Run Mpfshell Tools" icon="/Logo.png"/>
     </group>
   </actions>
 </idea-plugin>
