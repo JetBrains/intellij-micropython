@@ -18,7 +18,8 @@ package com.jetbrains.micropython.run
 
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
-import com.intellij.execution.actions.RunConfigurationProducer
+import com.intellij.execution.actions.LazyRunConfigurationProducer
+import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.Ref
@@ -30,9 +31,11 @@ import com.jetbrains.python.run.AbstractPythonRunConfiguration
 /**
  * @author Mikhail Golubev
  */
-class MicroPythonRunConfigurationProducer : 
-  RunConfigurationProducer<MicroPythonRunConfiguration>(MicroPythonConfigurationType.getInstance()) {
-  
+class MicroPythonRunConfigurationProducer : LazyRunConfigurationProducer<MicroPythonRunConfiguration>() {
+  override fun getConfigurationFactory(): ConfigurationFactory {
+    return MicroPythonConfigurationType.getInstance().factory
+  }
+
   override fun isConfigurationFromContext(configuration: MicroPythonRunConfiguration, context: ConfigurationContext): Boolean {
     val location = context.location ?: return false
     val script = location.psiElement.containingFile ?: return false
