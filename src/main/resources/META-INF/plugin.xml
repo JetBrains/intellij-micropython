@@ -2,7 +2,7 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
-      <p>Unreleased:</p>
+      <p>1.0.13:</p>
       <ul>
         <li>Compatibility with 2019.3 only</li>
       </ul>
