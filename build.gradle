@@ -9,13 +9,12 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.intellij' version '0.4.2'
+    id 'org.jetbrains.intellij' version '0.4.10'
 }
 
 apply plugin: 'kotlin'
 
-def hasPyCharm = project.hasProperty('pycharmPath')
-def hasPythonPlugin = project.hasProperty('pythonPlugin')
+def isPyCharm = ideaVersion.contains('PY') || ideaVersion.contains('PC')
 
 intellij {
     version ideaVersion
@@ -23,14 +22,8 @@ intellij {
     downloadSources Boolean.valueOf(downloadIdeaSources)
     updateSinceUntilBuild false
     plugins = ['terminal']
-    if (hasPyCharm) {
-        alternativeIdePath pycharmPath
-    }
-    else if (hasPythonPlugin) {
+    if (!isPyCharm) {
         plugins += [pythonPlugin]
-    }
-    else {
-        throw new StopActionException("Define either pycharmPath or pythonPlugin in your gradle.properties")
     }
     publishPlugin {
         username publishUsername
@@ -40,17 +33,9 @@ intellij {
 
 repositories {
     mavenCentral()
-    if (hasPyCharm) {
-        flatDir {
-            dirs "$pycharmPath/lib"
-        }
-    }
 }
 
 dependencies {
-    if (hasPyCharm) {
-        compileOnly name: 'pycharm'
-    }
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 }
 
