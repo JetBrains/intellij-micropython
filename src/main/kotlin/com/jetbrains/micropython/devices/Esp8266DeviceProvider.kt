@@ -50,7 +50,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     val devicePath = facet.devicePath ?: return null
     val rootPath = configuration.project.basePath ?: return null
     val rootDir = StandardFileSystems.local().findFileByPath(rootPath) ?: return null
-    val file = StandardFileSystems.local().findFileByPath(configuration.path) ?: return null
+    val file = StandardFileSystems.local().findFileByPath(configuration.targetPath) ?: return null
     val excludeRoots = ModuleRootManager.getInstance(module).excludeRoots
     val excludes = excludeRoots
         .asSequence()
@@ -61,7 +61,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
         .flatten()
         .toList()
     val command = listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py", "-C", rootPath) +
-        excludes + listOf("-v", devicePath, configuration.path)
+        excludes + listOf("-v", devicePath, configuration.targetPath)
 
     return object : CommandLineState(environment) {
       override fun startProcess() =

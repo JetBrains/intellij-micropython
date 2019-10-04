@@ -39,7 +39,7 @@ class MicroPythonRunConfigurationProducer :
     if (!facetEnabledForElement(script)) return false
     val virtualFile = script.virtualFile ?: return false
     if (virtualFile is LightVirtualFile) return false
-    return configuration.path == virtualFile.path
+    return configuration.targetPath == virtualFile.path
   }
 
   override fun setupConfigurationFromContext(configuration: MicroPythonRunConfiguration,
@@ -49,7 +49,7 @@ class MicroPythonRunConfigurationProducer :
     val script = location.psiElement.containingFile ?: return false
     if (!facetEnabledForElement(script)) return false
     val vFile = script.virtualFile
-    configuration.path = vFile.path
+    configuration.targetPath = vFile.path
     configuration.setGeneratedName()
     configuration.setModule(ModuleUtilCore.findModuleForFile(vFile, context.project))
     return true

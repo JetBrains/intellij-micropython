@@ -21,37 +21,47 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
-import com.intellij.openapi.util.Condition
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 
 class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : SettingsEditor<MicroPythonRunConfiguration>() {
-  private val pathField = TextFieldWithBrowseButton()
+  private val targetField = TextFieldWithBrowseButton()
+  private val contentRootField = TextFieldWithBrowseButton()
 
   init {
 
-    val descriptor = FileChooserDescriptor(true, true, false, false, false, false)
-    val isPythonFile = Condition<VirtualFile?> { file -> file?.extension in listOf(null, "py") }
-    descriptor.withFileFilter(isPythonFile)
+    val targetDescriptor = FileChooserDescriptor(true, true, false, false, false, false)
+    targetDescriptor.withFileFilter { file -> file?.extension in listOf(null, "py") }
+    val targetListener = ComponentWithBrowseButton.BrowseFolderActionListener(
+        "Select Target Path or File", "",
+        targetField,
+        config.project, targetDescriptor,
+        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
+    targetField.addActionListener(targetListener)
 
-    val listener = ComponentWithBrowseButton.BrowseFolderActionListener("Select Path", "",
-                                                                        pathField,
-                                                                        config.project, descriptor,
-                                                                        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
-    pathField.addActionListener(listener)
+    val contentRootDescriptor = FileChooserDescriptor(false, true, false, false, false, false)
+    val contentRootListener = ComponentWithBrowseButton.BrowseFolderActionListener(
+        "Select Content Root Path", "",
+        contentRootField,
+        config.project, contentRootDescriptor,
+        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
+    contentRootField.addActionListener(contentRootListener)
+
   }
 
   override fun createEditor(): JComponent =
       FormBuilder.createFormBuilder()
-          .addLabeledComponent("Path:", pathField)
+          .addLabeledComponent("Target Path:", targetField)
+          .addLabeledComponent("Content Root Path:", contentRootField)
           .panel
 
-  override fun applyEditorTo(s: MicroPythonRunConfiguration) {
-    s.path = pathField.text
+  override fun applyEditorTo(config: MicroPythonRunConfiguration) {
+    config.targetPath = targetField.text
+    config.contentRootPath = contentRootField.text
   }
 
-  override fun resetEditorFrom(s: MicroPythonRunConfiguration) {
-    pathField.text = s.path
+  override fun resetEditorFrom(config: MicroPythonRunConfiguration) {
+    targetField.text = config.targetPath
+    contentRootField.text = config.contentRootPath
   }
 }

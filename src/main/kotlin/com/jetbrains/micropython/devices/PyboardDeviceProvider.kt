@@ -67,7 +67,7 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
                                               rootPath,
                                               "-v",
                                               devicePath,
-                                              configuration.path))
+                                              configuration.targetPath))
     }
   }
 }

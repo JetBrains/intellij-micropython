@@ -38,7 +38,8 @@ import org.jdom.Element
 class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactory)
   : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
 
-  var path: String = ""
+  var targetPath: String = ""
+  var contentRootPath: String = ""
   
   override fun getValidModules() =
       allModules.filter { it.microPythonFacet != null }.toMutableList()
@@ -50,7 +51,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
 
   override fun checkConfiguration() {
     super.checkConfiguration()
-    if (StringUtil.isEmpty(path)) {
+    if (StringUtil.isEmpty(targetPath)) {
       throw RuntimeConfigurationError("Path is not specified")
     }
     val m = module ?: throw RuntimeConfigurationError("Module for path is not found")
@@ -63,24 +64,24 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     facet.pythonPath ?: throw RuntimeConfigurationError("Python interpreter is not found")
   }
 
-  override fun suggestedName() = "Flash ${PathUtil.getFileName(path)}"
+  override fun suggestedName() = "Flash ${PathUtil.getFileName(targetPath)}"
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
-    element.setAttribute("path", path)
+    element.setAttribute("path", targetPath)
   }
 
   override fun readExternal(element: Element) {
     super.readExternal(element)
     configurationModule.readExternal(element)
     element.getAttributeValue("path")?.let {
-      path = it
+      targetPath = it
     }
   }
 
   val module: Module?
     get() {
-      val file = StandardFileSystems.local().findFileByPath(path) ?: return null
+      val file = StandardFileSystems.local().findFileByPath(targetPath) ?: return null
       return ModuleUtil.findModuleForFile(file, project)
     }
 }

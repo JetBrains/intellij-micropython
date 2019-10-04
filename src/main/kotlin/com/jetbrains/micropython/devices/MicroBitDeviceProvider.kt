@@ -59,7 +59,7 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
     val pythonPath = configuration.module?.microPythonFacet?.pythonPath ?: return null
     return object : CommandLineState(environment) {
       override fun startProcess() =
-          OSProcessHandler(GeneralCommandLine(pythonPath, "-m", "uflash", configuration.path))
+          OSProcessHandler(GeneralCommandLine(pythonPath, "-m", "uflash", configuration.targetPath))
     }
   }
 
