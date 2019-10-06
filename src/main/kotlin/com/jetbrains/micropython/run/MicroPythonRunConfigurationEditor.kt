@@ -16,7 +16,7 @@
 
 package com.jetbrains.micropython.run
 
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
@@ -30,8 +30,9 @@ class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : S
 
   init {
 
-    val targetDescriptor = FileChooserDescriptor(true, true, false, false, false, false)
-    targetDescriptor.withFileFilter { file -> file?.extension in listOf(null, "py") }
+    val targetDescriptor = FileChooserDescriptorFactory
+        .createSingleFileOrFolderDescriptor()
+        .withFileFilter { file -> file?.extension in listOf(null, "py") }
     val targetListener = ComponentWithBrowseButton.BrowseFolderActionListener(
         "Select Target Path or File", "",
         targetField,
@@ -39,7 +40,8 @@ class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : S
         TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
     targetField.addActionListener(targetListener)
 
-    val contentRootDescriptor = FileChooserDescriptor(false, true, false, false, false, false)
+    val contentRootDescriptor = FileChooserDescriptorFactory
+        .createSingleFolderDescriptor()
     val contentRootListener = ComponentWithBrowseButton.BrowseFolderActionListener(
         "Select Content Root Path", "",
         contentRootField,
