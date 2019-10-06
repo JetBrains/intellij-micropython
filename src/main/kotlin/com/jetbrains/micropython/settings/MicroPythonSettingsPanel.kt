@@ -24,7 +24,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
-import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.SwingHelper
@@ -75,10 +75,10 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     add(contentPanel, BorderLayout.NORTH)
 
     deviceTypeCombo.apply {
-      renderer = object: ListCellRendererWrapper<MicroPythonDeviceProvider>() {
-        override fun customize(list: JList<*>, value: MicroPythonDeviceProvider, index: Int, selected: Boolean,
-                               hasFocus: Boolean) {
-          setText(value.presentableName)
+      renderer = object: SimpleListCellRenderer<MicroPythonDeviceProvider>() {
+        override fun customize(list: JList<out MicroPythonDeviceProvider>, value: MicroPythonDeviceProvider?,
+                               index: Int, selected: Boolean, hasFocus: Boolean) {
+          text = value?.presentableName ?: return
         }
       }
       addActionListener {

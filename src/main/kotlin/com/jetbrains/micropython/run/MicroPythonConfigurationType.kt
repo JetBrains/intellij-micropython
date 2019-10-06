@@ -34,7 +34,7 @@ class MicroPythonConfigurationType : ConfigurationType {
         ConfigurationTypeUtil.findConfigurationType(MicroPythonConfigurationType::class.java)
   }
   
-  private val factory = object : PythonConfigurationFactoryBase(this) {
+  internal val factory = object : PythonConfigurationFactoryBase(this) {
     override fun createTemplateConfiguration(project: Project): RunConfiguration = MicroPythonRunConfiguration(project, this)
   }
 
