@@ -67,8 +67,6 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
                          "-v", devicePath,
                          configuration.targetPath)
 
-    println(command)
-
     return object : CommandLineState(environment) {
       override fun startProcess() =
           OSProcessHandler(GeneralCommandLine(command))
