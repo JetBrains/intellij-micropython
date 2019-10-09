@@ -88,12 +88,26 @@ contributions to the project. Feel free to open issues and send pull requests!
 
     ![Project Structure](media/project-structure.png)
 
-* Select the top level folder of the project in the path browser of <em>"Run/Debug Configurations"</em>.
+* Select the top level folder of the project in the path browser of <em>"Run/Debug Configurations"</em> as the Target
+  Path.
 
     ![Project Flash](media/project-flash.png)
 
 * Name the <em>Run/Debug Configuration</em> and hit <em>OK</em> or <em>Apply</em>
 
+
+### Use a different directory of the project as the Content Root
+
+Say your main.py, along with the rest of your project's source, is located within <em>/project_root/embedded/</em>. 
+Without setting the Content Root, main.py will end up in a directory called <em>project_root/</em> on the
+microcontroller's filesystem and will not get run automatically. Setting the content root to
+<em>/project_root/embedded/</em> will place its contents at the root of the microcontroller's filesystem.
+
+* Select the target file/directory for Target Path
+* Select the source root of the content to upload for Content Root Path
+    * (Note that leaving this blank defaults to using the root of the project as the Content Root)
+
+    ![Content Root](media/content-root.png)
 
 ### Create run configurations for individual files
 
@@ -107,14 +121,15 @@ contributions to the project. Feel free to open issues and send pull requests!
 * Currently non-python files do not display in the <em>"Run/Debug Configurations"</em> file picker although they do
   display in the Project Navigator.
 * Non-python files can be uploaded to the board by manually typing the required filename/path components into the
-  <em>"Path:"</em> dialog.
+  <em>"Target Path:"</em> dialog.
 * It is easier to select a python file in the same directory as the file to be uploaded using the file picker and then
   manually edit the filename. This ensures that the path component of the file to be uploaded is correct
-* Note that when flashing an entire project using the technique above, ALL files are uploaded to the device, including
-  non-python files. This is the reason the <em>.idea</em> directory should be excluded from the project structure.
-
-    ![Non-python File Upload](media/json-upload.png)
-
+  
+  ![Non-python File Upload](media/json-upload.png)
+  
+* Note that when flashing an entire project using the technique described in **Flash all project files**, ALL files are
+  uploaded to the device, including non-python files. This is the reason the <em>.idea</em> directory should be excluded
+  from the project structure.
 
 ## Known Issues
 
