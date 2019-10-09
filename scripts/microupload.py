@@ -45,7 +45,7 @@ def main(args: List[str]) -> None:
     global verbose
     opts = docopt(__doc__, argv=args)
     verbose = opts['--verbose']
-    root = opts['PATH']
+    target_path = opts['PATH']
 
     chdir = opts['--chdir']
     if chdir:
@@ -55,13 +55,13 @@ def main(args: List[str]) -> None:
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
     files = Files(board)
-    rel_root = os.path.relpath(root, os.getcwd())
+    rel_root = os.path.relpath(target_path, os.getcwd())
 
     wait_for_board()
 
-    if os.path.isdir(root):
+    if os.path.isdir(target_path):
         to_upload = [os.path.join(rel_root, x)
-                     for x in list_files(root, opts['--exclude'])]
+                     for x in list_files(target_path, opts['--exclude'])]
     else:
         to_upload = [rel_root]
 
