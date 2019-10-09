@@ -39,8 +39,8 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
   : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
 
   var targetPath: String = ""
-  var contentRootPath: String = ""
-  
+  var contentRootPath: String? = null
+
   override fun getValidModules() =
       allModules.filter { it.microPythonFacet != null }.toMutableList()
 

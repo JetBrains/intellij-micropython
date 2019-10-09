@@ -58,16 +58,20 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
     val facet = configuration.module?.microPythonFacet ?: return null
     val pythonPath = facet.pythonPath ?: return null
     val devicePath = facet.devicePath ?: return null
-    val rootPath = configuration.project.basePath ?: return null
+
+    val rootPath = configuration.contentRootPath ?: configuration.project.basePath ?: return null
+
+    val command = listOf(pythonPath,
+                         "${MicroPythonFacet.scriptsPath}/microupload.py",
+                         "-C", rootPath,
+                         "-v", devicePath,
+                         configuration.targetPath)
+
+    println(command)
+
     return object : CommandLineState(environment) {
       override fun startProcess() =
-          OSProcessHandler(GeneralCommandLine(pythonPath,
-                                              "${MicroPythonFacet.scriptsPath}/microupload.py",
-                                              "-C",
-                                              rootPath,
-                                              "-v",
-                                              devicePath,
-                                              configuration.targetPath))
+          OSProcessHandler(GeneralCommandLine(command))
     }
   }
 }

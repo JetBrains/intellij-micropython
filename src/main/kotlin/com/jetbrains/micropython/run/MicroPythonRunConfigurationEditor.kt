@@ -58,12 +58,12 @@ class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : S
           .panel
 
   override fun applyEditorTo(config: MicroPythonRunConfiguration) {
-    config.targetPath = targetField.text
-    config.contentRootPath = contentRootField.text
+    config.targetPath = targetField.text.trim()
+    config.contentRootPath = if (contentRootField.text.isBlank()) null else contentRootField.text.trim()
   }
 
   override fun resetEditorFrom(config: MicroPythonRunConfiguration) {
     targetField.text = config.targetPath
-    contentRootField.text = config.contentRootPath
+    contentRootField.text = config.contentRootPath ?: ""
   }
 }

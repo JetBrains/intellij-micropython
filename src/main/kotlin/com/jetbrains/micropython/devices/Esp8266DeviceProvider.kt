@@ -48,7 +48,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     val facet = module.microPythonFacet ?: return null
     val pythonPath = facet.pythonPath ?: return null
     val devicePath = facet.devicePath ?: return null
-    val rootPath = configuration.project.basePath ?: return null
+    val rootPath = configuration.contentRootPath ?: configuration.project.basePath ?: return null
     val rootDir = StandardFileSystems.local().findFileByPath(rootPath) ?: return null
     val file = StandardFileSystems.local().findFileByPath(configuration.targetPath) ?: return null
     val excludeRoots = ModuleRootManager.getInstance(module).excludeRoots
