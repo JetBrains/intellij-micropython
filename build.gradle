@@ -22,7 +22,9 @@ intellij {
     downloadSources Boolean.valueOf(downloadIdeaSources)
     updateSinceUntilBuild false
     plugins = ['terminal']
-    if (!isPyCharm) {
+    if (isPyCharm) {
+        plugins += ['python-ce']
+    } else {
         plugins += [pythonPlugin]
     }
     publishPlugin {
