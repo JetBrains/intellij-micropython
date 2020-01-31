@@ -14,16 +14,16 @@ plugins {
 
 apply plugin: 'kotlin'
 
-def isPyCharm = ideaVersion.contains('PY') || ideaVersion.contains('PC')
-
 intellij {
     version ideaVersion
     pluginName 'intellij-micropython'
     downloadSources Boolean.valueOf(downloadIdeaSources)
     updateSinceUntilBuild false
     plugins = ['terminal']
-    if (isPyCharm) {
+    if (ideaVersion.contains('PC')) {
         plugins += ['python-ce']
+    } else if (ideaVersion.contains('PY')) {
+        plugins += ['python']
     } else {
         plugins += [pythonPlugin]
     }
