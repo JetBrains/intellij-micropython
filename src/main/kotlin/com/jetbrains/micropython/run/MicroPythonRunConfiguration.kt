@@ -25,10 +25,12 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.PathUtil
+import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
 
@@ -39,7 +41,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
   : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
 
   var path: String = ""
-  
+
   override fun getValidModules() =
       allModules.filter { it.microPythonFacet != null }.toMutableList()
 
@@ -54,13 +56,18 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
       throw RuntimeConfigurationError("Path is not specified")
     }
     val m = module ?: throw RuntimeConfigurationError("Module for path is not found")
-    val facet = m.microPythonFacet ?:
-        throw RuntimeConfigurationError("MicroPython support is not enabled for selected module")
+    val showSettings = Runnable {
+      ShowSettingsUtil.getInstance().showSettingsDialog(project, MicroPythonProjectConfigurable::class.java)
+    }
+    val facet = m.microPythonFacet ?: throw RuntimeConfigurationError(
+        "MicroPython support is not enabled for selected module in IDE settings",
+        showSettings)
     val validationResult = facet.checkValid()
     if (validationResult != ValidationResult.OK) {
-      throw RuntimeConfigurationError(validationResult.errorMessage)
+      throw RuntimeConfigurationError(validationResult.errorMessage, Runnable { validationResult.quickFix.run(null) })
     }
     facet.pythonPath ?: throw RuntimeConfigurationError("Python interpreter is not found")
+    facet.devicePath ?: throw RuntimeConfigurationError("Device path is not specified in IDE settings", showSettings)
   }
 
   override fun suggestedName() = "Flash ${PathUtil.getFileName(path)}"
