@@ -24,7 +24,7 @@ import com.intellij.facet.FacetType
 import com.intellij.facet.ui.FacetConfigurationQuickFix
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.plugins.IdeaPluginDescriptor
-import com.intellij.ide.plugins.PluginManager
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -54,7 +54,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
       get() = "${pluginDescriptor.path}/scripts"
 
     private val pluginDescriptor: IdeaPluginDescriptor
-      get() = PluginManager.getPlugin(PluginId.getId(PLUGIN_ID)) ?:
+      get() = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID)) ?:
           throw RuntimeException("The $PLUGIN_ID plugin cannot find itself")
   }
 

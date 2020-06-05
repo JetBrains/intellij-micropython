@@ -46,8 +46,7 @@ class MicroPythonFacetDetector : FacetBasedFrameworkDetector<MicroPythonFacet, M
               .asSequence()
               .flatMap { it.detectedModuleNames.asSequence() }
               .toSet()
-          val psiFile = fileContent.psiFile
-          return when (psiFile) {
+          return when (val psiFile = fileContent.psiFile) {
             is PyFile -> {
               return psiFile.importBlock.any { imp ->
                 when (imp) {
