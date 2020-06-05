@@ -35,7 +35,10 @@ class MicroPythonConfigurationType : ConfigurationType {
   }
   
   internal val factory = object : PythonConfigurationFactoryBase(this) {
-    override fun createTemplateConfiguration(project: Project): RunConfiguration = MicroPythonRunConfiguration(project, this)
+    override fun createTemplateConfiguration(project: Project): RunConfiguration =
+        MicroPythonRunConfiguration(project, this)
+
+    override fun getId(): String = "MicroPython"
   }
 
   override fun getIcon(): Icon = MicroPythonFacetType.LOGO
