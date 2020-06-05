@@ -27,9 +27,11 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.PathUtil
+import com.intellij.util.PlatformUtils
 import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
@@ -57,7 +59,14 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     }
     val m = module ?: throw RuntimeConfigurationError("Module for path is not found")
     val showSettings = Runnable {
-      ShowSettingsUtil.getInstance().showSettingsDialog(project, MicroPythonProjectConfigurable::class.java)
+      when {
+        PlatformUtils.isPyCharm() ->
+          ShowSettingsUtil.getInstance().showSettingsDialog(project, MicroPythonProjectConfigurable::class.java)
+        PlatformUtils.isIntelliJ() ->
+          ProjectSettingsService.getInstance(project).openModuleSettings(module)
+        else ->
+          ShowSettingsUtil.getInstance().showSettingsDialog(project)
+      }
     }
     val facet = m.microPythonFacet ?: throw RuntimeConfigurationError(
         "MicroPython support is not enabled for selected module in IDE settings",
