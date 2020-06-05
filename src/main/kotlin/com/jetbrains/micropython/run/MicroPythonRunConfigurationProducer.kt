@@ -22,7 +22,9 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.LightVirtualFile
 import com.jetbrains.micropython.settings.MicroPythonFacetType
@@ -37,29 +39,25 @@ class MicroPythonRunConfigurationProducer : LazyRunConfigurationProducer<MicroPy
   }
 
   override fun isConfigurationFromContext(configuration: MicroPythonRunConfiguration, context: ConfigurationContext): Boolean {
-    val location = context.location ?: return false
-    val script = location.psiElement.containingFile ?: return false
-    if (!facetEnabledForElement(script)) return false
-    val virtualFile = script.virtualFile ?: return false
-    if (virtualFile is LightVirtualFile) return false
-    return configuration.path == virtualFile.path
+    val file = context.location?.virtualFile ?: return false
+    if (!facetEnabledForElement(file, context.project)) return false
+    if (file is LightVirtualFile) return false
+    return configuration.path == file.path
   }
 
   override fun setupConfigurationFromContext(configuration: MicroPythonRunConfiguration,
                                              context: ConfigurationContext,
                                              sourceElement: Ref<PsiElement>): Boolean {
-    val location = context.location ?: return false
-    val script = location.psiElement.containingFile ?: return false
-    if (!facetEnabledForElement(script)) return false
-    val vFile = script.virtualFile
-    configuration.path = vFile.path
+    val file = context.location?.virtualFile ?: return false
+    if (!facetEnabledForElement(file, context.project)) return false
+    configuration.path = file.path
     configuration.setGeneratedName()
-    configuration.setModule(ModuleUtilCore.findModuleForFile(vFile, context.project))
+    configuration.setModule(ModuleUtilCore.findModuleForFile(file, context.project))
     return true
   }
 
-  private fun facetEnabledForElement(elem: PsiElement): Boolean {
-    val module = ModuleUtilCore.findModuleForFile(elem.containingFile.virtualFile, elem.project) ?: return false
+  private fun facetEnabledForElement(virtualFile: VirtualFile, project: Project): Boolean {
+    val module = ModuleUtilCore.findModuleForFile(virtualFile, project) ?: return false
     return FacetManager.getInstance(module)?.getFacetByType(MicroPythonFacetType.ID) != null
   }
 
