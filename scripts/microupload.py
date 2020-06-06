@@ -108,10 +108,10 @@ def list_files(path: str, excluded: List[str]) -> Iterable[str]:
     for root, dirs, files in os.walk(path):
         abs_root = os.path.abspath(root)
         for d in list(dirs):
-            if os.path.join(abs_root, d) in excluded:
+            if os.path.join(abs_root, d) in excluded or d.startswith('.'):
                 dirs.remove(d)
         for f in files:
-            if os.path.join(abs_root, f) not in excluded:
+            if os.path.join(abs_root, f) not in excluded and not f.startswith('.'):
                 yield os.path.relpath(os.path.join(root, f), path)
 
 
