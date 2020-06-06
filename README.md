@@ -43,7 +43,7 @@ See also [the changelog](CHANGES.md) for the plugin.
       sub-directory as a sources root: right-click on it and select <em>"Mark Directory as | Sources Root"</em>. Its
       icon will become blue, see the screenshot.
     
-    ![Run](media/flash-directory.png)
+      ![Flash directory](media/flash-directory.png)
 
     * You can edit your run configurations for flashing files or directories in <em>"Run | Edit Configurations..."</em>
       menu.
