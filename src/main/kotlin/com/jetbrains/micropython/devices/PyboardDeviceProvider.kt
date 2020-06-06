@@ -22,10 +22,9 @@ import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.projectRoots.Sdk
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
-import com.jetbrains.micropython.settings.MicroPythonFacet
+import com.jetbrains.micropython.run.getMicroUploadCommand
 import com.jetbrains.micropython.settings.MicroPythonTypeHints
 import com.jetbrains.micropython.settings.MicroPythonUsbId
-import com.jetbrains.micropython.settings.microPythonFacet
 import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.packaging.PyRequirement
 
@@ -55,19 +54,12 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
 
   override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
                                       environment: ExecutionEnvironment): CommandLineState? {
-    val facet = configuration.module?.microPythonFacet ?: return null
-    val pythonPath = facet.pythonPath ?: return null
-    val devicePath = facet.devicePath ?: return null
-    val rootPath = configuration.project.basePath ?: return null
+    val module = configuration.module ?: return null
+    val command = getMicroUploadCommand(configuration.path, module) ?: return null
+
     return object : CommandLineState(environment) {
       override fun startProcess() =
-          OSProcessHandler(GeneralCommandLine(pythonPath,
-                                              "${MicroPythonFacet.scriptsPath}/microupload.py",
-                                              "-C",
-                                              rootPath,
-                                              "-v",
-                                              devicePath,
-                                              configuration.path))
+          OSProcessHandler(GeneralCommandLine(command))
     }
   }
 }
