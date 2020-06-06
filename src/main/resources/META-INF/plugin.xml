@@ -27,7 +27,7 @@
       <p>Support for MicroPython devices in PyCharm and IntelliJ.</p>
       <p>Features:</p>
       <ul>
-        <li>Code completion and docs for some ESP8266, Pyboard, and MicroPython modules</li>
+        <li>Code completion and docs for some MicroPython-specific modules</li>
         <li>Flash a Python file or directory to a device</li>
         <li>Run REPL on a device</li>
       </ul>
