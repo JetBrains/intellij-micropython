@@ -22,63 +22,9 @@
       <ul>
         <li>Compatibility with 2018.3-2019.1</li>
       </ul>
-      <p>1.0.10:</p>
-      <ul>
-        <li>Compatibility with 2018.3 only</li>
-      </ul>
-      <p>1.0.9:</p>
-      <ul>
-        <li>Compatibility with 2018.2-2018.3</li>
-      </ul>
-      <p>1.0.8:</p>
-      <ul>
-        <li>Compatibility with 2018.2 only</li>
-      </ul>
-      <p>1.0.7:</p>
-      <ul>
-        <li>Compatibility with 2017.3-2018.2</li>
-      </ul>
-      <p>1.0.6:</p>
-      <ul>
-        <li>Fixed several bugs in <code>machine</code> stub</li>
-      </ul>
-      <p>1.0.5:</p>
-      <ul>
-        <li>Don't delete boot.py when removing all files from the device #35</li>
-      </ul>
-      <p>1.0.4:</p>
-      <ul>
-        <li>Fixed launching REPL on Windows #12</li>
-      </ul>
-      <p>1.0.3:</p>
-      <ul>
-        <li>Fixed the outdated pyserial version in requirements #26</li>
-        <li>Fixed the error message when getting EACCESS error for the device file #27</li>
-      </ul>
-      <p>1.0.2:</p>
-      <ul>
-        <li>Restored compatibility with IntelliJ</li>
-      </ul>
-      <p>1.0.1:</p>
-      <ul>
-        <li>Restored compatibility with 2017.2-2018.1</li>
-      </ul>
-      <p>1.0:</p>
-      <ul>
-        <li>Run files and REPL for ESP8266 and Pyboard devices</li>
-        <li>Initial code insight for ESP8266 and MicroPython standard library</li>
-        <li>Action for detecting the device path in the MicroPython settings</li>
-        <li>Action for removing all files from the device</li>
-      </ul>
-      <p>0.1:</p>
-      <ul>
-        <li>Code insight and documentation for Micro:bit Python API</li>
-        <li>Run Python files on Micro:bit</li>
-        <li>Micro:bit Python REPL</li>
-      </ul>
     ]]></change-notes>
   <description><![CDATA[
-      <p>Support for MicroPython devices in IntelliJ IDEA and PyCharm.</p>
+      <p>Support for MicroPython devices in PyCharm and IntelliJ.</p>
       <p>Features:</p>
       <ul>
         <li>Code completion and docs for some ESP8266, Pyboard, and MicroPython modules</li>

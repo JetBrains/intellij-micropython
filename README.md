@@ -17,6 +17,8 @@ The plugin supports Python development for these devices:
 It will support more MicroPython devices and more device-specific and MicroPython-specific modules eventually. We are
 interested in your contributions to the project. Feel free to open issues and send pull requests!
 
+See also [the changelog](CHANGES.md) for the plugin.
+
 ## Features
 
 
