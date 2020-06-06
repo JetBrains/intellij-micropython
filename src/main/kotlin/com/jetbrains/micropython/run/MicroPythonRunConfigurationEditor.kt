@@ -21,8 +21,6 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
-import com.intellij.openapi.util.Comparing
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 
@@ -30,10 +28,7 @@ class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : S
   private val pathField = TextFieldWithBrowseButton()
 
   init {
-    val descriptor = object : FileChooserDescriptor(true, true, false, false, false, false) {
-      override fun isFileVisible(file: VirtualFile?, showHiddenFiles: Boolean) =
-          file != null && (file.isDirectory || file.extension == null || Comparing.equal(file.extension, "py"))
-    }
+    val descriptor = FileChooserDescriptor(true, true, false, false, false, false)
     val listener = ComponentWithBrowseButton.BrowseFolderActionListener("Select Path", "",
                                                                         pathField,
                                                                         config.project, descriptor,
