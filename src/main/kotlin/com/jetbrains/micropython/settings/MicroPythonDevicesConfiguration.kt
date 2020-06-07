@@ -19,6 +19,8 @@ class MicroPythonDevicesConfiguration : PersistentStateComponent<MicroPythonDevi
   // Currently the device path is stored per project, not per module
   @Attribute var devicePath: String = ""
 
+  @Attribute var autoDetectDevicePath: Boolean = true
+
   override fun getState() = this
 
   override fun loadState(state: MicroPythonDevicesConfiguration) {

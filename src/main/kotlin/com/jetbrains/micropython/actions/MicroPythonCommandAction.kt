@@ -19,7 +19,6 @@ package com.jetbrains.micropython.actions
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.ui.Messages
 import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
@@ -32,15 +31,7 @@ abstract class MicroPythonCommandAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val facet = project.firstMicroPythonFacet ?: return
-    val provider = facet.configuration.deviceProvider
-    val command = getCommand(facet)
-    if (command == null) {
-      Messages.showErrorDialog(project,
-                               """|Cannot find the ${provider.presentableName} device. Make sure you have installed any
-                                  |necessary USB drivers and plugged the device into a USB port.""".trimMargin(),
-                               "Device Not Found")
-      return
-    }
+    val command = getCommand(facet) ?: return
 
     TerminalView.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
       override fun getCommand(envs: MutableMap<String, String>?) = command.toTypedArray()

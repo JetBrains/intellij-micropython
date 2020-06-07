@@ -14,7 +14,7 @@ import com.jetbrains.micropython.settings.microPythonFacet
 fun getMicroUploadCommand(path: String, module: Module): List<String>? {
   val facet = module.microPythonFacet ?: return null
   val pythonPath = facet.pythonPath ?: return null
-  val devicePath = facet.devicePath ?: return null
+  val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return null
   val file = StandardFileSystems.local().findFileByPath(path) ?: return null
   val rootDir = getClosestRoot(file, module) ?: return null
   val excludeRoots = ModuleRootManager.getInstance(module).excludeRoots

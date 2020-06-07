@@ -25,10 +25,14 @@ import com.intellij.facet.ui.FacetConfigurationQuickFix
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.util.text.nullize
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import com.jetbrains.python.facet.FacetLibraryConfigurator
@@ -98,15 +102,19 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     return ValidationResult.OK
   }
 
-  fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider): List<String> {
-    val timeout = 500
+  private fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider, indicator: ProgressIndicator): List<String> {
+    val timeout = 1_000
     val pythonPath = pythonPath ?: return emptyList()
     val ids = deviceProvider.usbIds.map { (vendor_id, product_id) -> "$vendor_id:$product_id" }
     val command = listOf(pythonPath, "$scriptsPath/findusb.py") + ids
     val process = CapturingProcessHandler(GeneralCommandLine(command))
-    val output = process.runProcess(timeout)
-    if (output.exitCode != 0) return emptyList()
-    return output.stdoutLines
+    val output = process.runProcessWithProgressIndicator(indicator, timeout)
+    return when {
+      output.isCancelled -> emptyList()
+      output.isTimeout -> emptyList()
+      output.exitCode != 0 -> emptyList()
+      else -> output.stdoutLines
+    }
   }
 
   val pythonPath: String?
@@ -117,6 +125,43 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     set(value) {
       MicroPythonDevicesConfiguration.getInstance(module.project).devicePath = value ?: ""
     }
+
+  var autoDetectDevicePath: Boolean
+    get() = MicroPythonDevicesConfiguration.getInstance(module.project).autoDetectDevicePath
+    set(value) {
+      MicroPythonDevicesConfiguration.getInstance(module.project).autoDetectDevicePath = value
+    }
+
+  fun getOrDetectDevicePathSynchronously(): String? =
+      if (autoDetectDevicePath)
+        detectDevicePathSynchronously()
+      else
+        devicePath
+
+  fun detectDevicePathSynchronously(): String? {
+    ApplicationManager.getApplication().assertIsDispatchThread()
+
+    var detectedDevicePath: String? = null
+    val deviceProviderName = configuration.deviceProvider.presentableName
+    val progress = ProgressManager.getInstance()
+
+    progress.runProcessWithProgressSynchronously({
+      progress.progressIndicator.text = "Detecting connected $deviceProviderName devices..."
+      val detected = findSerialPorts(configuration.deviceProvider, progress.progressIndicator).firstOrNull()
+      ApplicationManager.getApplication().invokeLater {
+        if (detected == null) {
+          Messages.showErrorDialog(module.project,
+              """Possible solutions:
+                |
+                |- Check if your device is connected to your computer
+                |- Specify the device path manually in the IDE settings for MicroPython""".trimMargin(),
+              "No $deviceProviderName Devices Detected")
+        }
+        detectedDevicePath = detected
+      }
+    }, "Detecting MicroPython Devices", true, module.project, null)
+    return detectedDevicePath
+  }
 
   private fun removeLegacyLibraries() {
     FacetLibraryConfigurator.detachPythonLibrary(module, "Micro:bit")
