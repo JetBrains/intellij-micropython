@@ -24,7 +24,8 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0x1A86, 0x7523),
-                   MicroPythonUsbId(0x10C4, 0xEA60))
+                   MicroPythonUsbId(0x10C4, 0xEA60),
+                   MicroPythonUsbId(0x0403, 0x6001))
 
   override val typeHints: MicroPythonTypeHints by lazy {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
