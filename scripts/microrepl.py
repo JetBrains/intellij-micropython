@@ -16,6 +16,9 @@
 A simple shim around PySerial that detects the correct port to which the
 MicroPython device is connected and attempts to make a serial connection to it
 in order to bring up the Python REPL.
+
+Based on https://github.com/ntoll/microrepl by Nicholas H.Tollervey and the
+contributors.
 """
 
 import errno
