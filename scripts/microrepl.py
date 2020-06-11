@@ -79,83 +79,79 @@ def connect_miniterm(port):
         sys.exit(1)
 
 
-def patch_windows_10_ansi_control_keys() -> None:
-    """Patch serial.tools.miniterm.Console to support ANSI control keys on
-    Windows 10.
+class Windows10Console(miniterm.Console):
+    """Patched Console to support ANSI control keys on Windows 10.
 
     Based on a fix by Cefn Hoile https://github.com/pyserial/pyserial/pull/351
     that hasn't been merged into pyserial yet.
     """
 
-    class PatchedWindows10Console(miniterm.Console):
-        fncodes = {
-            ';': '\1bOP',  # F1
-            '<': '\1bOQ',  # F2
-            '=': '\1bOR',  # F3
-            '>': '\1bOS',  # F4
-            '?': '\1b[15~',  # F5
-            '@': '\1b[17~',  # F6
-            'A': '\1b[18~',  # F7
-            'B': '\1b[19~',  # F8
-            'C': '\1b[20~',  # F9
-            'D': '\1b[21~',  # F10
-        }
-        navcodes = {
-            'H': '\x1b[A',  # UP
-            'P': '\x1b[B',  # DOWN
-            'K': '\x1b[D',  # LEFT
-            'M': '\x1b[C',  # RIGHT
-            'G': '\x1b[H',  # HOME
-            'O': '\x1b[F',  # END
-            'R': '\x1b[2~',  # INSERT
-            'S': '\x1b[3~',  # DELETE
-            'I': '\x1b[5~',  # PGUP
-            'Q': '\x1b[6~',  # PGDN
-        }
+    fncodes = {
+        ';': '\1bOP',  # F1
+        '<': '\1bOQ',  # F2
+        '=': '\1bOR',  # F3
+        '>': '\1bOS',  # F4
+        '?': '\1b[15~',  # F5
+        '@': '\1b[17~',  # F6
+        'A': '\1b[18~',  # F7
+        'B': '\1b[19~',  # F8
+        'C': '\1b[20~',  # F9
+        'D': '\1b[21~',  # F10
+    }
+    navcodes = {
+        'H': '\x1b[A',  # UP
+        'P': '\x1b[B',  # DOWN
+        'K': '\x1b[D',  # LEFT
+        'M': '\x1b[C',  # RIGHT
+        'G': '\x1b[H',  # HOME
+        'O': '\x1b[F',  # END
+        'R': '\x1b[2~',  # INSERT
+        'S': '\x1b[3~',  # DELETE
+        'I': '\x1b[5~',  # PGUP
+        'Q': '\x1b[6~',  # PGDN
+    }
 
-        def __init__(self) -> None:
-            super().__init__()
-            # ANSI handling available through SetConsoleMode since Windows 10 v1511
-            # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
-            if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
-                ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
-                import ctypes.wintypes as wintypes
-                if not hasattr(wintypes, 'LPDWORD'):  # PY2
-                    wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
-                SetConsoleMode = ctypes.windll.kernel32.SetConsoleMode
-                GetConsoleMode = ctypes.windll.kernel32.GetConsoleMode
-                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-                mode = wintypes.DWORD()
-                GetConsoleMode(GetStdHandle(-11), ctypes.byref(mode))
-                if (mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0:
-                    SetConsoleMode(GetStdHandle(-11), mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
-                    self._saved_cm = mode
+    def __init__(self) -> None:
+        super().__init__()
+        # ANSI handling available through SetConsoleMode since Windows 10 v1511
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
+        if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+            import ctypes.wintypes as wintypes
+            if not hasattr(wintypes, 'LPDWORD'):  # PY2
+                wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
+            SetConsoleMode = ctypes.windll.kernel32.SetConsoleMode
+            GetConsoleMode = ctypes.windll.kernel32.GetConsoleMode
+            GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+            mode = wintypes.DWORD()
+            GetConsoleMode(GetStdHandle(-11), ctypes.byref(mode))
+            if (mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0:
+                SetConsoleMode(GetStdHandle(-11), mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                self._saved_cm = mode
 
-        def __del__(self) -> None:
-            super().__del__()
-            try:
-                ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), self._saved_cm)
-            except AttributeError:  # in case no _saved_cm
-                pass
+    def __del__(self) -> None:
+        super().__del__()
+        try:
+            ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), self._saved_cm)
+        except AttributeError:  # in case no _saved_cm
+            pass
 
-        def getkey(self) -> str:
-            while True:
-                z = msvcrt.getwch()
-                if z == chr(13):
-                    return chr(10)
-                elif z is chr(0) or z is chr(0xe0):
-                    try:
-                        code = msvcrt.getwch()
-                        if z is chr(0):
-                            return self.fncodes[code]
-                        else:
-                            return self.navcodes[code]
-                    except KeyError:
-                        pass
-                else:
-                    return z
-
-    miniterm.Console = PatchedWindows10Console
+    def getkey(self) -> str:
+        while True:
+            z = msvcrt.getwch()
+            if z == chr(13):
+                return chr(10)
+            elif z is chr(0) or z is chr(0xe0):
+                try:
+                    code = msvcrt.getwch()
+                    if z is chr(0):
+                        return self.fncodes[code]
+                    else:
+                        return self.navcodes[code]
+                except KeyError:
+                    pass
+            else:
+                return z
 
 
 def main():
@@ -169,14 +165,17 @@ def main():
     port = sys.argv[1]
     print('Device path', port)
 
-    if os.name == 'nt':
-        patch_windows_10_ansi_control_keys()
-
     term = connect_miniterm(port)
+
+    if os.name == 'nt':
+        term.console = Windows10Console()
+
     # Emit some helpful information about the program and MicroPython.
     shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
     help_message = 'Type \'help()\' (without the quotes) then press ENTER.\n'
-    exit_char = key_description(character(b'\x1d'))
+    exit_character = character(b'\x1d')
+    term.exit_character = exit_character
+    exit_char = key_description(exit_character)
     sys.stderr.write(shortcut_message.format(exit_char))
     sys.stderr.write(help_message)
     # Start everything.
