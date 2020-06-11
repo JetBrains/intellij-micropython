@@ -112,7 +112,7 @@ class Windows10Console(miniterm.Console):
     }
 
     def __init__(self) -> None:
-        super().__init__()
+        super(miniterm.Console, self).__init__()
         # ANSI handling available through SetConsoleMode since Windows 10 v1511
         # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
         if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
@@ -165,10 +165,12 @@ def main():
     port = sys.argv[1]
     print('Device path', port)
 
-    term = connect_miniterm(port)
+    
 
     if os.name == 'nt':
-        term.console = Windows10Console()
+        miniterm.console = Windows10Console()
+        
+    term = connect_miniterm(port)
 
     # Emit some helpful information about the program and MicroPython.
     shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
