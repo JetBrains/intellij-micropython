@@ -165,10 +165,13 @@ def main():
     port = sys.argv[1]
     print('Device path', port)
 
-    term = connect_miniterm(port)
-
     if os.name == 'nt':
+        stdout, stderr = sys.stdout, sys.stderr
+        term = connect_miniterm(port)
+        sys.stdout, sys.stderr = stdout, stderr
         term.console = Windows10Console()
+    else:
+        term = connect_miniterm(port)
 
     # Emit some helpful information about the program and MicroPython.
     shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
