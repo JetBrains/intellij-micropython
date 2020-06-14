@@ -79,13 +79,8 @@ def connect_miniterm(port):
         sys.exit(1)
 
 
-class Windows10Console(miniterm.Console):
-    """Patched Console to support ANSI control keys on Windows 10.
 
-    Based on a fix by Cefn Hoile https://github.com/pyserial/pyserial/pull/351
-    that hasn't been merged into pyserial yet.
-    """
-
+class PatchedWindows10Console(miniterm.ConsoleBase):
     fncodes = {
         ';': '\1bOP',  # F1
         '<': '\1bOQ',  # F2
@@ -112,7 +107,7 @@ class Windows10Console(miniterm.Console):
     }
 
     def __init__(self) -> None:
-        super(miniterm.Console, self).__init__()
+        super().__init__()
         # ANSI handling available through SetConsoleMode since Windows 10 v1511
         # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
         if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
@@ -165,19 +160,14 @@ def main():
     port = sys.argv[1]
     print('Device path', port)
 
-    
-
     if os.name == 'nt':
-        miniterm.console = Windows10Console()
-        
-    term = connect_miniterm(port)
+        miniterm.Console = PatchedWindows10Console
 
+    term = connect_miniterm(port)
     # Emit some helpful information about the program and MicroPython.
     shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
     help_message = 'Type \'help()\' (without the quotes) then press ENTER.\n'
-    exit_character = character(b'\x1d')
-    term.exit_character = exit_character
-    exit_char = key_description(exit_character)
+    exit_char = key_description(character(b'\x1d'))
     sys.stderr.write(shortcut_message.format(exit_char))
     sys.stderr.write(help_message)
     # Start everything.
