@@ -12,10 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Find USB devices."""
+"""Find USB devices.
+
+Usage:
+    findusb [VID:PID...]
+
+Arguments:
+    VID:PID       Vendor ID and Product ID for your USB device.
+
+If you run it with no arguments, it outputs the list of all the USB devices it
+has managed to find.
+"""
 
 import sys
 from typing import Iterable, Tuple, List
+
+from docopt import docopt
 from serial.tools.list_ports import comports
 
 
@@ -33,8 +45,8 @@ def parse_int(s: str) -> int:
 
 
 def parse_id(arg: str) -> Tuple[int, int]:
-    vendor_id, port_id = arg.split(':', 1)
-    return parse_int(vendor_id), parse_int(port_id)
+    vendor_id, product_id = arg.split(':', 1)
+    return parse_int(vendor_id), parse_int(product_id)
 
 
 def main() -> None:
