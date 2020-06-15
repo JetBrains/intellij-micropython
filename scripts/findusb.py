@@ -50,12 +50,16 @@ def parse_id(arg: str) -> Tuple[int, int]:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print('Usage: findusb.py vendor_id:port_id...', file=sys.stderr)
-        sys.exit(1)
-    ids = [parse_id(arg) for arg in sys.argv[1:]]
-    for device in find_devices(ids):
-        print(device)
+    opts = docopt(__doc__, argv=sys.argv[1:])
+    vid_pid_list = opts['VID:PID']
+    if vid_pid_list:
+        ids = [parse_id(arg) for arg in sys.argv[1:]]
+        for device in find_devices(ids):
+            print(device)
+    else:
+        for port in comports():
+            if port.vid is not None and port.pid is not None:
+                print('%s: 0x%02x:0x%02x' % (port.device, port.vid, port.pid))
 
 
 if __name__ == '__main__':
