@@ -3,7 +3,7 @@
 [![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/v/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
 [![JetBrains IntelliJ plugins](https://img.shields.io/jetbrains/plugin/d/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
-[![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
+[![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython) [![Join the chat at https://gitter.im/intellij-micropython/community](https://badges.gitter.im/intellij-micropython/community.svg)](https://gitter.im/intellij-micropython/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 The Python code development plugin for [MicroPython](http://micropython.org/) devices in
 [PyCharm](https://www.jetbrains.com/pycharm/) and [IntelliJ](https://www.jetbrains.com/idea/).
