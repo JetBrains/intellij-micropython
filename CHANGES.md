@@ -1,7 +1,11 @@
 Version History
 ---------------
 
-
+  <p>1.1.1:</p>
+  <ul>
+    <li>Fixed control characters in REPL on Windows#43</li>
+    <li>Fixed path separators for flashing directories on Windows #88</li>
+  </ul>
   <p>1.1:</p>
   <ul>
     <li>Auto-detect a connected MicroPython device with an option to specify the device path manually in the IDE settings for MicroPython</li>
