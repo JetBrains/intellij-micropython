@@ -47,14 +47,16 @@ def get_hash(self, filename):
     command = """
         import sys
         from uhashlib import sha1
+        import ubinascii
         hash = sha1()
         with open('{0}', 'rb') as infile:
-                while True:
-                    result = infile.read({1})
-                    hash.update(result)
-                    if result == b'':
-                        break
-                len = sys.stdout.write(hash.digest())
+            while True:
+                result = infile.read({1})
+                hash.update(result)
+                if result == b'':
+                    break
+            len = sys.stdout.write(ubinascii.hexlify(hash.digest()))
+            infile.close()
     """.format(
         filename, 32
     )
@@ -65,13 +67,42 @@ def get_hash(self, filename):
         # Check if this is an OSError #2, i.e. file doesn't exist and
         # rethrow it as something more descriptive.
         if ex.args[2].decode("utf-8").find("OSError: [Errno 2] ENOENT") != -1:
-            raise RuntimeError("No such file: {0}".format(filename))
+            self._pyboard.exit_raw_repl()
+            return ""
         else:
             raise ex
     self._pyboard.exit_raw_repl()
-    return out
+    return out.decode('utf-8')
+
+def get_size(self, filename):
+    print(filename)
+    command = """
+        import sys
+        import os
+        
+        len = sys.stdout.write(str(os.stat('{0}')[6]).encode('utf-8'))
+    """.format(
+        filename
+    )
+    self._pyboard.enter_raw_repl()
+    try:
+        out = self._pyboard.exec_(textwrap.dedent(command))
+        print("out", out, file=sys.stderr, flush=True)
+    except PyboardError as ex:
+        print("except", file=sys.stderr, flush=True)
+        # Check if this is an OSError #2, i.e. file doesn't exist and
+        # rethrow it as something more descriptive.
+        if ex.args[2].decode("utf-8").find("OSError: [Errno 2] ENOENT") != -1:
+            print("fnf", file=sys.stderr, flush=True)
+            self._pyboard.exit_raw_repl()
+            return "-1"
+        else:
+            raise ex
+    self._pyboard.exit_raw_repl()
+    return out.decode('utf-8')
 
 Files.get_hash = get_hash
+Files.get_size = get_size
 
 def main(args: List[str]) -> None:
     global verbose
@@ -102,7 +133,7 @@ def main(args: List[str]) -> None:
     created_cache = set()
     for path in progress('Uploading files', to_upload):
         local_path = os.path.abspath(path)
-        remote_path = os.path.normpath(path)
+        remote_path = os.path.normpath(path).replace(os.path.sep, '/')
         if verbose:
             print('\n{} -> {}'.format(local_path, remote_path),
                   file=sys.stderr, flush=True)
@@ -112,13 +143,24 @@ def main(args: List[str]) -> None:
         with open(local_path, 'rb') as fd:
             if different:
                 raw = fd.read()
-                local_file_hash = sha1(raw).digest()
+                local_file_size = str(os.stat(local_path)[6])
+                local_file_hash = sha1(raw).hexdigest()
 
-                remote_file_hash = files.get_hash(remote_path)
-                if remote_file_hash == local_file_hash:
-                    print("File Identical", file=sys.stderr, flush=True)
+                remote_file_size = files.get_size(remote_path)
+                print("Size", remote_file_size, local_file_size, file=sys.stderr, flush=True)
+                if local_file_size == remote_file_size:
+                    print("Size same", file=sys.stderr, flush=True)
+                    remote_file_hash = files.get_hash(remote_path)
+                    if remote_file_hash == local_file_hash:
+                        print("File Identical", file=sys.stderr, flush=True)
+                    else:
+                        print("HASH", local_file_hash, remote_file_hash, file=sys.stderr, flush=True)
+                        print("Files different...", file=sys.stderr, flush=True)
+                        wait_for_board()
+                        files.put(remote_path, raw)
                 else:
-                    print("Files different...", file=sys.stderr, flush=True)
+                    print("Sizes different... Uploading", file=sys.stderr, flush=True)
+                    wait_for_board()
                     files.put(remote_path, raw)
             else:
                 files.put(remote_path, fd.read())
