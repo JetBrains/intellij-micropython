@@ -87,7 +87,6 @@ def get_size(self, filename):
     self._pyboard.enter_raw_repl()
     try:
         out = self._pyboard.exec_(textwrap.dedent(command))
-        print("out", out, file=sys.stderr, flush=True)
     except PyboardError as ex:
         print("except", file=sys.stderr, flush=True)
         # Check if this is an OSError #2, i.e. file doesn't exist and
@@ -147,19 +146,14 @@ def main(args: List[str]) -> None:
                 local_file_hash = sha1(raw).hexdigest()
 
                 remote_file_size = files.get_size(remote_path)
-                print("Size", remote_file_size, local_file_size, file=sys.stderr, flush=True)
                 if local_file_size == remote_file_size:
-                    print("Size same", file=sys.stderr, flush=True)
                     remote_file_hash = files.get_hash(remote_path)
                     if remote_file_hash == local_file_hash:
-                        print("File Identical", file=sys.stderr, flush=True)
+                        print("File Identical... Skipping upload", file=sys.stderr, flush=True)
                     else:
-                        print("HASH", local_file_hash, remote_file_hash, file=sys.stderr, flush=True)
-                        print("Files different...", file=sys.stderr, flush=True)
                         wait_for_board()
                         files.put(remote_path, raw)
                 else:
-                    print("Sizes different... Uploading", file=sys.stderr, flush=True)
                     wait_for_board()
                     files.put(remote_path, raw)
             else:
