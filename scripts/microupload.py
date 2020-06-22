@@ -75,7 +75,6 @@ def get_hash(self, filename):
     return out.decode('utf-8')
 
 def get_size(self, filename):
-    print(filename)
     command = """
         import sys
         import os
@@ -105,6 +104,7 @@ Files.get_size = get_size
 
 def main(args: List[str]) -> None:
     global verbose
+    
     start_time = time.time()
 
     opts = docopt(__doc__, argv=args)
@@ -139,6 +139,7 @@ def main(args: List[str]) -> None:
         remote_dir = os.path.dirname(path)
         if remote_dir:
             make_dirs(files, remote_dir, created_cache)
+            
         with open(local_path, 'rb') as fd:
             if different:
                 raw = fd.read()
