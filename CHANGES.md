@@ -3,8 +3,8 @@ Version History
 
   <p>1.1.1:</p>
   <ul>
-    <li>Fixed control characters in REPL on Windows#43</li>
-    <li>Fixed path separators for flashing directories on Windows #88</li>
+    <li>Fixed control characters in REPL on Windows</li>
+    <li>Fixed path separators for flashing directories on Windows</li>
   </ul>
   <p>1.1:</p>
   <ul>
