@@ -20,7 +20,7 @@ class Esp32DeviceProvider : MicroPythonDeviceProvider {
     get() = "ESP32"
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/ESP32"  // FIXME: add wiki page
+    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/ESP32"
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0x1A86, 0x7523),
