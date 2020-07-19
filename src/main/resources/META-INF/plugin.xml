@@ -72,6 +72,7 @@
   <extensions defaultExtensionNs="com.jetbrains.micropython">
     <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.Esp8266DeviceProvider"/>
+    <deviceProvider implementation="com.jetbrains.micropython.devices.Esp32DeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.PyboardDeviceProvider"/>
   </extensions>
 
