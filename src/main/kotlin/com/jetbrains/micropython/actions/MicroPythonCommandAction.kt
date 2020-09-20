@@ -34,7 +34,7 @@ abstract class MicroPythonCommandAction : AnAction() {
     val command = getCommand(facet) ?: return
 
     TerminalView.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
-      override fun getCommand(envs: MutableMap<String, String>?) = command.toTypedArray()
+      override fun getCommands(envs: Map<String, String>) = command
     })
   }
 
