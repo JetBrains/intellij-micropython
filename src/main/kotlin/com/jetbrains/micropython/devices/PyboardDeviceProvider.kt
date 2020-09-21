@@ -42,7 +42,7 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
     get() = listOf(MicroPythonUsbId(0xF055, 0x9800))
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints(listOf("stdlib", "micropython"))
+    MicroPythonTypeHints(listOf("stdlib", "micropython", "pyboard"))
   }
 
   override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
