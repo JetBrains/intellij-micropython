@@ -4,6 +4,7 @@
   <change-notes><![CDATA[
       <p>1.1.2:</p>
       <ul>
+        <li>Added a type hinting stub for <code>pyb</code></li>
         <li>Switched to newer terminal API call to fix regression in PyCharm 2020.2</li>
         <li>Compatibility only with 2020.2</li>
       </ul>
