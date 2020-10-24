@@ -1,6 +1,12 @@
 Version History
 ---------------
 
+  <p>1.1.2:</p>
+  <ul>
+    <li>Added a type hinting stub for <code>pyb</code></li>
+    <li>Switched to newer terminal API call to fix regression in PyCharm 2020.2</li>
+    <li>Compatibility with 2020.2-2020.3</li>
+  </ul>
   <p>1.1.1:</p>
   <ul>
     <li>Fixed control characters in REPL on Windows</li>
