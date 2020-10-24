@@ -55,7 +55,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     private const val PLUGIN_ID = "intellij-micropython"
 
     val scriptsPath: String
-      get() = "${pluginDescriptor.path}/scripts"
+      get() = "${pluginDescriptor.pluginPath}/scripts"
 
     private val pluginDescriptor: IdeaPluginDescriptor
       get() = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID)) ?:
@@ -69,7 +69,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   override fun updateLibrary() {
     val plugin = pluginDescriptor
     val boardHintsPaths = configuration.deviceProvider.typeHints?.paths?.map {
-      "${plugin.path}/typehints/$it"
+      "${plugin.pluginPath}/typehints/$it"
     } ?: emptyList()
     FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
     removeLegacyLibraries()
@@ -93,7 +93,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
         it.presentableText
       }
       return ValidationResult("Packages required for ${provider.presentableName} support not found: $requirementsText",
-                              object : FacetConfigurationQuickFix("Install requirements") {
+                              object : FacetConfigurationQuickFix("Install Requirements") {
         override fun run(place: JComponent?) {
           PyPackageManagerUI(module.project, sdk, null).install(requirements, emptyList())
         }
@@ -159,7 +159,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
         }
         detectedDevicePath = detected
       }
-    }, "Detecting MicroPython Devices", true, module.project, null)
+    }, "Detecting MicroPython devices", true, module.project, null)
     return detectedDevicePath
   }
 

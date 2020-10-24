@@ -80,7 +80,7 @@ class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
     }
   }
 
-  override fun createComponent(): JComponent? {
+  override fun createComponent(): JComponent {
     val mainPanel = JPanel()
     with(mainPanel) {
       layout = BorderLayout()

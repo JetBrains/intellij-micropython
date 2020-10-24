@@ -34,7 +34,7 @@ class MicroPythonRequirementsInspection : LocalInspectionTool() {
     if (result.isOk) return null
     val facetFix: FacetConfigurationQuickFix? = result.quickFix
     val fix = if (facetFix != null) object : LocalQuickFix {
-      override fun getFamilyName() = facetFix.fixButtonText ?: ""
+      override fun getFamilyName() = "Missing required MicroPython packages"
 
       override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
         facetFix.run(null)

@@ -34,7 +34,7 @@ class MicroPythonFacetType : FacetType<MicroPythonFacet, MicroPythonFacetConfigu
     const val STRING_ID = "MicroPython"
     const val PRESENTABLE_NAME = "MicroPython"
     val ID = FacetTypeId<MicroPythonFacet>(STRING_ID)
-    val LOGO = IconLoader.getIcon("/Logo.png")
+    val LOGO = IconLoader.getIcon("/Logo.png", MicroPythonFacetType::class.java)
 
     fun getInstance() = findInstance(MicroPythonFacetType::class.java)!!
   }
@@ -47,5 +47,5 @@ class MicroPythonFacetType : FacetType<MicroPythonFacet, MicroPythonFacetConfigu
 
   override fun isSuitableModuleType(moduleType: ModuleType<*>?) = moduleType is PythonModuleTypeBase
 
-  override fun getIcon(): Icon? = LOGO
+  override fun getIcon(): Icon = LOGO
 }

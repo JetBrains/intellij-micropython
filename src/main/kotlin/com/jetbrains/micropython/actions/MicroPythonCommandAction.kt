@@ -34,6 +34,7 @@ abstract class MicroPythonCommandAction : AnAction() {
     val command = getCommand(facet) ?: return
 
     TerminalView.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
+      // XXX: This method is deprecated, but it's the only one available in both 2020.2.* and 2020.3 EAP
       override fun getCommands(envs: Map<String, String>) = command
     })
   }
