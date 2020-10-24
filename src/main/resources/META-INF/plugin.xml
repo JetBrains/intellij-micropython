@@ -36,12 +36,15 @@
     ]]></change-notes>
   <description><![CDATA[
       <p>Support for MicroPython devices in PyCharm and IntelliJ.</p>
+      <br/>
       <p>Features:</p>
+      <br/>
       <ul>
         <li>Code completion and docs for some MicroPython-specific modules</li>
         <li>Flash a Python file or directory to a device</li>
         <li>Run REPL on a device</li>
       </ul>
+      <br/>
       <p>Currently the plugin supports ESP8266, Pyboard, and Micro:bit devices. Your feedback and contributions are
         welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
