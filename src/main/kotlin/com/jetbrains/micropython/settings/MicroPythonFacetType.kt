@@ -34,7 +34,7 @@ class MicroPythonFacetType : FacetType<MicroPythonFacet, MicroPythonFacetConfigu
     const val STRING_ID = "MicroPython"
     const val PRESENTABLE_NAME = "MicroPython"
     val ID = FacetTypeId<MicroPythonFacet>(STRING_ID)
-    val LOGO = IconLoader.getIcon("/Logo.png", MicroPythonFacetType::class.java)
+    val LOGO = IconLoader.getIcon("/icons/micropython.svg", MicroPythonFacetType::class.java)
 
     fun getInstance() = findInstance(MicroPythonFacetType::class.java)!!
   }
