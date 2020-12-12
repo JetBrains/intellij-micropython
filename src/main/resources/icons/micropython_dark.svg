@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg2"
+   height="16"
+   width="16"
+   version="1.1">
+  <metadata
+     id="metadata312">
+  </metadata>
+  <defs
+     id="defs310" />
+  <path
+     style="mix-blend-mode:normal;fill:#FFFFFF;fill-opacity:1;fill-rule:evenodd;stroke-width:0.0409356;image-rendering:crisp-edges"
+     id="path4"
+     d="M 1,1 H 7.4249352 V 11.9 H 8.5751668 L 8.5750654,1 H 15 V 15 H 12.047167 V 4.1 H 11.212473 V 15 H 4.6432725 V 4.1 H 3.8093332 V 15 H 1 Z m 13.0935,11.3 h -1.052333 v 1.5 H 14.0935 Z" />
+</svg>
