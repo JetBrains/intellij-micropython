@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+  <p>1.1.3:</p>
+  <ul>
+    <li>Added an SVG icon for MicroPython actions</li>
+    <li>Fixed a regression in 2020.3 that prevented the plugin from updating and persisting your device type on changing it in the settings</li>
+  </ul>
   <p>1.1.2:</p>
   <ul>
     <li>Added a type hinting stub for <code>pyb</code></li>
