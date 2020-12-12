@@ -134,20 +134,20 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
 
   fun getOrDetectDevicePathSynchronously(): String? =
       if (autoDetectDevicePath)
-        detectDevicePathSynchronously()
+        detectDevicePathSynchronously(configuration.deviceProvider)
       else
         devicePath
 
-  fun detectDevicePathSynchronously(): String? {
+  fun detectDevicePathSynchronously(deviceProvider: MicroPythonDeviceProvider): String? {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     var detectedDevicePath: String? = null
-    val deviceProviderName = configuration.deviceProvider.presentableName
+    val deviceProviderName = deviceProvider.presentableName
     val progress = ProgressManager.getInstance()
 
     progress.runProcessWithProgressSynchronously({
       progress.progressIndicator.text = "Detecting connected $deviceProviderName devices..."
-      val detected = findSerialPorts(configuration.deviceProvider, progress.progressIndicator).firstOrNull()
+      val detected = findSerialPorts(deviceProvider, progress.progressIndicator).firstOrNull()
       ApplicationManager.getApplication().invokeLater {
         if (detected == null) {
           Messages.showErrorDialog(module.project,

@@ -52,7 +52,7 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
           add(devicePath, BorderLayout.CENTER)
           add(JButton("Detect").apply {
             addActionListener {
-              devicePath.text = module.microPythonFacet?.detectDevicePathSynchronously() ?: ""
+              devicePath.text = module.microPythonFacet?.detectDevicePathSynchronously(selectedProvider) ?: ""
             }
           }, BorderLayout.EAST)
         })
