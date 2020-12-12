@@ -676,6 +676,20 @@ class Timer(object):
         :param id: Timer ID.
         """
 
+    def init(self, mode: int = PERIODIC, period: int = -1, callback: Callable = None) -> None:
+        """
+        Initialise the timer.
+
+        Possible values for ``mode``:
+
+        * ``Timer.ONE_SHOT`` - The timer runs once until the configured period of the channel expires.
+        * ``Timer.PERIODIC`` - The timer runs periodically at the configured frequency of the channel.
+
+        :param mode: Timer operating mode.
+        :param period: The period in milliseconds.
+        :param callback: Function to be called when the callback is triggered.
+        """
+
     def deinit(self) -> None:
         """
         Deinitialises the timer. Stops the timer, and disables the timer peripheral.
