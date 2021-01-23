@@ -1,0 +1,65 @@
+/*
+ * Copyright 2000-2017 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.jetbrains.micropython.devices
+
+import com.intellij.execution.configurations.CommandLineState
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.projectRoots.Sdk
+import com.jetbrains.micropython.run.MicroPythonRunConfiguration
+import com.jetbrains.micropython.run.getMicroUploadCommand
+import com.jetbrains.micropython.settings.MicroPythonTypeHints
+import com.jetbrains.micropython.settings.MicroPythonUsbId
+import com.jetbrains.python.packaging.PyPackageManager
+import com.jetbrains.python.packaging.PyRequirement
+
+/**
+ * @author lwr20
+ */
+class RPiPicoDeviceProvider : MicroPythonDeviceProvider {
+  override val persistentName: String
+    get() = "Raspberry Pi Pico"
+
+  override val documentationURL: String
+    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/RaspberryPi-Pico"
+
+  override val usbIds: List<MicroPythonUsbId>
+    get() = listOf(MicroPythonUsbId(0x2E8A, 0x0005))
+
+  override val typeHints: MicroPythonTypeHints by lazy {
+    MicroPythonTypeHints(listOf("rp2"))
+  }
+
+  override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
+    val manager = PyPackageManager.getInstance(sdk)
+    return manager.parseRequirements("""|pyserial>=3.3,<4.0
+                                        |docopt>=0.6.2,<0.7
+                                        |adafruit-ampy>=1.0.5,<1.1""".trimMargin())
+  }
+
+  override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
+                                      environment: ExecutionEnvironment): CommandLineState? {
+    val module = configuration.module ?: return null
+    val command = getMicroUploadCommand(configuration.path, module) ?: return null
+
+    return object : CommandLineState(environment) {
+      override fun startProcess() =
+          OSProcessHandler(GeneralCommandLine(command))
+    }
+  }
+}
