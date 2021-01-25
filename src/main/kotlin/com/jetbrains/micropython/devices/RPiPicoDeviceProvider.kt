@@ -42,7 +42,7 @@ class RPiPicoDeviceProvider : MicroPythonDeviceProvider {
     get() = listOf(MicroPythonUsbId(0x2E8A, 0x0005))
 
   override val typeHints: MicroPythonTypeHints by lazy {
-    MicroPythonTypeHints(listOf("rp2"))
+    MicroPythonTypeHints(listOf("stdlib", "micropython"))
   }
 
   override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
