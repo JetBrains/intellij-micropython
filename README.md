@@ -42,7 +42,7 @@ See also [the changelog](CHANGES.md) for the plugin.
 ### Run code on MicroPython devices
 
 * Flash Python files or project directories to devices
-    * Right-click on a file or directory and select <em>"Run 'Flash <your-file-name>'"</em> to flash this item to your
+    * Right-click on a project directory and select <em>"Run 'Flash <your-file-name>'"</em> to flash this item to your
       connected device. If you want to flash a sub-directory to the root directory of your device, please mark this
       sub-directory as a sources root: right-click on it and select <em>"Mark Directory as | Sources Root"</em>. Its
       icon will become blue, see the screenshot.
