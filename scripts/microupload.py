@@ -68,7 +68,7 @@ def main(args: List[str]) -> None:
     created_cache = set()
     for path in progress('Uploading files', to_upload):
         local_path = os.path.abspath(path)
-        remote_path = os.path.normpath(path)
+        remote_path = os.path.normpath(path).replace(os.path.sep, '/')
         if verbose:
             print('\n{} -> {}'.format(local_path, remote_path),
                   file=sys.stderr, flush=True)
