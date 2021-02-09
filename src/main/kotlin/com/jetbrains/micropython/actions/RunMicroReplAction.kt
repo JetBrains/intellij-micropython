@@ -16,15 +16,17 @@
 
 package com.jetbrains.micropython.actions
 
-import com.jetbrains.micropython.settings.MicroPythonFacet
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.wm.ToolWindowManager
+import com.jetbrains.micropython.run.DeviceCommsManager
 
-/**
- * @author Mikhail Golubev
- */
-class RunMicroReplAction : MicroPythonCommandAction() {
-  override fun getCommand(facet: MicroPythonFacet): List<String>? {
-    val pythonPath = facet.pythonPath ?: return null
-    val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return null
-    return listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microrepl.py", devicePath)
+class RunMicroReplAction : MicroPythonAction() {
+
+  override fun actionPerformed(e: AnActionEvent) {
+    e.project?.let { project ->
+      DeviceCommsManager.getInstance(project).startREPL()
+      ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
+    }
   }
+
 }

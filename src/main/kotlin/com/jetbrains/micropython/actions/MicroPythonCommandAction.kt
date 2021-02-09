@@ -17,7 +17,6 @@
 package com.jetbrains.micropython.actions
 
 import com.intellij.facet.ui.ValidationResult
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
@@ -27,7 +26,7 @@ import org.jetbrains.plugins.terminal.TerminalView
 /**
  * @author vlan
  */
-abstract class MicroPythonCommandAction : AnAction() {
+abstract class MicroPythonCommandAction : MicroPythonAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val facet = project.firstMicroPythonFacet ?: return
@@ -37,18 +36,6 @@ abstract class MicroPythonCommandAction : AnAction() {
       // XXX: This method is deprecated, but it's the only one available in both 2020.2.* and 2020.3 EAP
       override fun getCommands(envs: Map<String, String>) = command
     })
-  }
-
-  override fun update(e: AnActionEvent) {
-    val project = e.project ?: return
-    val facet = project.firstMicroPythonFacet
-    if (facet != null) {
-      e.presentation.isEnabled = facet.checkValid() == ValidationResult.OK
-    }
-    else {
-      e.presentation.isVisible = false
-      e.presentation.isEnabled = false
-    }
   }
 
   protected abstract fun getCommand(facet: MicroPythonFacet): List<String>?
