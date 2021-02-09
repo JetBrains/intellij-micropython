@@ -28,6 +28,9 @@ class ToolWindowReplTab(val project: Project, val parent: Disposable) : CommsEve
         terminalWidget = ShellTerminalWidget(project, mySettingsProvider, parent)
 
         deviceCommsManager.registerObserver(this)
+        if (!deviceCommsManager.isRunning()) {
+            deviceCommsManager.startREPL()
+        }
     }
 
     private fun connectWidgetTty(
@@ -56,16 +59,17 @@ class ToolWindowReplTab(val project: Project, val parent: Disposable) : CommsEve
     override fun onCommsEvent(event: CommsEvent) {
         when (event) {
             is CommsEvent.ProcessStarted -> {
+                terminalWidget.currentSession.terminal.carriageReturn()
+                terminalWidget.currentSession.terminal.newLine()
                 connectWidgetTty(terminalWidget, event.ttyConnector)
             }
             is CommsEvent.ProcessCreationFailed -> {
+                terminalWidget.currentSession.terminal.carriageReturn()
+                terminalWidget.currentSession.terminal.newLine()
                 terminalWidget.currentSession.terminal.writeCharacters(event.reason)
             }
             CommsEvent.ProcessDestroyed -> terminalWidget.stop()
         }
-
-        terminalWidget.currentSession.terminal.carriageReturn()
-        terminalWidget.currentSession.terminal.newLine()
     }
 
     fun createUI(): JPanel {
