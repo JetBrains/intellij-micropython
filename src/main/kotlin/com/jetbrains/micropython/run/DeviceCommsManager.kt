@@ -63,10 +63,13 @@ class DeviceCommsManager(project: Project) {
                     return this.createTtyConnector(process)
                 }
             }
-            currentProcess = terminalRunner.createProcess(null)
-            currentConnector = terminalRunner.getTtyConnector((currentProcess as PtyProcess?)!!)
 
-            notifyObservers(CommsEvent.ProcessStarted(currentConnector!!))
+            val process = terminalRunner.createProcess(null)
+            currentProcess = process
+            terminalRunner.getTtyConnector(process).let { newConnector ->
+                currentConnector = newConnector
+                notifyObservers(CommsEvent.ProcessStarted(newConnector))
+            }
         }
     }
 
