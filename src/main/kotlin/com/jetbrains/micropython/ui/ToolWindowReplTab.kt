@@ -10,6 +10,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.run.CommsEvent
 import com.jetbrains.micropython.run.CommsEventObserver
@@ -26,6 +27,8 @@ class ToolWindowReplTab(val project: Project, val parent: Disposable) : CommsEve
     init {
         val mySettingsProvider = JBTerminalSystemSettingsProvider()
         terminalWidget = ShellTerminalWidget(project, mySettingsProvider, parent)
+
+        Disposer.register(terminalWidget, mySettingsProvider)
 
         deviceCommsManager.registerObserver(this)
         if (!deviceCommsManager.isRunning()) {
