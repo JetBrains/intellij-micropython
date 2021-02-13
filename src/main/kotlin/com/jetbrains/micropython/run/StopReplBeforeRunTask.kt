@@ -8,7 +8,11 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Key
 import com.jetbrains.micropython.settings.MicroPythonFacetType
 
-class StopReplBeforeRunTask : BeforeRunTask<StopReplBeforeRunTask>(StopReplBeforeRunTaskProvider.ID)
+class StopReplBeforeRunTask : BeforeRunTask<StopReplBeforeRunTask>(StopReplBeforeRunTaskProvider.ID) {
+    init {
+        isEnabled = true
+    }
+}
 
 class StopReplBeforeRunTaskProvider : BeforeRunTaskProvider<StopReplBeforeRunTask>() {
     companion object {
