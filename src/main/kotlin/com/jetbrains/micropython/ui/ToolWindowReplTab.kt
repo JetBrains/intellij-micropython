@@ -15,13 +15,16 @@ import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.run.CommsEvent
 import com.jetbrains.micropython.run.CommsEventObserver
 import com.jetbrains.micropython.run.DeviceCommsManager
+import com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration
+import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class ToolWindowReplTab(val project: Project, val parent: Disposable) : CommsEventObserver {
+class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventObserver {
     val deviceCommsManager = DeviceCommsManager.getInstance(project)
+    val deviceConfiguration = MicroPythonDevicesConfiguration.getInstance(project)
     val terminalWidget: ShellTerminalWidget
 
     init {
@@ -62,13 +65,15 @@ class ToolWindowReplTab(val project: Project, val parent: Disposable) : CommsEve
     override fun onCommsEvent(event: CommsEvent) {
         when (event) {
             is CommsEvent.ProcessStarted -> {
-                terminalWidget.currentSession.terminal.carriageReturn()
-                terminalWidget.currentSession.terminal.newLine()
+                if (deviceConfiguration.clearReplOnLaunch) {
+                    terminalWidget.terminal.clearScreen()
+                } else {
+                    terminalWidget.terminal.nextLine()
+                }
                 connectWidgetTty(terminalWidget, event.ttyConnector)
             }
             is CommsEvent.ProcessCreationFailed -> {
-                terminalWidget.currentSession.terminal.carriageReturn()
-                terminalWidget.currentSession.terminal.newLine()
+                terminalWidget.terminal.nextLine()
                 terminalWidget.currentSession.terminal.writeCharacters(event.reason)
             }
             CommsEvent.ProcessDestroyed -> terminalWidget.stop()
