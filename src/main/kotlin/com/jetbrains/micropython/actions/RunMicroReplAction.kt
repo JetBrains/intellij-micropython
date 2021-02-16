@@ -18,7 +18,7 @@ package com.jetbrains.micropython.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.ToolWindowManager
-import com.jetbrains.micropython.run.DeviceCommsManager
+import com.jetbrains.micropython.repl.DeviceCommsManager
 
 class RunMicroReplAction : MicroPythonAction() {
 

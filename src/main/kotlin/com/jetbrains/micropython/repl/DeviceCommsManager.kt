@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.run
+package com.jetbrains.micropython.repl
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager

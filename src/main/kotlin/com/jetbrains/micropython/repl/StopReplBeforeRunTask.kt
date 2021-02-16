@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.run
+package com.jetbrains.micropython.repl
 
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider

@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.ui
+package com.jetbrains.micropython.repl
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -12,11 +12,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jediterm.terminal.TtyConnector
-import com.jetbrains.micropython.run.CommsEvent
-import com.jetbrains.micropython.run.CommsEventObserver
-import com.jetbrains.micropython.run.DeviceCommsManager
 import com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration
-import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import java.awt.BorderLayout
@@ -24,7 +20,7 @@ import javax.swing.JPanel
 
 class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventObserver {
     val deviceCommsManager = DeviceCommsManager.getInstance(project)
-    val deviceConfiguration = MicroPythonDevicesConfiguration.getInstance(project)
+    private val deviceConfiguration = MicroPythonDevicesConfiguration.getInstance(project)
     val terminalWidget: ShellTerminalWidget
 
     init {

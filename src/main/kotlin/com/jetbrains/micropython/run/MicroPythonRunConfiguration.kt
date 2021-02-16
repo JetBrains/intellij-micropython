@@ -40,6 +40,7 @@ import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
+import com.jetbrains.micropython.repl.DeviceCommsManager
 import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
