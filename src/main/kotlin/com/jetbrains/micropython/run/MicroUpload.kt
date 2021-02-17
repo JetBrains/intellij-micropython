@@ -26,9 +26,11 @@ fun getMicroUploadCommand(path: String, module: Module): List<String>? {
       .map { listOf("-X", it) }
       .flatten()
       .toList()
-  return listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py", "-C", rootDir.path) +
-      excludes +
-      listOf("-v", devicePath, path)
+  return listOf(
+      pythonPath, "${MicroPythonFacet.scriptsPath}/microupload.py",
+      "-C", rootDir.path,
+      "-D", facet.boardConnectionDelay.toString()
+  ) + excludes + listOf("-v", devicePath, path)
 }
 
 private fun getClosestRoot(file: VirtualFile, module: Module): VirtualFile? {
