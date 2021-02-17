@@ -20,7 +20,8 @@ Usage:
 
 Options:
     -X --exclude=PATH       Path to exclude, may be repeated.
-    -C --chdir=PATH         Change current directory to path.
+    -C --chdir=PATH         Change current directory to <PATH>.
+    -D --delay=DELAY      Wait for DELAY seconds before trying to upload files.
     -v --verbose            Verbose output.
 """
 
@@ -46,6 +47,11 @@ def main(args: List[str]) -> None:
     opts = docopt(__doc__, argv=args)
     verbose = opts['--verbose']
     root = opts['PATH']
+    try:
+        delay = float(opts.get('--delay', 0.5))
+    except ValueError:
+        delay = 0.5
+        print("Got incorrect 'delay' value, defaulting to 0.5 seconds.", file=sys.stderr)
 
     chdir = opts['--chdir']
     if chdir:
@@ -57,7 +63,8 @@ def main(args: List[str]) -> None:
     files = Files(board)
     rel_root = os.path.relpath(root, os.getcwd())
 
-    wait_for_board()
+    print('Waiting {} seconds before connecting to board...'.format(delay), file=sys.stderr)
+    wait_for_board(delay)
 
     if os.path.isdir(root):
         to_upload = [os.path.join(rel_root, x)
@@ -116,9 +123,9 @@ def list_files(path: str, excluded: List[str]) -> Iterable[str]:
                 yield os.path.relpath(os.path.join(root, f), path)
 
 
-def wait_for_board() -> None:
+def wait_for_board(delay: float = 0.5) -> None:
     """Wait for some ESP8266 devices to become ready for REPL commands."""
-    time.sleep(0.5)
+    time.sleep(delay)
 
 
 def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:
