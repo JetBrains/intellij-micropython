@@ -21,7 +21,7 @@ Usage:
 Options:
     -X --exclude=PATH       Path to exclude, may be repeated.
     -C --chdir=PATH         Change current directory to <PATH>.
-    -D --delay=DELAY      Wait for DELAY seconds before trying to upload files.
+    -D --delay=DELAY        Wait for DELAY seconds before trying to upload files.
     -v --verbose            Verbose output.
 """
 
