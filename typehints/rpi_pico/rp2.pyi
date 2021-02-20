@@ -1,3 +1,10 @@
+"""
+Raspberry Pi Pico specific micropython support.
+
+These methods are not fully documented and this is a best effort to produce the interface
+
+"""
+
 from typing import List
 
 
