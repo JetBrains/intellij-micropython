@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Key
+import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.MicroPythonFacetType
 
 class StopReplBeforeRunTask : BeforeRunTask<StopReplBeforeRunTask>(StopReplBeforeRunTaskProvider.ID) {
@@ -25,7 +26,13 @@ class StopReplBeforeRunTaskProvider : BeforeRunTaskProvider<StopReplBeforeRunTas
 
     override fun getName() = "Stop MicroPython REPL"
 
-    override fun createTask(runConfiguration: RunConfiguration) = StopReplBeforeRunTask()
+    override fun createTask(runConfiguration: RunConfiguration): StopReplBeforeRunTask? {
+        if (runConfiguration is MicroPythonRunConfiguration) {
+            return StopReplBeforeRunTask()
+        }
+
+        return null
+    }
 
     override fun executeTask(
         context: DataContext,
