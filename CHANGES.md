@@ -25,7 +25,7 @@ Version History
   <ul>
     <li>Auto-detect a connected MicroPython device with an option to specify the device path manually in the IDE settings for MicroPython</li>
     <li>Use the nearest directory marked "Sources Root" as the root of your device while flashing files</li>
-    <li>Ignore .git/, .idea/ and other files starting with '.' when flashing a directory<li>
+    <li>Ignore .git/, .idea/ and other files starting with '.' when flashing a directory</li>
     <li>Launch a run configuration to flash a directory from its context menu</li>
     <li>Compatibility with 2020.1-2020.2</li>
   </ul>
