@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+  <p>1.1.4:</p>
+  <ul>
+    <li>Compatibility with 2020.2-2021.1</li>
+  </ul>
   <p>1.1.3:</p>
   <ul>
     <li>Added an SVG icon for MicroPython actions</li>
