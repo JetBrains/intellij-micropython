@@ -18,13 +18,13 @@ package com.jetbrains.micropython.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.ToolWindowManager
-import com.jetbrains.micropython.repl.DeviceCommsManager
+import com.jetbrains.micropython.repl.MicroPythonReplManager
 
 class RunMicroReplAction : MicroPythonAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     e.project?.let { project ->
-      DeviceCommsManager.getInstance(project).startREPL()
+      MicroPythonReplManager.getInstance(project).startREPL()
       ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
     }
   }

@@ -40,7 +40,7 @@ class StopReplBeforeRunTaskProvider : BeforeRunTaskProvider<StopReplBeforeRunTas
         environment: ExecutionEnvironment,
         task: StopReplBeforeRunTask
     ): Boolean {
-        DeviceCommsManager.getInstance(environment.project).stopREPL()
+        MicroPythonReplManager.getInstance(environment.project).stopREPL()
         return true
     }
 

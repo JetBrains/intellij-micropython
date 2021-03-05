@@ -19,7 +19,7 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 
 class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventObserver {
-    val deviceCommsManager = DeviceCommsManager.getInstance(project)
+    val deviceCommsManager = MicroPythonReplManager.getInstance(project)
     private val deviceConfiguration = MicroPythonDevicesConfiguration.getInstance(project)
     val terminalWidget: ShellTerminalWidget
 

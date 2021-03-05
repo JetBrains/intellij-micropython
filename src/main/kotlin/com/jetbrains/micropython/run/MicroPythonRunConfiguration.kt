@@ -40,7 +40,7 @@ import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
-import com.jetbrains.micropython.repl.DeviceCommsManager
+import com.jetbrains.micropython.repl.MicroPythonReplManager
 import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
 import org.jdom.Element
@@ -86,7 +86,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
       state?.let {
         return RunStateWrapper(state) {
           ApplicationManager.getApplication().invokeLater {
-            DeviceCommsManager.getInstance(project).startREPL()
+            MicroPythonReplManager.getInstance(project).startREPL()
             ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
           }
         }

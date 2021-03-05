@@ -21,15 +21,15 @@ interface CommsEventObserver {
 }
 
 @Service
-class DeviceCommsManager(project: Project) {
+class MicroPythonReplManager(project: Project) {
     private val currentProject = project
     private var observerRef: WeakReference<CommsEventObserver>? = null
     private var currentProcess: Process? = null
     var currentConnector: TtyConnector? = null
 
     companion object {
-        fun getInstance(project: Project): DeviceCommsManager =
-            ServiceManager.getService(project, DeviceCommsManager::class.java)
+        fun getInstance(project: Project): MicroPythonReplManager =
+            ServiceManager.getService(project, MicroPythonReplManager::class.java)
     }
 
     fun startREPL() {
