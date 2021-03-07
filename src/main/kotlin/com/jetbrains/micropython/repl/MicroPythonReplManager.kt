@@ -83,7 +83,8 @@ class MicroPythonReplManager(project: Project) {
         currentProcess = null
     }
 
-    fun isRunning() : Boolean = currentProcess?.isAlive ?: false
+    val isRunning: Boolean
+        get() = currentProcess?.isAlive ?: false
 
     fun registerObserver(observer: CommsEventObserver) {
         observerRef = WeakReference(observer)

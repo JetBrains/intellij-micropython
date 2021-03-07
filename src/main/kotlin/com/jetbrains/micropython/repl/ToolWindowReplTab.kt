@@ -30,7 +30,7 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
         // TODO: Check if we are disposing of things properly
 
         deviceCommsManager.registerObserver(this)
-        if (!deviceCommsManager.isRunning()) {
+        if (!deviceCommsManager.isRunning) {
             deviceCommsManager.startREPL()
         }
     }
@@ -96,7 +96,7 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
         "Stop", "Stop REPL session", AllIcons.Actions.Suspend
     ), DumbAware {
         override fun update(e: AnActionEvent) {
-            e.presentation.isEnabled = deviceCommsManager.isRunning()
+            e.presentation.isEnabled = deviceCommsManager.isRunning
         }
 
         override fun actionPerformed(e: AnActionEvent) {
@@ -108,7 +108,7 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
     private fun replStartAction() =
         object : AnAction("Start", "Start REPL session", AllIcons.Actions.Execute), DumbAware {
             override fun update(e: AnActionEvent) {
-                e.presentation.isEnabled = !deviceCommsManager.isRunning()
+                e.presentation.isEnabled = !deviceCommsManager.isRunning
             }
 
             override fun actionPerformed(e: AnActionEvent) {
