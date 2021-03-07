@@ -1,5 +1,6 @@
 package com.jetbrains.micropython.repl
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
@@ -34,7 +35,9 @@ class MicroPythonReplManager(project: Project) {
     }
 
     fun startREPL() {
-        stopREPL()
+        if (isRunning) {
+            stopREPL()
+        }
 
         currentProject.firstMicroPythonFacet?.let {
             val devicePath = it.getOrDetectDevicePathSynchronously()
@@ -67,20 +70,23 @@ class MicroPythonReplManager(project: Project) {
 
             val terminalOptions = TerminalProcessOptions(null, null, null)
             val process = terminalRunner.createProcess(terminalOptions, null)
-            currentProcess = process
-            terminalRunner.getTtyConnector(process).let { newConnector ->
-                currentConnector = newConnector
-                notifyObservers(CommsEvent.ProcessStarted(newConnector))
+            val ttyConnector = terminalRunner.getTtyConnector(process)
+            synchronized(this) {
+                currentProcess = process
+                currentConnector = ttyConnector
+                notifyObservers(CommsEvent.ProcessStarted(ttyConnector))
             }
         }
     }
 
     fun stopREPL() {
-        currentProcess?.let {
-            it.destroy()
-            notifyObservers(CommsEvent.ProcessDestroyed)
+        synchronized(this) {
+            currentProcess?.let {
+                it.destroy()
+                notifyObservers(CommsEvent.ProcessDestroyed)
+            }
+            currentProcess = null
         }
-        currentProcess = null
     }
 
     val isRunning: Boolean
