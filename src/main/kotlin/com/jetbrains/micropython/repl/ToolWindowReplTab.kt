@@ -77,14 +77,14 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
     }
 
     fun createUI(): JPanel {
-        val toolbarActions = DefaultActionGroup()
-
-        toolbarActions.add(replStartAction())
-        toolbarActions.add(replStopAction())
+        val actionManager = ActionManager.getInstance()
+        val toolbarActions = DefaultActionGroup().apply {
+            add(replStartAction())
+            add(replStopAction())
+        }
+        val actionToolbar = actionManager.createActionToolbar("MicroPythonREPL", toolbarActions, false)
 
         return JPanel().apply {
-            val actionToolbar =
-                ActionManager.getInstance().createActionToolbar("MicroPythonREPL", toolbarActions, false)
             layout = BorderLayout()
 
             add(actionToolbar.component, BorderLayout.WEST)
