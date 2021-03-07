@@ -8,6 +8,7 @@ import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
 import com.pty4j.PtyProcess
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
+import org.jetbrains.plugins.terminal.TerminalProcessOptions
 import java.lang.ref.WeakReference
 
 sealed class CommsEvent {
@@ -64,7 +65,8 @@ class MicroPythonReplManager(project: Project) {
                 }
             }
 
-            val process = terminalRunner.createProcess(null)
+            val terminalOptions = TerminalProcessOptions(null, null, null)
+            val process = terminalRunner.createProcess(terminalOptions, null)
             currentProcess = process
             terminalRunner.getTtyConnector(process).let { newConnector ->
                 currentConnector = newConnector

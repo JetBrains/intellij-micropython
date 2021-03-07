@@ -27,7 +27,7 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
         val mySettingsProvider = JBTerminalSystemSettingsProvider()
         terminalWidget = ShellTerminalWidget(project, mySettingsProvider, parent)
 
-        Disposer.register(terminalWidget, mySettingsProvider)
+        // TODO: Check if we are disposing of things properly
 
         deviceCommsManager.registerObserver(this)
         if (!deviceCommsManager.isRunning()) {
