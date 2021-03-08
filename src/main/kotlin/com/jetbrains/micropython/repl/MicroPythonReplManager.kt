@@ -68,10 +68,11 @@ class MicroPythonReplManager(project: Project) {
                 }
             }
 
-            val terminalOptions = TerminalProcessOptions(null, null, null)
-            val process = terminalRunner.createProcess(terminalOptions, null)
-            val ttyConnector = terminalRunner.getTtyConnector(process)
             synchronized(this) {
+                val terminalOptions = TerminalProcessOptions(null, null, null)
+                val process = terminalRunner.createProcess(terminalOptions, null)
+                val ttyConnector = terminalRunner.getTtyConnector(process)
+
                 currentProcess = process
                 currentConnector = ttyConnector
                 notifyObservers(CommsEvent.ProcessStarted(ttyConnector))
