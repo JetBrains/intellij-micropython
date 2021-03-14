@@ -10,7 +10,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
@@ -18,7 +17,7 @@ import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventObserver {
+class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventListener, Disposable {
     val deviceCommsManager = MicroPythonReplManager.getInstance(project)
     private val deviceConfiguration = MicroPythonDevicesConfiguration.getInstance(project)
     val terminalWidget: ShellTerminalWidget
@@ -27,9 +26,7 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
         val mySettingsProvider = JBTerminalSystemSettingsProvider()
         terminalWidget = ShellTerminalWidget(project, mySettingsProvider, parent)
 
-        // TODO: Check if we are disposing of things properly
-
-        deviceCommsManager.registerObserver(this)
+        deviceCommsManager.addListener(this)
         if (!deviceCommsManager.isRunning) {
             deviceCommsManager.startREPL()
         }
@@ -117,4 +114,8 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventOb
                 }
             }
         }
+
+    override fun dispose() {
+        deviceCommsManager.removeListener(this)
+    }
 }
