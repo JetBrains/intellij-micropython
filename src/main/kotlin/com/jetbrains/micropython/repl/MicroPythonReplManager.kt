@@ -10,14 +10,10 @@ import com.pty4j.PtyProcess
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
 import org.jetbrains.plugins.terminal.TerminalProcessOptions
 
-sealed class CommsEvent {
-    class ProcessStarted(val ttyConnector: TtyConnector) : CommsEvent()
-    class ProcessCreationFailed(val reason: String) : CommsEvent()
-    object ProcessDestroyed : CommsEvent()
-}
-
 interface CommsEventListener {
-    fun onCommsEvent(event: CommsEvent)
+    fun onProcessStarted(ttyConnector: TtyConnector)
+    fun onProcessDestroyed()
+    fun onProcessCreationFailed(reason: String)
 }
 
 @Service
@@ -25,7 +21,7 @@ class MicroPythonReplManager(project: Project) {
     private val currentProject = project
     private var listeners: MutableList<CommsEventListener> = mutableListOf()
     private var currentProcess: Process? = null
-    var currentConnector: TtyConnector? = null
+    private var currentConnector: TtyConnector? = null
 
     companion object {
         fun getInstance(project: Project): MicroPythonReplManager =
@@ -41,14 +37,12 @@ class MicroPythonReplManager(project: Project) {
             val devicePath = it.getOrDetectDevicePathSynchronously()
 
             if (it.pythonPath == null) {
-                notifyListeners(
-                    CommsEvent.ProcessCreationFailed("Valid Python interpreter is needed to start a REPL!")
-                )
+                notifyProcessCreationFailed("Valid Python interpreter is needed to start a REPL!")
                 return
             }
 
             if (devicePath == null) {
-                notifyListeners(CommsEvent.ProcessCreationFailed("Device path is not specified, please check settings."))
+                notifyProcessCreationFailed("Device path is not specified, please check settings.")
                 return
             }
 
@@ -73,7 +67,7 @@ class MicroPythonReplManager(project: Project) {
 
                 currentProcess = process
                 currentConnector = ttyConnector
-                notifyListeners(CommsEvent.ProcessStarted(ttyConnector))
+                notifyProcessStarted(ttyConnector)
             }
         }
     }
@@ -82,7 +76,7 @@ class MicroPythonReplManager(project: Project) {
         synchronized(this) {
             currentProcess?.let {
                 it.destroy()
-                notifyListeners(CommsEvent.ProcessDestroyed)
+                notifyProcessDestroyed()
             }
             currentProcess = null
         }
@@ -94,16 +88,22 @@ class MicroPythonReplManager(project: Project) {
     fun addListener(listener: CommsEventListener) {
         listeners.add(listener)
 
-        currentConnector?.let {
-            listener.onCommsEvent(CommsEvent.ProcessStarted(it))
-        }
+        currentConnector?.let { listener.onProcessStarted(it) }
     }
 
     fun removeListener(listener: CommsEventListener) {
         listeners.remove(listener)
     }
 
-    private fun notifyListeners(event: CommsEvent) {
-        listeners.forEach { it.onCommsEvent(event) }
+    private fun notifyProcessStarted(connector: TtyConnector) {
+        listeners.forEach { it.onProcessStarted(connector) }
+    }
+
+    private fun notifyProcessDestroyed() {
+        listeners.forEach { it.onProcessDestroyed() }
+    }
+
+    private fun notifyProcessCreationFailed(reason: String) {
+        listeners.forEach { it.onProcessCreationFailed(reason) }
     }
 }

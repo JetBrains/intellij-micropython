@@ -55,24 +55,6 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventLi
         )
     }
 
-    override fun onCommsEvent(event: CommsEvent) {
-        when (event) {
-            is CommsEvent.ProcessStarted -> {
-                if (deviceConfiguration.clearReplOnLaunch) {
-                    terminalWidget.terminal.clearScreen()
-                } else {
-                    terminalWidget.terminal.nextLine()
-                }
-                connectWidgetTty(terminalWidget, event.ttyConnector)
-            }
-            is CommsEvent.ProcessCreationFailed -> {
-                terminalWidget.terminal.nextLine()
-                terminalWidget.currentSession.terminal.writeCharacters(event.reason)
-            }
-            CommsEvent.ProcessDestroyed -> terminalWidget.stop()
-        }
-    }
-
     fun createUI(): JPanel {
         val actionManager = ActionManager.getInstance()
         val toolbarActions = DefaultActionGroup().apply {
@@ -117,5 +99,23 @@ class ToolWindowReplTab(val project: Project, parent: Disposable) : CommsEventLi
 
     override fun dispose() {
         deviceCommsManager.removeListener(this)
+    }
+
+    override fun onProcessStarted(ttyConnector: TtyConnector) {
+        if (deviceConfiguration.clearReplOnLaunch) {
+            terminalWidget.terminal.clearScreen()
+        } else {
+            terminalWidget.terminal.nextLine()
+        }
+        connectWidgetTty(terminalWidget, ttyConnector)
+    }
+
+    override fun onProcessDestroyed() {
+        terminalWidget.stop()
+    }
+
+    override fun onProcessCreationFailed(reason: String) {
+        terminalWidget.terminal.nextLine()
+        terminalWidget.currentSession.terminal.writeCharacters(reason)
     }
 }
