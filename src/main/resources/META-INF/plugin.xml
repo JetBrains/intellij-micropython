@@ -96,9 +96,9 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="MicroPython" anchor="bottom" factoryClass="com.jetbrains.micropython.ui.MicroPythonToolWindowFactory"
+    <facet.toolWindow id="MicroPython" anchor="bottom" factoryClass="com.jetbrains.micropython.ui.MicroPythonToolWindowFactory"
                 secondary="false" icon="/icons/micropython_tw.svg"
-    />
+                      facetIdList="MicroPython"/>
   </extensions>
 
   <actions>

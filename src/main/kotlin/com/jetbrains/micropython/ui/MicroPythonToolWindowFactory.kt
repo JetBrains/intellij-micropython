@@ -9,8 +9,6 @@ import com.jetbrains.micropython.repl.ToolWindowReplTab
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
 
 class MicroPythonToolWindowFactory : ToolWindowFactory, DumbAware {
-    override fun isApplicable(project: Project) = project.firstMicroPythonFacet != null
-
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val terminalContent = contentFactory.createContent(null, "REPL", false)
