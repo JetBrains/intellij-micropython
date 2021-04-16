@@ -76,7 +76,7 @@ def main(args: List[str]) -> None:
         if remote_dir:
             make_dirs(files, remote_dir, created_cache)
         with open(local_path, 'rb') as fd:
-            files.put(remote_path.replace(os.path.sep, '/'), fd.read())
+            files.put(remote_path, fd.read())
 
     print('Soft reboot', file=sys.stderr, flush=True)
     soft_reset(board)
