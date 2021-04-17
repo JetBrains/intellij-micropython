@@ -54,8 +54,8 @@
         <li>Run REPL on a device</li>
       </ul>
       <br/>
-      <p>Currently the plugin supports ESP8266, Pyboard, and Micro:bit devices. Your feedback and contributions are
-        welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
+      <p>Currently the plugin supports ESP8266, Pyboard, Micro:bit and RPi Pico devices. Your feedback and contributions
+        are welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
   <version>SNAPSHOT</version>
   <vendor>JetBrains</vendor>
@@ -91,6 +91,7 @@
     <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.Esp8266DeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.PyboardDeviceProvider"/>
+    <deviceProvider implementation="com.jetbrains.micropython.devices.RPiPicoDeviceProvider"/>
   </extensions>
 
   <actions>
