@@ -17,16 +17,40 @@
 package com.jetbrains.micropython.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.jetbrains.micropython.repl.MicroPythonReplManager
+import com.jetbrains.micropython.settings.firstMicroPythonFacet
 
 class RunMicroReplAction : MicroPythonAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.project?.let { project ->
-      MicroPythonReplManager.getInstance(project).startREPL()
+    val project = e.project ?: return
+    val editor = FileEditorManagerEx.getInstance(project).selectedTextEditor ?: return
+
+    /*
+    Here we make best effort to find out module which is relevant to the current event.
+    There are two cases to consider:
+    1) There is an open file present.
+    2) No files are opened.
+    */
+
+    val virtualFile: VirtualFile? = FileDocumentManager.getInstance().getFile(editor.document)
+    val module: Module? = if (virtualFile != null) {
+      ModuleUtil.findModuleForFile(virtualFile, project)
+    } else {
+      project.firstMicroPythonFacet?.module
+    }
+
+    if (module != null) {
+      MicroPythonReplManager.getInstance(module).startREPL()
       ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
     }
   }
-
 }

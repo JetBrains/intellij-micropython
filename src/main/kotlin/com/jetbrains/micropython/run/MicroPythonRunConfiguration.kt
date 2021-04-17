@@ -28,6 +28,7 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.facet.ui.ValidationResult
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -38,6 +39,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
 import com.jetbrains.micropython.repl.MicroPythonReplManager
@@ -73,23 +75,21 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
 
   var path: String = ""
   var runReplOnSuccess: Boolean = false
-
   override fun getValidModules() =
       allModules.filter { it.microPythonFacet != null }.toMutableList()
 
   override fun getConfigurationEditor() = MicroPythonRunConfigurationEditor(this)
 
   override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
-    val state = module?.microPythonFacet?.configuration?.deviceProvider?.getRunCommandLineState(this, environment)
-
-    if (runReplOnSuccess) {
-      state?.let {
+    val currentModule = environment.dataContext?.getData(LangDataKeys.MODULE) ?: module
+    val state = currentModule?.microPythonFacet?.configuration?.deviceProvider?.getRunCommandLineState(this, environment)
+    ComponentManagerImpl
+    if (runReplOnSuccess && state != null) {
         return RunStateWrapper(state) {
           ApplicationManager.getApplication().invokeLater {
-            MicroPythonReplManager.getInstance(project).startREPL()
+            MicroPythonReplManager.getInstance(currentModule).startREPL()
             ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
           }
-        }
       }
     }
 

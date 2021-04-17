@@ -118,7 +118,7 @@ def list_files(path: str, excluded: List[str]) -> Iterable[str]:
 
 def wait_for_board() -> None:
     """Wait for some ESP8266 devices to become ready for REPL commands."""
-    time.sleep(0.5)
+    time.sleep(2.5)
 
 
 def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:

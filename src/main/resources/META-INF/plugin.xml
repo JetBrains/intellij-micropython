@@ -80,7 +80,7 @@
                          id="com.jetbrains.micropython.configurable"
                          provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
     <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
-    <projectService serviceImplementation="com.jetbrains.micropython.repl.MicroPythonReplManager"/>
+    <moduleService serviceImplementation="com.jetbrains.micropython.repl.MicroPythonReplManager"/>
     <stepsBeforeRunProvider implementation="com.jetbrains.micropython.repl.StopReplBeforeRunTaskProvider"/>
     <localInspection language="Python"
                      displayName="MicroPython requirements inspection"
