@@ -16,7 +16,7 @@ class MicroPythonDevicesConfiguration : PersistentStateComponent<MicroPythonDevi
         ServiceManager.getService(project, MicroPythonDevicesConfiguration::class.java)
   }
 
-  // Currently the device path is stored per project, not per module
+  // Currently, the device path is stored per project, not per module
   @Attribute var devicePath: String = ""
 
   @Attribute var autoDetectDevicePath: Boolean = true
