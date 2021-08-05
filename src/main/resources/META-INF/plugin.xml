@@ -137,7 +137,7 @@
         <li>Run REPL on a device</li>
       </ul>
       <br/>
-      <p>Currently the plugin supports ESP8266, Pyboard, Micro:bit and RPi Pico devices. Your feedback and contributions
+      <p>Currently the plugin supports ESP8266, Pyboard, Micro:bit, and Raspberry Pi Pico devices. Your feedback and contributions
         are welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
   <version>SNAPSHOT</version>
