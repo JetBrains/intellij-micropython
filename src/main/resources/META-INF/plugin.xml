@@ -2,7 +2,7 @@
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
-<h2>1.2 (to be released)</h2>
+<h2>1.2 — 2021-08-05</h2>
 <h3>Added</h3>
 <ul>
 <li>Added support for Raspberry Pi Pico devices
