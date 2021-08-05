@@ -5,7 +5,9 @@ These methods are not fully documented and this is a best effort to produce the 
 
 """
 
-from typing import List
+from typing import Optional, Callable
+
+from machine import Pin
 
 
 class Flash:
@@ -62,7 +64,7 @@ class StateMachine:
     """
     Instantiate a state machine with a program.
     """
-    def __init__(self, num: int, prog: List[Any], freq: int = None, set_base: "Pin" = None) -> None:
+    def __init__(self, num: int, prog: list, freq: int = None, set_base: Pin = None) -> None:
         pass
 
     def active(self) -> bool:
@@ -70,7 +72,7 @@ class StateMachine:
         This state machine is active
         """
 
-    def init(self, prog: List[Any]):
+    def init(self, prog: list):
         """
         Initialise and start a PIO program
         """
@@ -88,7 +90,7 @@ class PIOASMError(Exception):
     pass
 
 
-def asm_pio(**kwargs) -> List[Any]:
+def asm_pio(**kwargs) -> list:
     """
     Assemble a PIO program
     """
