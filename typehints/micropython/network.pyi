@@ -1,10 +1,8 @@
 """
-
 network configuration
 
 Descriptions taken from 
 `https://raw.githubusercontent.com/micropython/micropython/master/docs/library/network.rst`, etc.
-
 ****************************************
 
 .. module:: network
@@ -14,7 +12,7 @@ This module provides network drivers and routing configuration. To use this
 module, a MicroPython variant/build with network capabilities must be installed.
 Network drivers for specific hardware are available within this module and are
 used to configure hardware network interface(s). Network services provided
-by configured interfaces are then available for use via the :mod:`usocket`
+by configured interfaces are then available for use via the :mod:`socket`
 module.
 
 For example::
@@ -22,48 +20,43 @@ For example::
     # connect/ show IP config a specific network interface
     # see below for examples of specific drivers
     import network
-    import utime
+    import time
     nic = network.Driver(...)
     if not nic.isconnected():
         nic.connect()
         print("Waiting for connection...")
         while not nic.isconnected():
-            utime.sleep(1)
+            time.sleep(1)
     print(nic.ifconfig())
 
-    # now use usocket as usual
-    import usocket as socket
+    # now use socket as usual
+    import socket
     addr = socket.getaddrinfo('micropython.org', 80)[0][-1]
     s = socket.socket()
     s.connect(addr)
     s.send(b'GET / HTTP/1.1\r\nHost: micropython.org\r\n\r\n')
     data = s.recv(1000)
     s.close()
-
 """
-
-
 
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "4.0.0"  # Version set by https://github.com/hlovatt/tag2ver
-
-
+__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import abstractmethod
-from typing import Protocol, List, Tuple, Callable, overload, Any, Optional, ClassVar, Union
+from typing import Protocol, Callable, overload, Any, ClassVar, Final
 
 import pyb
 
 
-MODE_11B: int = ...
+MODE_11B: Final[int] = ...
 """IEEE 802.11b"""
 
-MODE_11G: int = ...
+MODE_11G: Final[int] = ...
 """IEEE 802.11g"""
 
-MODE_11N: int = ...
+MODE_11N: Final[int] = ...
 """IEEE 802.11n"""
 
 
@@ -102,7 +95,6 @@ def phy_mode(self, mode: int, /) -> None:
 
 class AbstractNIC(Protocol):
    """
-
    Common network adapter interface
    ================================
    
@@ -111,7 +103,6 @@ class AbstractNIC(Protocol):
    for different hardware. This means that MicroPython does not actually
    provide ``AbstractNIC`` class, but any actual NIC class, as described
    in the following sections, implements methods as described here.
-   
    """
 
 
@@ -132,7 +123,7 @@ class AbstractNIC(Protocol):
            Activate ("up") or deactivate ("down") the network interface, if
            a boolean argument is passed. Otherwise, query current state if
            no argument is provided. Most other methods require an active
-           interface (behavior of calling them on inactive interface is
+           interface (behaviour of calling them on inactive interface is
            undefined).
       """
 
@@ -143,13 +134,13 @@ class AbstractNIC(Protocol):
            Activate ("up") or deactivate ("down") the network interface, if
            a boolean argument is passed. Otherwise, query current state if
            no argument is provided. Most other methods require an active
-           interface (behavior of calling them on inactive interface is
+           interface (behaviour of calling them on inactive interface is
            undefined).
       """
 
    @overload
    @abstractmethod
-   def connect(self, key: Optional[str] = None, /, **kwargs: Any) -> None:
+   def connect(self, key: str | None = None, /, **kwargs: Any) -> None:
       """
           Connect the interface to a network. This method is optional, and
           available only for interfaces which are not "always connected".
@@ -168,7 +159,7 @@ class AbstractNIC(Protocol):
 
    @overload
    @abstractmethod
-   def connect(self, service_id: Any, key: Optional[str] = None, /, **kwargs: Any) -> None:
+   def connect(self, service_id: Any, key: str | None = None, /, **kwargs: Any) -> None:
       """
           Connect the interface to a network. This method is optional, and
           available only for interfaces which are not "always connected".
@@ -201,7 +192,7 @@ class AbstractNIC(Protocol):
 
    
    @abstractmethod
-   def scan(self, **kwargs: Any) -> List[Tuple[str, ...]]:
+   def scan(self, **kwargs: Any) -> list[tuple[str, ...]]:
       """
           Scan for the available network services/connections. Returns a
           list of tuples with discovered service parameters. For various
@@ -256,7 +247,7 @@ class AbstractNIC(Protocol):
 
    @overload
    @abstractmethod
-   def ifconfig(self) -> Tuple[str, str, str, str]:
+   def ifconfig(self) -> tuple[str, str, str, str]:
       """
           Get/set IP-level network interface parameters: IP address, subnet mask,
           gateway and DNS server. When called with no arguments, this method returns
@@ -268,7 +259,7 @@ class AbstractNIC(Protocol):
 
    @overload
    @abstractmethod
-   def ifconfig(self, ip_mask_gateway_dns: Tuple[str, str, str, str], /) -> None:
+   def ifconfig(self, ip_mask_gateway_dns: tuple[str, str, str, str], /) -> None:
       """
           Get/set IP-level network interface parameters: IP address, subnet mask,
           gateway and DNS server. When called with no arguments, this method returns
@@ -361,11 +352,11 @@ class WLAN:
    
    def connect(
       self, 
-      ssid: Optional[str] = None, 
-      password: Optional[str] = None, 
+      ssid: str | None = None, 
+      password: str | None = None, 
       /, 
       *, 
-      bssid: Optional[bytes] = None
+      bssid: bytes | None = None
    ) -> None:
       """
        Connect to the specified wireless network, using the specified password.
@@ -379,9 +370,11 @@ class WLAN:
        Disconnect from the currently connected wireless network.
       """
 
-   def scan(self) -> Tuple[str, bytes, int, int, int]:
+   def scan(self) -> tuple[str, bytes, int, int, int]:
       """
        Scan for the available wireless networks.
+       Hidden networks -- where the SSID is not broadcast -- will also be scanned
+       if the WLAN interface allows it.
        
        Scanning is only possible on STA interface. Returns list of tuples with
        the information about WiFi access points:
@@ -389,7 +382,7 @@ class WLAN:
            (ssid, bssid, channel, RSSI, authmode, hidden)
        
        *bssid* is hardware address of an access point, in binary form, returned as
-       bytes object. You can use `ubinascii.hexlify()` to convert it to ASCII form.
+       bytes object. You can use `binascii.hexlify()` to convert it to ASCII form.
        
        There are five values for authmode:
        
@@ -451,7 +444,7 @@ class WLAN:
       """
 
    @overload
-   def ifconfig(self) -> Tuple[str, str, str, str]:
+   def ifconfig(self) -> tuple[str, str, str, str]:
       """
       Get/set IP-level network interface parameters: IP address, subnet mask,
       gateway and DNS server. When called with no arguments, this method returns
@@ -462,7 +455,7 @@ class WLAN:
       """
 
    @overload
-   def ifconfig(self, ip_mask_gateway_dns: Tuple[str, str, str, str], /) -> None:
+   def ifconfig(self, ip_mask_gateway_dns: tuple[str, str, str, str], /) -> None:
       """
       Get/set IP-level network interface parameters: IP address, subnet mask,
       gateway and DNS server. When called with no arguments, this method returns
@@ -502,6 +495,7 @@ class WLAN:
       authmode       Authentication mode supported (enumeration, see module constants)
       password       Access password (string)
       dhcp_hostname  The DHCP hostname to use
+      reconnects     Number of reconnect attempts to make (integer, 0=none, -1=unlimited)
       =============  ===========
       """
 
@@ -535,6 +529,7 @@ class WLAN:
       authmode       Authentication mode supported (enumeration, see module constants)
       password       Access password (string)
       dhcp_hostname  The DHCP hostname to use
+      reconnects     Number of reconnect attempts to make (integer, 0=none, -1=unlimited)
       =============  ===========
       """
 
@@ -562,8 +557,6 @@ class WLANWiPy:
        # now use socket as usual
        ...
    """
-
-
 
    STA: ClassVar[int] = ...
    """
@@ -610,9 +603,6 @@ selects the antenna type
 selects the antenna type
    """
 
-
-
-
    @overload
    def __init__(self, id: int = 0, /):
       """
@@ -628,7 +618,7 @@ selects the antenna type
       """
 
    @overload
-   def __init__(self, id: int, /, *, mode: int, ssid: str, auth: Tuple[str, str], channel: int, antenna: int):
+   def __init__(self, id: int, /, *, mode: int, ssid: str, auth: tuple[str, str], channel: int, antenna: int):
       """
       Create a WLAN object, and optionally configure it. See `init()` for params of configuration.
       
@@ -641,7 +631,7 @@ selects the antenna type
       values.
       """
 
-   def init(self, mode: int, /, *, ssid: str, auth: Tuple[str, str], channel: int, antenna: int) -> bool:
+   def init(self, mode: int, /, *, ssid: str, auth: tuple[str, str], channel: int, antenna: int) -> bool:
       """
       Set or get the WiFi network processor configuration.
       
@@ -674,9 +664,9 @@ selects the antenna type
       ssid: str, 
       /, 
       *, 
-      auth: Optional[Tuple[str, str]] = None, 
-      bssid: Optional[bytes] = None,
-      timeout: Optional[int] = None,
+      auth: tuple[str, str] | None = None, 
+      bssid: bytes | None = None,
+      timeout: int | None = None,
    ) -> None:
       """
       Connect to a WiFi access point using the given SSID, and other security
@@ -691,7 +681,7 @@ selects the antenna type
          - *timeout* is the maximum time in milliseconds to wait for the connection to succeed.
       """
 
-   def scan(self) -> Tuple[str, bytes, int, Optional[int], int]:
+   def scan(self) -> tuple[str, bytes, int, int | None, int]:
       """
       Performs a network scan and returns a list of named tuples with (ssid, bssid, sec, channel, rssi).
       Note that channel is always ``None`` since this info is not provided by the WiPy.
@@ -709,7 +699,7 @@ selects the antenna type
       """
 
    @overload
-   def ifconfig(self, if_id: int = 0, /) -> Tuple[str, str, str, str]:
+   def ifconfig(self, if_id: int = 0, /) -> tuple[str, str, str, str]:
       """
       With no parameters given returns a 4-tuple of *(ip, subnet_mask, gateway, DNS_server)*.
       
@@ -722,7 +712,7 @@ selects the antenna type
       """
 
    @overload
-   def ifconfig(self, if_id: int = 0, /, *, config: Union[str, Tuple[str, str, str, str]]) -> None:
+   def ifconfig(self, if_id: int = 0, /, *, config: str | tuple[str, str, str, str]) -> None:
       """
       With no parameters given returns a 4-tuple of *(ip, subnet_mask, gateway, DNS_server)*.
       
@@ -841,10 +831,8 @@ class CC3K:
        - VBEN connected to Y4
        - IRQ connected to Y3
    
-   It is possible to use other SPI busses and other pins for CS, VBEN and IRQ.
+   It is possible to use other SPI buses and other pins for CS, VBEN and IRQ.
    """
-
-
 
    WEP: ClassVar[int] = ...
    """
@@ -862,9 +850,6 @@ security type to use
    """
 security type to use
    """
-
-
-
 
    def __init__(self, spi: pyb.SPI, pin_cs: pyb.Pin, pin_en: pyb.Pin, pin_irq: pyb.Pin, /):
       """
@@ -889,11 +874,11 @@ security type to use
    def connect(
       self, 
       ssid: str, 
-      key: Optional[str] = None, 
+      key: str | None = None, 
       /, 
       *, 
       security: int = WPA2,
-      bssid: Optional[bytes] = None,
+      bssid: bytes | None = None,
    ) -> None:
       """
       Connect to a WiFi access point using the given SSID, and other security
@@ -911,7 +896,7 @@ security type to use
       False otherwise.
       """
 
-   def ifconfig(self) -> Tuple[str, str, str, str, str, str, str]:
+   def ifconfig(self) -> tuple[str, str, str, str, str, str, str]:
       """
       Returns a 7-tuple with (ip, subnet mask, gateway, DNS server, DHCP server,
       MAC address, SSID).
@@ -953,7 +938,7 @@ class WIZNET5K:
        - nSS connected to X5
        - nRESET connected to X4
    
-   It is possible to use other SPI busses and other pins for nSS and nRESET.
+   It is possible to use other SPI buses and other pins for nSS and nRESET.
    """
 
 
@@ -983,7 +968,7 @@ class WIZNET5K:
       """
 
    @overload
-   def ifconfig(self) -> Tuple[str, str, str, str]:
+   def ifconfig(self) -> tuple[str, str, str, str]:
       """
       Get/set IP address, subnet mask, gateway and DNS.
       
@@ -995,7 +980,7 @@ class WIZNET5K:
       """
 
    @overload
-   def ifconfig(self, config: Tuple[str, str, str, str], /):
+   def ifconfig(self, config: tuple[str, str, str, str], /):
       """
       Get/set IP address, subnet mask, gateway and DNS.
       
@@ -1010,5 +995,3 @@ class WIZNET5K:
       """
       Dump the WIZnet5x00 registers.  Useful for debugging.
       """
-
-

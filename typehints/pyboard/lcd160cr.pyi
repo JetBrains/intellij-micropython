@@ -1,10 +1,8 @@
 """
-
 control of LCD160CR display
 
 Descriptions taken from 
 `https://raw.githubusercontent.com/micropython/micropython/master/docs/library/lcd160cr.rst`, etc.
-
 ===============================================
 
    
@@ -22,39 +20,17 @@ Descriptions taken from
    
    * `LCD160CRv1.0 reference manual <http://micropython.org/resources/LCD160CRv10-refmanual.pdf>`_ (100KiB PDF)
    * `LCD160CRv1.0 schematics <http://micropython.org/resources/LCD160CRv10-schematics.pdf>`_ (1.6MiB PDF)
-   
 """
-
-
 
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "4.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
 
-
-
-from typing import overload, Any, Union, Tuple, TypeVar, Optional, Final
+from typing import overload, Any, Final
 
 from pyb import Pin, I2C, SPI
-from uarray import array
-
-
-
-_AnyWritableBuf = TypeVar('_AnyWritableBuf', bytearray, array, memoryview)
-"""
-Type that allows bytearray, array, or memoryview, but only one of these and not a mixture in a single declaration.
-"""
-
-
-
-
-_AnyReadableBuf = TypeVar('_AnyReadableBuf', bytearray, array, memoryview, bytes)
-"""
-Type that allows bytearray, array, memoryview, or bytes, 
-but only one of these and not a mixture in a single declaration.
-"""
-
+from uio import AnyReadableBuf, AnyWritableBuf
 
 
 
@@ -109,7 +85,6 @@ Types of start-up decoration, can be OR'ed together, used by
 
 class LCD160CR:
    """
-
    The LCD160CR class provides an interface to the display.  Create an
    instance of this class and use its methods to draw to the LCD and get
    the status of the touch panel.
@@ -125,9 +100,7 @@ class LCD160CR:
        lcd.set_font(1)
        lcd.write('Hello MicroPython!')
        print('touch:', lcd.get_touch())
-   
    """
-
 
    w: Final[int] = ...
    """
@@ -143,9 +116,6 @@ The width and height of the display, respectively, in pixels.  These
     members are updated when calling :meth:`LCD160CR.set_orient` and should
     be considered read-only.
    """
-
-
-
 
    @overload
    def __init__(self, connect: str, /):
@@ -266,7 +236,7 @@ The width and height of the display, respectively, in pixels.  These
        Set the baudrate of the UART interface.
       """
 
-   def set_startup_deco(self, value: Union[bool, str], /) -> None:
+   def set_startup_deco(self, value: bool | str, /) -> None:
       """
        Set the start-up decoration of the display.  The *value* parameter can be a
        logical or of `STARTUP_DECO_NONE`, `STARTUP_DECO_MLOGO`, `STARTUP_DECO_INFO`.
@@ -289,7 +259,7 @@ The width and height of the display, respectively, in pixels.  These
        Get the 16-bit value of the specified pixel.
       """
 
-   def get_line(self, x: int, y: int, buf: _AnyWritableBuf, /) -> None:
+   def get_line(self, x: int, y: int, buf: AnyWritableBuf, /) -> None:
       """
        Low-level method to get a line of pixels into the given buffer.
        To read *n* pixels *buf* should be *2*n+1* bytes in length.  The first byte
@@ -300,11 +270,11 @@ The width and height of the display, respectively, in pixels.  These
    
    def screen_dump(
       self, 
-      buf: _AnyWritableBuf, 
+      buf: AnyWritableBuf, 
       x: int = 0, 
       y: int = 0, 
-      w: Optional[int] = None, 
-      h: Optional[int] = None, 
+      w: int | None = None, 
+      h: int | None = None, 
       /
    ) -> None:
       """
@@ -316,7 +286,7 @@ The width and height of the display, respectively, in pixels.  These
        will be stored.
       """
 
-   def screen_load(self, buf: _AnyReadableBuf, /) -> None:
+   def screen_load(self, buf: AnyReadableBuf, /) -> None:
       """
        Load the entire screen from the given buffer.
       """
@@ -438,19 +408,19 @@ The width and height of the display, respectively, in pixels.  These
        used when you know that the coordinates are within the display.
       """
 
-   def poly_dot(self, data: _AnyReadableBuf, /) -> None:
+   def poly_dot(self, data: AnyReadableBuf, /) -> None:
       """
        Draw a sequence of dots using the pen line color.
        The *data* should be a buffer of bytes, with each successive pair of
        bytes corresponding to coordinate pairs (x, y).
       """
 
-   def poly_line(self, data: _AnyReadableBuf, /) -> None:
+   def poly_line(self, data: AnyReadableBuf, /) -> None:
       """
        Similar to :meth:`LCD160CR.poly_dot` but draws lines between the dots.
       """
 
-   def touch_config(self, calib: bool = False, save: bool = False, irq: Optional[bool] = None, /) -> None:
+   def touch_config(self, calib: bool = False, save: bool = False, irq: bool | None = None, /) -> None:
       """
        Configure the touch panel:
        
@@ -471,7 +441,7 @@ The width and height of the display, respectively, in pixels.  These
        ``False`` otherwise.
       """
 
-   def get_touch(self) -> Tuple[int, int, int]:
+   def get_touch(self) -> tuple[int, int, int]:
       """
        Returns a 3-tuple of: *(active, x, y)*.  If there is currently a touch force
        on the screen then *active* is 1, otherwise it is 0.  The *x* and *y* values
@@ -496,7 +466,7 @@ The width and height of the display, respectively, in pixels.  These
        :meth:`LCD160CR.set_spi_win` it will wrap around to the top-left corner of that window.
       """
 
-   def show_framebuf(self, buf: _AnyReadableBuf, /) -> None:
+   def show_framebuf(self, buf: AnyReadableBuf, /) -> None:
       """
        Show the given buffer on the display.  *buf* should be an array of bytes containing
        the 16-bit RGB values for the pixels, and they will be written to the area
@@ -559,7 +529,7 @@ The width and height of the display, respectively, in pixels.  These
        with length 32 or less.
       """
 
-   def jpeg(self, buf: _AnyReadableBuf, /) -> None:
+   def jpeg(self, buf: AnyReadableBuf, /) -> None:
       """
        Display a JPEG.  *buf* should contain the entire JPEG data. JPEG data should
        not include EXIF information. The following encodings are supported: Baseline
@@ -575,7 +545,7 @@ The width and height of the display, respectively, in pixels.  These
        display using one or more calls to the `jpeg_data` command.
       """
 
-   def jpeg_data(self, buf: _AnyReadableBuf, /) -> None:
+   def jpeg_data(self, buf: AnyReadableBuf, /) -> None:
       """
        Display a JPEG with the data split across multiple buffers.  There must be
        a single call to `jpeg_start` to begin with, specifying the total number of
@@ -594,5 +564,3 @@ The width and height of the display, respectively, in pixels.  These
       """
        Reset the display.
       """
-
-

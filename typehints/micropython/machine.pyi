@@ -1,10 +1,8 @@
 """
-
 functions related to the hardware
 
 Descriptions taken from 
 `https://raw.githubusercontent.com/micropython/micropython/master/docs/library/machine.rst`, etc.
-
 ====================================================
 
 .. module:: machine
@@ -26,61 +24,18 @@ Descriptions taken from
    This is true for both physical devices with IDs >= 0 and "virtual" devices
    with negative IDs like -1 (these "virtual" devices are still thin shims on
    top of real hardware and real hardware interrupts). See :ref:`isr_rules`.
-   
 """
-
-
 
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "4.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
 
+from typing import overload, NoReturn, Callable
+from typing import Sequence, ClassVar, Any, Final
 
-
-from abc import abstractmethod
-from typing import overload, Union, Tuple, TypeVar, Optional, NoReturn, List, Callable
-from typing import Sequence, runtime_checkable, Protocol, ClassVar, Any, Final
-
-from uarray import array
-
-
-
-@runtime_checkable
-class _AbstractBlockDev(Protocol):
-    """
-    A `Protocol` (structurally typed) with the defs needed by 
-    `usb_mode` argument `msc`.
-    """
-
-    __slots__ = ()
-
-    @abstractmethod
-    def readblocks(self, blocknum: int, buf: bytes, offset: int = 0, /) -> None: ... 
-
-    @abstractmethod
-    def writeblocks(self, blocknum: int, buf: bytes, offset: int = 0, /) -> None: ...
-
-    @abstractmethod
-    def ioctl(self, op: int, arg: int) -> Optional[int]: ...
-
-
-
-
-_AnyWritableBuf = TypeVar('_AnyWritableBuf', bytearray, array, memoryview)
-"""
-Type that allows bytearray, array, or memoryview, but only one of these and not a mixture in a single declaration.
-"""
-
-
-
-
-_AnyReadableBuf = TypeVar('_AnyReadableBuf', bytearray, array, memoryview, bytes)
-"""
-Type that allows bytearray, array, memoryview, or bytes, 
-but only one of these and not a mixture in a single declaration.
-"""
-
+from uos import AbstractBlockDev
+from uio import AnyReadableBuf, AnyWritableBuf
 
 
 def reset() -> NoReturn:
@@ -116,9 +71,20 @@ def enable_irq(state: bool = True, /) -> None:
    recent call to the `disable_irq()` function.
    """
 
+@overload
 def freq() -> int:
    """
-    Returns CPU frequency in hertz.
+    Returns the CPU frequency in hertz.
+    
+    On some ports this can also be used to set the CPU frequency by passing in *hz*.
+   """
+
+@overload
+def freq(hz: int, /) -> None:
+   """
+    Returns the CPU frequency in hertz.
+    
+    On some ports this can also be used to set the CPU frequency by passing in *hz*.
    """
 
 def idle() -> None:
@@ -382,10 +348,7 @@ class Pin:
    
        # configure an irq callback
        p0.irq(lambda p:print(p))
-   
    """
-
-
 
    IN: ClassVar[int] = ...
    """
@@ -485,9 +448,6 @@ Selects the IRQ trigger type.
 Selects the IRQ trigger type.
    """
 
-
-
-
    
    def __init__(
       self, 
@@ -497,8 +457,8 @@ Selects the IRQ trigger type.
       pull: int = -1, 
       *,
       value: Any = None,
-      drive: Optional[int] = None,
-      alt: Optional[int] = None
+      drive: int | None = None,
+      alt: int | None = None
    ):
       """
       Access the pin peripheral (GPIO pin) associated with the given ``id``.  If
@@ -568,8 +528,8 @@ Selects the IRQ trigger type.
       pull: int = -1, 
       *,
       value: Any = None,
-      drive: Optional[int] = None,
-      alt: Optional[int] = None
+      drive: int | None = None,
+      alt: int | None = None
    ) -> None:
       """
       Re-initialise the pin using the given parameters.  Only those arguments that
@@ -677,13 +637,13 @@ Selects the IRQ trigger type.
    def irq(
       self,
       /,
-      handler: Optional[Callable[["Pin"], None]] = None, 
+      handler: Callable[[Pin], None] | None = None, 
       trigger: int = (IRQ_FALLING | IRQ_RISING), 
       *, 
       priority: int = 1, 
-      wake: Optional[int] = None, 
+      wake: int | None = None, 
       hard: bool = False,
-   ) -> Optional[Callable[["Pin"], None]]:
+   ) -> Callable[[Pin], None] | None:
       """
       Configure an interrupt handler to be called when the trigger source of the
       pin is active.  If the pin mode is ``Pin.IN`` then the trigger source is
@@ -891,14 +851,14 @@ class Signal:
    @overload
    def __init__(
       self, 
-      id: Union[Pin, str], 
+      id: Pin | str, 
       /, 
       mode: int = -1, 
       pull: int = -1, 
       *, 
       value: Any = None,
-      drive: Optional[int] = None,
-      alt: Optional[int] = None,
+      drive: int | None = None,
+      alt: int | None = None,
       invert: bool = False,
    ):
       """
@@ -986,7 +946,7 @@ class ADC:
 
 
 
-   def __init__(self, pin: Union[int, Pin], /):
+   def __init__(self, pin: int | Pin, /):
       """
       Access the ADC associated with a source identified by *id*.  This
       *id* may be an integer (usually specifying a channel number), a
@@ -999,6 +959,7 @@ class ADC:
       Take an analog reading and return an integer in the range 0-65535.
       The return value represents the raw reading taken by the ADC, scaled
       such that the minimum value is 0 and the maximum value is 65535.
+      machine.PWM.rst
       """
 
 
@@ -1032,10 +993,7 @@ class UART:
        uart.readline()     # read a line
        uart.readinto(buf)  # read and store into the given buffer
        uart.write('abc')   # write the 3 characters
-   
    """
-
-
 
    RX_ANY: ClassVar[int] = ...
    """
@@ -1044,26 +1002,23 @@ IRQ trigger sources
     Availability: WiPy.
    """
 
-
-
-
    @overload
    def __init__(
       self,
-      id: Union[int, str],
+      id: int | str,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      tx: Optional[Pin] = None,
-      rx: Optional[Pin] = None,
-      txbuf: Optional[int] = None,
-      rxbuf: Optional[int] = None,
-      timeout: Optional[int] = None,
-      timeout_char: Optional[int] = None,
-      invert: Optional[int] = None,
+      tx: Pin | None = None,
+      rx: Pin | None = None,
+      txbuf: int | None = None,
+      rxbuf: int | None = None,
+      timeout: int | None = None,
+      timeout_char: int | None = None,
+      invert: int | None = None,
    ):
       """
       Construct a UART object of the given id.
@@ -1072,14 +1027,14 @@ IRQ trigger sources
    @overload
    def __init__(
       self,
-      id: Union[int, str],
+      id: int | str,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      pins: Optional[Tuple[Pin, Pin]] = None,
+      pins: tuple[Pin, Pin] | None = None,
    ):
       """
       Construct a UART object of the given id.
@@ -1088,14 +1043,14 @@ IRQ trigger sources
    @overload
    def __init__(
       self,
-      id: Union[int, str],
+      id: int | str,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      pins: Optional[Tuple[Pin, Pin, Pin, Pin]] = None,
+      pins: tuple[Pin, Pin, Pin, Pin] | None = None,
    ):
       """
       Construct a UART object of the given id.
@@ -1106,17 +1061,17 @@ IRQ trigger sources
       self,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      tx: Optional[Pin] = None,
-      rx: Optional[Pin] = None,
-      txbuf: Optional[int] = None,
-      rxbuf: Optional[int] = None,
-      timeout: Optional[int] = None,
-      timeout_char: Optional[int] = None,
-      invert: Optional[int] = None,
+      tx: Pin | None = None,
+      rx: Pin | None = None,
+      txbuf: int | None = None,
+      rxbuf: int | None = None,
+      timeout: int | None = None,
+      timeout_char: int | None = None,
+      invert: int | None = None,
    ) -> None:
       """
       Initialise the UART bus with the given parameters:
@@ -1130,11 +1085,22 @@ IRQ trigger sources
       
         - *tx* specifies the TX pin to use.
         - *rx* specifies the RX pin to use.
+        - *rts* specifies the RTS (output) pin to use for hardware receive flow control.
+        - *cts* specifies the CTS (input) pin to use for hardware transmit flow control.
         - *txbuf* specifies the length in characters of the TX buffer.
         - *rxbuf* specifies the length in characters of the RX buffer.
         - *timeout* specifies the time to wait for the first character (in ms).
         - *timeout_char* specifies the time to wait between characters (in ms).
         - *invert* specifies which lines to invert.
+        - *flow* specifies which hardware flow control signals to use. The value
+          is a bitmask. 
+      
+            - ``0`` will ignore hardware flow control signals.
+            - ``UART.RTS`` will enable receive flow control by using the RTS output pin to
+              signal if the receive FIFO has sufficient space to accept more data.
+            - ``UART.CTS`` will enable transmit flow control by pausing transmission when the
+              CTS input pin signals that the receiver is running low on buffer space.
+            - ``UART.RTS | UART.CTS`` will enable both, for full hardware flow control.
       
       On the WiPy only the following keyword-only parameter is supported:
       
@@ -1150,11 +1116,11 @@ IRQ trigger sources
       self,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      pins: Optional[Tuple[Pin, Pin]] = None,
+      pins: tuple[Pin, Pin] | None = None,
    ) -> None:
       """
       Initialise the UART bus with the given parameters:
@@ -1168,11 +1134,22 @@ IRQ trigger sources
       
         - *tx* specifies the TX pin to use.
         - *rx* specifies the RX pin to use.
+        - *rts* specifies the RTS (output) pin to use for hardware receive flow control.
+        - *cts* specifies the CTS (input) pin to use for hardware transmit flow control.
         - *txbuf* specifies the length in characters of the TX buffer.
         - *rxbuf* specifies the length in characters of the RX buffer.
         - *timeout* specifies the time to wait for the first character (in ms).
         - *timeout_char* specifies the time to wait between characters (in ms).
         - *invert* specifies which lines to invert.
+        - *flow* specifies which hardware flow control signals to use. The value
+          is a bitmask. 
+      
+            - ``0`` will ignore hardware flow control signals.
+            - ``UART.RTS`` will enable receive flow control by using the RTS output pin to
+              signal if the receive FIFO has sufficient space to accept more data.
+            - ``UART.CTS`` will enable transmit flow control by pausing transmission when the
+              CTS input pin signals that the receiver is running low on buffer space.
+            - ``UART.RTS | UART.CTS`` will enable both, for full hardware flow control.
       
       On the WiPy only the following keyword-only parameter is supported:
       
@@ -1188,11 +1165,11 @@ IRQ trigger sources
       self,
       baudrate: int = 9600, 
       bits: int = 8, 
-      parity: Optional[int] = None, 
+      parity: int | None = None, 
       stop: int = 1, 
       /, 
       *, 
-      pins: Optional[Tuple[Pin, Pin, Pin, Pin]] = None,
+      pins: tuple[Pin, Pin, Pin, Pin] | None = None,
    ) -> None:
       """
       Initialise the UART bus with the given parameters:
@@ -1206,11 +1183,22 @@ IRQ trigger sources
       
         - *tx* specifies the TX pin to use.
         - *rx* specifies the RX pin to use.
+        - *rts* specifies the RTS (output) pin to use for hardware receive flow control.
+        - *cts* specifies the CTS (input) pin to use for hardware transmit flow control.
         - *txbuf* specifies the length in characters of the TX buffer.
         - *rxbuf* specifies the length in characters of the RX buffer.
         - *timeout* specifies the time to wait for the first character (in ms).
         - *timeout_char* specifies the time to wait between characters (in ms).
         - *invert* specifies which lines to invert.
+        - *flow* specifies which hardware flow control signals to use. The value
+          is a bitmask. 
+      
+            - ``0`` will ignore hardware flow control signals.
+            - ``UART.RTS`` will enable receive flow control by using the RTS output pin to
+              signal if the receive FIFO has sufficient space to accept more data.
+            - ``UART.CTS`` will enable transmit flow control by pausing transmission when the
+              CTS input pin signals that the receiver is running low on buffer space.
+            - ``UART.RTS | UART.CTS`` will enable both, for full hardware flow control.
       
       On the WiPy only the following keyword-only parameter is supported:
       
@@ -1241,7 +1229,7 @@ IRQ trigger sources
       """
 
    @overload
-   def read(self) -> Optional[bytes]:
+   def read(self) -> bytes | None:
       """
       Read characters.  If ``nbytes`` is specified then read at most that many bytes,
       otherwise read as much data as possible. It may return sooner if a timeout
@@ -1252,7 +1240,7 @@ IRQ trigger sources
       """
 
    @overload
-   def read(self, nbytes: int, /) -> Optional[bytes]:
+   def read(self, nbytes: int, /) -> bytes | None:
       """
       Read characters.  If ``nbytes`` is specified then read at most that many bytes,
       otherwise read as much data as possible. It may return sooner if a timeout
@@ -1263,7 +1251,7 @@ IRQ trigger sources
       """
 
    @overload
-   def readinto(self, buf: _AnyWritableBuf, /) -> Optional[int]:
+   def readinto(self, buf: AnyWritableBuf, /) -> int | None:
       """
       Read bytes into the ``buf``.  If ``nbytes`` is specified then read at most
       that many bytes.  Otherwise, read at most ``len(buf)`` bytes. It may return sooner if a timeout
@@ -1274,7 +1262,7 @@ IRQ trigger sources
       """
 
    @overload
-   def readinto(self, buf: _AnyWritableBuf, nbytes: int, /) -> Optional[int]:
+   def readinto(self, buf: AnyWritableBuf, nbytes: int, /) -> int | None:
       """
       Read bytes into the ``buf``.  If ``nbytes`` is specified then read at most
       that many bytes.  Otherwise, read at most ``len(buf)`` bytes. It may return sooner if a timeout
@@ -1284,7 +1272,7 @@ IRQ trigger sources
       timeout.
       """
 
-   def readline(self) -> Optional[bytes]:
+   def readline(self) -> bytes | None:
       """
       Read a line, ending in a newline character. It may return sooner if a timeout
       is reached. The timeout is configurable in the constructor.
@@ -1292,7 +1280,7 @@ IRQ trigger sources
       Return value: the line read or ``None`` on timeout.
       """
 
-   def write(self, buf: _AnyReadableBuf, /) -> Optional[int]:
+   def write(self, buf: AnyReadableBuf, /) -> int | None:
       """
       Write the buffer of bytes to the bus.
       
@@ -1310,7 +1298,7 @@ IRQ trigger sources
       self, 
       trigger: int, 
       priority: int = 1, 
-      handler: Optional[Callable[["UART"], None]] = None, 
+      handler: Callable[[UART], None] | None = None, 
       wake: int = IDLE, 
       /
    ) -> Any:
@@ -1342,11 +1330,11 @@ IRQ trigger sources
 
 class SPI:
    """
-   SPI is a synchronous serial protocol that is driven by a master. At the
+   SPI is a synchronous serial protocol that is driven by a controller. At the
    physical level, a bus consists of 3 lines: SCK, MOSI, MISO. Multiple devices
    can share the same bus. Each device should have a separate, 4th signal,
-   SS (Slave Select), to select a particular device on a bus with which
-   communication takes place. Management of an SS signal should happen in
+   CS (Chip Select), to select a particular device on a bus with which
+   communication takes place. Management of a CS signal should happen in
    user code (via machine.Pin class).
    
    Both hardware and software SPI implementations exist via the
@@ -1358,11 +1346,9 @@ class SPI:
    differ primarily in the way they are constructed.
    """
 
-
-
-   MASTER: ClassVar[int] = ...
+   CONTROLLER: ClassVar[int] = ...
    """
-for initialising the SPI bus to master; this is only used for the WiPy
+for initialising the SPI bus to controller; this is only used for the WiPy
    """
 
 
@@ -1380,9 +1366,6 @@ set the first bit to be the most significant bit
    """
 set the first bit to be the least significant bit
    """
-
-
-
 
    @overload
    def __init__(self, id: int, /):
@@ -1408,9 +1391,9 @@ set the first bit to be the least significant bit
       phase: int = 0, 
       bits: int = 8, 
       firstbit: int = MSB, 
-      sck: Optional[Pin] = None, 
-      mosi: Optional[Pin] = None, 
-      miso: Optional[Pin] = None, 
+      sck: Pin | None = None, 
+      mosi: Pin | None = None, 
+      miso: Pin | None = None, 
    ):
       """
       Construct an SPI object on the given bus, *id*. Values of *id* depend
@@ -1434,7 +1417,7 @@ set the first bit to be the least significant bit
       phase: int = 0, 
       bits: int = 8, 
       firstbit: int = MSB, 
-      pins: Optional[Tuple[Pin, Pin, Pin]] = None, 
+      pins: tuple[Pin, Pin, Pin] | None = None, 
    ):
       """
       Construct an SPI object on the given bus, *id*. Values of *id* depend
@@ -1456,9 +1439,9 @@ set the first bit to be the least significant bit
       phase: int = 0, 
       bits: int = 8, 
       firstbit: int = MSB, 
-      sck: Optional[Pin] = None, 
-      mosi: Optional[Pin] = None, 
-      miso: Optional[Pin] = None, 
+      sck: Pin | None = None, 
+      mosi: Pin | None = None, 
+      miso: Pin | None = None, 
    ) -> None:
       """
       Initialise the SPI bus with the given parameters:
@@ -1491,7 +1474,7 @@ set the first bit to be the least significant bit
       phase: int = 0, 
       bits: int = 8, 
       firstbit: int = MSB, 
-      pins: Optional[Tuple[Pin, Pin, Pin]] = None, 
+      pins: tuple[Pin, Pin, Pin] | None = None, 
    ) -> None:
       """
       Initialise the SPI bus with the given parameters:
@@ -1527,7 +1510,7 @@ set the first bit to be the least significant bit
        Returns a ``bytes`` object with the data that was read.
       """
 
-   def readinto(self, buf: _AnyWritableBuf, write: int = 0x00, /) -> Optional[int]:
+   def readinto(self, buf: AnyWritableBuf, write: int = 0x00, /) -> int | None:
       """
        Read into the buffer specified by ``buf`` while continuously writing the
        single byte given by ``write``.
@@ -1536,7 +1519,7 @@ set the first bit to be the least significant bit
        Note: on WiPy this function returns the number of bytes read.
       """
 
-   def write(self, buf: _AnyReadableBuf, /) -> Optional[int]:
+   def write(self, buf: AnyReadableBuf, /) -> int | None:
       """
        Write the bytes contained in ``buf``.
        Returns ``None``.
@@ -1544,7 +1527,7 @@ set the first bit to be the least significant bit
        Note: on WiPy this function returns the number of bytes written.
       """
 
-   def write_readinto(self, write_buf: _AnyReadableBuf, read_buf: _AnyWritableBuf, /) -> Optional[int]:
+   def write_readinto(self, write_buf: AnyReadableBuf, read_buf: AnyWritableBuf, /) -> int | None:
       """
        Write the bytes from ``write_buf`` while reading into ``read_buf``.  The
        buffers can be the same or different, but both buffers must have the
@@ -1582,15 +1565,15 @@ class I2C:
                                        # depending on the port, extra parameters may be required
                                        # to select the peripheral and/or pins to use
    
-       i2c.scan()                      # scan for slaves, returning a list of 7-bit addresses
+       i2c.scan()                      # scan for peripherals, returning a list of 7-bit addresses
    
-       i2c.writeto(42, b'123')         # write 3 bytes to slave with 7-bit address 42
-       i2c.readfrom(42, 4)             # read 4 bytes from slave with 7-bit address 42
+       i2c.writeto(42, b'123')         # write 3 bytes to peripheral with 7-bit address 42
+       i2c.readfrom(42, 4)             # read 4 bytes from peripheral with 7-bit address 42
    
-       i2c.readfrom_mem(42, 8, 3)      # read 3 bytes from memory of slave 42,
-                                       #   starting at memory-address 8 in the slave
-       i2c.writeto_mem(42, 2, b'\x10') # write 1 byte to memory of slave 42
-                                       #   starting at address 2 in the slave
+       i2c.readfrom_mem(42, 8, 3)      # read 3 bytes from memory of peripheral 42,
+                                       #   starting at memory-address 8 in the peripheral
+       i2c.writeto_mem(42, 2, b'\x10') # write 1 byte to memory of peripheral 42
+                                       #   starting at address 2 in the peripheral
    """
 
 
@@ -1656,7 +1639,7 @@ class I2C:
       Availability: WiPy.
       """
 
-   def scan(self) -> List[int]:
+   def scan(self) -> list[int]:
       """
       Scan all I2C addresses between 0x08 and 0x77 inclusive and return a list of
       those that respond.  A device responds if it pulls the SDA line low after
@@ -1671,7 +1654,7 @@ class I2C:
       Primitive I2C operations
       ------------------------
       
-      The following methods implement the primitive I2C master bus operations and can
+      The following methods implement the primitive I2C controller bus operations and can
       be combined to make any I2C transaction.  They are provided if you need more
       control over the bus, otherwise the standard methods (see below) can be used.
       
@@ -1686,33 +1669,33 @@ class I2C:
       Primitive I2C operations
       ------------------------
       
-      The following methods implement the primitive I2C master bus operations and can
+      The following methods implement the primitive I2C controller bus operations and can
       be combined to make any I2C transaction.  They are provided if you need more
       control over the bus, otherwise the standard methods (see below) can be used.
       
       These methods are only available on the `machine.SoftI2C` class.
       """
 
-   def readinto(self, buf: _AnyWritableBuf, nack: bool = True, /) -> None:
+   def readinto(self, buf: AnyWritableBuf, nack: bool = True, /) -> None:
       """
       Reads bytes from the bus and stores them into *buf*.  The number of bytes
       read is the length of *buf*.  An ACK will be sent on the bus after
       receiving all but the last byte.  After the last byte is received, if *nack*
       is true then a NACK will be sent, otherwise an ACK will be sent (and in this
-      case the slave assumes more bytes are going to be read in a later call).
+      case the peripheral assumes more bytes are going to be read in a later call).
       
       
       Primitive I2C operations
       ------------------------
       
-      The following methods implement the primitive I2C master bus operations and can
+      The following methods implement the primitive I2C controller bus operations and can
       be combined to make any I2C transaction.  They are provided if you need more
       control over the bus, otherwise the standard methods (see below) can be used.
       
       These methods are only available on the `machine.SoftI2C` class.
       """
 
-   def write(self, buf: _AnyReadableBuf, /) -> int:
+   def write(self, buf: AnyReadableBuf, /) -> int:
       """
       Write the bytes from *buf* to the bus.  Checks that an ACK is received
       after each byte and stops transmitting the remaining bytes if a NACK is
@@ -1722,7 +1705,7 @@ class I2C:
       Primitive I2C operations
       ------------------------
       
-      The following methods implement the primitive I2C master bus operations and can
+      The following methods implement the primitive I2C controller bus operations and can
       be combined to make any I2C transaction.  They are provided if you need more
       control over the bus, otherwise the standard methods (see below) can be used.
       
@@ -1731,7 +1714,7 @@ class I2C:
 
    def readfrom(self, addr: int, nbytes: int, stop: bool = True, /) -> bytes:
       """
-      Read *nbytes* from the slave specified by *addr*.
+      Read *nbytes* from the peripheral specified by *addr*.
       If *stop* is true then a STOP condition is generated at the end of the transfer.
       Returns a `bytes` object with the data read.
       
@@ -1739,13 +1722,13 @@ class I2C:
       Standard bus operations
       -----------------------
       
-      The following methods implement the standard I2C master read and write
-      operations that target a given slave device.
+      The following methods implement the standard I2C controller read and write
+      operations that target a given peripheral device.
       """
 
-   def readfrom_into(self, addr: int, buf: _AnyWritableBuf, stop: bool = True, /) -> None:
+   def readfrom_into(self, addr: int, buf: AnyWritableBuf, stop: bool = True, /) -> None:
       """
-      Read into *buf* from the slave specified by *addr*.
+      Read into *buf* from the peripheral specified by *addr*.
       The number of bytes read will be the length of *buf*.
       If *stop* is true then a STOP condition is generated at the end of the transfer.
       
@@ -1755,13 +1738,13 @@ class I2C:
       Standard bus operations
       -----------------------
       
-      The following methods implement the standard I2C master read and write
-      operations that target a given slave device.
+      The following methods implement the standard I2C controller read and write
+      operations that target a given peripheral device.
       """
 
-   def writeto(self, addr: int, buf: _AnyReadableBuf, stop: bool = True, /) -> int:
+   def writeto(self, addr: int, buf: AnyReadableBuf, stop: bool = True, /) -> int:
       """
-      Write the bytes from *buf* to the slave specified by *addr*.  If a
+      Write the bytes from *buf* to the peripheral specified by *addr*.  If a
       NACK is received following the write of a byte from *buf* then the
       remaining bytes are not sent.  If *stop* is true then a STOP condition is
       generated at the end of the transfer, even if a NACK is received.
@@ -1771,20 +1754,20 @@ class I2C:
       Standard bus operations
       -----------------------
       
-      The following methods implement the standard I2C master read and write
-      operations that target a given slave device.
+      The following methods implement the standard I2C controller read and write
+      operations that target a given peripheral device.
       """
 
    
    def writevto(
       self, 
       addr: int, 
-      vector: Sequence[_AnyReadableBuf], 
+      vector: Sequence[AnyReadableBuf], 
       stop: bool = True, 
       /
    ) -> int:
       """
-      Write the bytes contained in *vector* to the slave specified by *addr*.
+      Write the bytes contained in *vector* to the peripheral specified by *addr*.
       *vector* should be a tuple or list of objects with the buffer protocol.
       The *addr* is sent once and then the bytes from each object in *vector*
       are written out sequentially.  The objects in *vector* may be zero bytes
@@ -1800,13 +1783,13 @@ class I2C:
       Standard bus operations
       -----------------------
       
-      The following methods implement the standard I2C master read and write
-      operations that target a given slave device.
+      The following methods implement the standard I2C controller read and write
+      operations that target a given peripheral device.
       """
 
    def readfrom_mem(self, addr: int, memaddr: int, nbytes: int, /, *, addrsize: int = 8) -> bytes:
       """
-      Read *nbytes* from the slave specified by *addr* starting from the memory
+      Read *nbytes* from the peripheral specified by *addr* starting from the memory
       address specified by *memaddr*.
       The argument *addrsize* specifies the address size in bits.
       Returns a `bytes` object with the data read.
@@ -1817,7 +1800,7 @@ class I2C:
       
       Some I2C devices act as a memory device (or set of registers) that can be read
       from and written to.  In this case there are two addresses associated with an
-      I2C transaction: the slave address and the memory address.  The following
+      I2C transaction: the peripheral address and the memory address.  The following
       methods are convenience functions to communicate with such devices.
       """
 
@@ -1826,13 +1809,13 @@ class I2C:
       self, 
       addr: int, 
       memaddr: int, 
-      buf: _AnyWritableBuf, 
+      buf: AnyWritableBuf, 
       /, 
       *, 
       addrsize: int = 8
    ) -> None:
       """
-      Read into *buf* from the slave specified by *addr* starting from the
+      Read into *buf* from the peripheral specified by *addr* starting from the
       memory address specified by *memaddr*.  The number of bytes read is the
       length of *buf*.
       The argument *addrsize* specifies the address size in bits (on ESP8266
@@ -1846,25 +1829,26 @@ class I2C:
       
       Some I2C devices act as a memory device (or set of registers) that can be read
       from and written to.  In this case there are two addresses associated with an
-      I2C transaction: the slave address and the memory address.  The following
+      I2C transaction: the peripheral address and the memory address.  The following
       methods are convenience functions to communicate with such devices.
       """
 
-   def writeto_mem(self, addr: int, memaddr: int, buf: _AnyReadableBuf, /, *, addrsize: int = 8) -> None:
+   def writeto_mem(self, addr: int, memaddr: int, buf: AnyReadableBuf, /, *, addrsize: int = 8) -> None:
       """
-      Write *buf* to the slave specified by *addr* starting from the
+      Write *buf* to the peripheral specified by *addr* starting from the
       memory address specified by *memaddr*.
       The argument *addrsize* specifies the address size in bits (on ESP8266
       this argument is not recognised and the address size is always 8 bits).
       
       The method returns ``None``.
+      machine.I2S.rst   
       
       Memory operations
       -----------------
       
       Some I2C devices act as a memory device (or set of registers) that can be read
       from and written to.  In this case there are two addresses associated with an
-      I2C transaction: the slave address and the memory address.  The following
+      I2C transaction: the peripheral address and the memory address.  The following
       methods are convenience functions to communicate with such devices.
       """
 
@@ -1877,15 +1861,13 @@ class RTC:
    Example usage::
    
        rtc = machine.RTC()
-       rtc.init((2014, 5, 1, 4, 13, 0, 0, 0))
-       print(rtc.now())
+       rtc.datetime((2020, 1, 21, 2, 10, 32, 36, 0))
+       print(rtc.datetime())
    
    
 
    The documentation for RTC is in a poor state; better to experiment and use `dir`!
    """
-
-
 
    ALARM0: ClassVar[int] = ...
    """
@@ -1893,11 +1875,8 @@ irq trigger source
    The documentation for RTC is in a poor state; better to experiment and use `dir`!
    """
 
-
-
-
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1905,7 +1884,7 @@ irq trigger source
       """
 
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1913,7 +1892,7 @@ irq trigger source
       """
 
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1921,7 +1900,7 @@ irq trigger source
       """
 
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int, int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int, int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1929,7 +1908,7 @@ irq trigger source
       """
 
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int, int, int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int, int, int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1937,7 +1916,7 @@ irq trigger source
       """
 
    @overload
-   def __init__(self, id: int = 0, /, *, datetime: Tuple[int, int, int, int, int, int, int, int]):
+   def __init__(self, id: int = 0, /, *, datetime: tuple[int, int, int, int, int, int, int, int]):
       """
       Create an RTC object. See init for parameters of initialization.
       
@@ -1955,7 +1934,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -1965,7 +1944,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -1975,7 +1954,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -1985,7 +1964,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int, int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int, int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -1995,7 +1974,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int, int, int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int, int, int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -2005,7 +1984,7 @@ irq trigger source
       """
 
    @overload
-   def init(self, datetime: Tuple[int, int, int, int, int, int, int, int], /) -> None:
+   def init(self, datetime: tuple[int, int, int, int, int, int, int, int], /) -> None:
       """
       Initialise the RTC. Datetime is a tuple of the form:
       
@@ -2014,7 +1993,7 @@ irq trigger source
       The documentation for RTC is in a poor state; better to experiment and use `dir`!
       """
 
-   def now(self) -> Tuple[int, int, int, int, int, int, int, int]:
+   def now(self) -> tuple[int, int, int, int, int, int, int, int]:
       """
       Get get the current datetime tuple.
       
@@ -2039,7 +2018,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2049,7 +2028,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2059,7 +2038,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2069,7 +2048,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int, int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int, int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2079,7 +2058,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int, int, int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int, int, int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2089,7 +2068,7 @@ irq trigger source
       """
 
    @overload
-   def alarm(self, id: int, time: Tuple[int, int, int, int, int, int, int, int], /) -> None:
+   def alarm(self, id: int, time: tuple[int, int, int, int, int, int, int, int], /) -> None:
       """
       Set the RTC alarm. Time might be either a millisecond value to program the alarm to
       current time + time_in_ms in the future, or a datetimetuple. If the time passed is in
@@ -2118,7 +2097,7 @@ irq trigger source
       /, 
       *, 
       trigger: int, 
-      handler: Optional[Callable[["RTC"], None]] = None, 
+      handler: Callable[[RTC], None] | None = None, 
       wake: int = IDLE
    ) -> None:
       """
@@ -2138,7 +2117,7 @@ class Timer:
    differently greatly from a model to a model. MicroPython's Timer class
    defines a baseline operation of executing a callback with a given period
    (or once after some delay), and allow specific boards to define more
-   non-standard behavior (which thus won't be portable to other boards).
+   non-standard behaviour (which thus won't be portable to other boards).
    
    See discussion of :ref:`important constraints <machine_callbacks>` on
    Timer callbacks.
@@ -2154,8 +2133,6 @@ class Timer:
    instead of this class.
    """
 
-
-
    ONE_SHOT: ClassVar[int] = ...
    """
 Timer operating mode.
@@ -2166,9 +2143,6 @@ Timer operating mode.
    """
 Timer operating mode.
    """
-
-
-
 
    @overload
    def __init__(
@@ -2191,7 +2165,7 @@ Timer operating mode.
       *, 
       mode: int = PERIODIC, 
       period: int = -1, 
-      callback: Optional[Callable[["Timer"], None]] = None, 
+      callback: Callable[[Timer], None] | None = None, 
    ):
       """
       Construct a new timer object of the given id. Id of -1 constructs a
@@ -2206,7 +2180,7 @@ Timer operating mode.
       *, 
       mode: int = PERIODIC, 
       period: int = -1, 
-      callback: Optional[Callable[["Timer"], None]] = None, 
+      callback: Callable[[Timer], None] | None = None, 
    ) -> None:
       """
       Initialise the timer. Example::
@@ -2297,7 +2271,7 @@ class SD:
    def __init__(
       self, 
       id: int = 0, 
-      pins: Union[Tuple[str, str, str], Tuple[Pin, Pin, Pin]] = ("GP10", "GP11", "GP15")
+      pins: tuple[str, str, str] | tuple[Pin, Pin, Pin] = ("GP10", "GP11", "GP15")
    ):
       """
       Create a SD card object. See ``init()`` for parameters if initialization.
@@ -2307,7 +2281,7 @@ class SD:
    def init(
       self, 
       id: int = 0, 
-      pins: Union[Tuple[str, str, str], Tuple[Pin, Pin, Pin]] = ("GP10", "GP11", "GP15")
+      pins: tuple[str, str, str] | tuple[Pin, Pin, Pin] = ("GP10", "GP11", "GP15")
    ) -> None:
       """
       Enable the SD card. In order to initialize the card, give it a 3-tuple:
@@ -2321,7 +2295,7 @@ class SD:
 
 
 # noinspection PyShadowingNames
-class SDCard(_AbstractBlockDev):
+class SDCard(AbstractBlockDev):
    """
    SD cards are one of the most common small form factor removable storage media.
    SD cards come in a variety of sizes and physical form factors. MMC cards are
@@ -2421,21 +2395,21 @@ class SDCard(_AbstractBlockDev):
       self, 
       slot: int = 1, 
       width: int = 1, 
-      cd: Optional[Union[int, str, Pin]] = None, 
-      wp: Optional[Union[int, str, Pin]] = None, 
-      sck: Optional[Union[int, str, Pin]] = None, 
-      miso: Optional[Union[int, str, Pin]] = None, 
-      mosi: Optional[Union[int, str, Pin]] = None, 
-      cs: Optional[Union[int, str, Pin]] = None, 
-      freq: int = 20000000
+      cd: int | str | Pin | None = None, 
+      wp: int | str | Pin | None = None, 
+      sck: int | str | Pin | None = None, 
+      miso: int | str | Pin | None = None, 
+      mosi: int | str | Pin | None = None, 
+      cs: int | str | Pin | None = None, 
+      freq: int = 20000000,
    ):
       """
        This class provides access to SD or MMC storage cards using either
        a dedicated SD/MMC interface hardware or through an SPI channel.
-       The class implements the block protocol defined by :class:`uos.AbstractBlockDev`.
+       The class implements the block protocol defined by :class:`os.AbstractBlockDev`.
        This allows the mounting of an SD card to be as simple as::
        
-         uos.mount(machine.SDCard(), "/sd")
+         os.mount(machine.SDCard(), "/sd")
        
        The constructor takes the following parameters:
        
@@ -2464,6 +2438,4 @@ class SDCard(_AbstractBlockDev):
    
    def writeblocks(self, blocknum: int, buf: bytes, offset: int = 0, /) -> None: ...
    
-   def ioctl(self, op: int, arg: int) -> Optional[int]: ...
-
-
+   def ioctl(self, op: int, arg: int) -> int | None: ...

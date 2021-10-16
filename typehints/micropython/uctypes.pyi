@@ -1,10 +1,8 @@
 """
-
 access binary data in a structured way
 
 Descriptions taken from 
 `https://raw.githubusercontent.com/micropython/micropython/master/docs/library/uctypes.rst`, etc.
-
 ========================================================
 
 .. module:: uctypes
@@ -25,7 +23,7 @@ sub-fields.
 
 .. seealso::
 
-    Module :mod:`ustruct`
+    Module :mod:`struct`
         Standard Python way to access binary data structures (doesn't scale
         well to large and complex structures).
 
@@ -182,40 +180,27 @@ Following are encoding examples for various field types:
   significant bit being numbered 0. Some targets may use different
   numbering in their native ABI, but ``uctypes`` always uses the normalized
   numbering described above.
-
 """
-
-
 
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "4.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+
+from typing import Final
+
+from uio import AnyReadableBuf
 
 
-
-from typing import Tuple, Union, TypeVar, Final
-
-from uarray import array
-
-
-_AnyReadableBuf = TypeVar('_AnyReadableBuf', bytearray, array, memoryview, bytes)
-"""
-Type that allows bytearray, array, memoryview, or bytes, 
-but only one of these and not a mixture in a single declaration.
-"""
-
-
-
-_scalar_property = int
-_recursive_property = Tuple[int, "_property"]
-_array_property = Tuple[int, int]
-_array_of_aggregate_property = Tuple[int, int, "_property"]
-_pointer_to_a_primitive_property = Tuple[int, int]
-_pointer_to_an_aggregate_property = Tuple[int, "_property"]
-_bitfield_property = int
-_property = Union[_scalar_property, _recursive_property, _array_property, _array_of_aggregate_property, _pointer_to_a_primitive_property, _pointer_to_an_aggregate_property, _bitfield_property]
-_descriptor = Tuple[str, _property]
+_ScalarProperty: Final = int
+_RecursiveProperty: Final = tuple[int, "_property"]
+_ArrayProperty: Final = tuple[int, int]
+_ArrayOfAggregateProperty: Final = tuple[int, int, "_property"]
+_PointerToAPrimitiveProperty: Final = tuple[int, int]
+_PointerToAaAggregateProperty: Final = tuple[int, "_property"]
+_BitfieldProperty: Final = int
+_property: Final = _ScalarProperty | _RecursiveProperty | _ArrayProperty | _ArrayOfAggregateProperty | _PointerToAPrimitiveProperty | _PointerToAaAggregateProperty | _BitfieldProperty
+_descriptor: Final = tuple[str, _property]
 
 LITTLE_ENDIAN: Final[int] = ...
 """
@@ -244,14 +229,14 @@ Layout type for a native structure - with data endianness and alignment
 
 
 # noinspection PyShadowingNames
-def sizeof(struct: Union["struct", _descriptor], layout_type: int = NATIVE, /) -> int:
+def sizeof(struct: struct | _descriptor, layout_type: int = NATIVE, /) -> int:
    """
    Return size of data structure in bytes. The *struct* argument can be
    either a structure class or a specific instantiated structure object
    (or its aggregate field).
    """
 
-def addressof(obj: _AnyReadableBuf, /) -> int:
+def addressof(obj: AnyReadableBuf, /) -> int:
    """
    Return address of an object. Argument should be bytes, bytearray or
    other object supporting buffer protocol (and address of this buffer
@@ -349,7 +334,7 @@ Floating-point types for structure descriptors.
 
 VOID: Final[int] = ...
 """
-``VOID`` is an alias for ``UINT8``, and is provided to conviniently define
+``VOID`` is an alias for ``UINT8``, and is provided to conveniently define
    C's void pointers: ``(uctypes.PTR, uctypes.VOID)``.
 """
 
@@ -377,10 +362,8 @@ Type constants for pointers and arrays. Note that there is no explicit
 # noinspection PyPep8Naming
 class struct:
    """
-
    Module contents
    ---------------
-   
    """
 
 
@@ -390,5 +373,3 @@ class struct:
       Instantiate a "foreign data structure" object based on structure address in
       memory, descriptor (encoded as a dictionary), and layout type (see below).
       """
-
-
