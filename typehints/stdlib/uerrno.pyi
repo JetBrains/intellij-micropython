@@ -17,11 +17,9 @@ A particular inventory of codes depends on :term:`MicroPython port`.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Final, Dict
-
-
 
 EEXIST: Final[int] = ...
 """
@@ -37,7 +35,6 @@ Error codes, based on ANSI C/POSIX standard. All error codes start with
                 print("Directory already exists")
 """
 
-
 EAGAIN: Final[int] = ...
 """
 Error codes, based on ANSI C/POSIX standard. All error codes start with
@@ -51,9 +48,6 @@ Error codes, based on ANSI C/POSIX standard. All error codes start with
             if exc.errno == errno.EEXIST:
                 print("Directory already exists")
 """
-
-
-
 
 errorcode: Final[Dict[int, str]] = ...
 """

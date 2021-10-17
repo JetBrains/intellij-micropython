@@ -114,41 +114,39 @@ Example::
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import AnyStr, Callable, Generic, Final, Any
 
 _StrLike: Final = str | bytes
 
-
 def compile(regex_str: _StrLike, flags: int = ..., /) -> "ure":
-   """
+    """
    Compile regular expression, return `regex <regex>` object.
    """
 
 def match(regex_str: _StrLike, string: AnyStr, /) -> "Match[AnyStr]":
-   """
+    """
    Compile *regex_str* and match against *string*. Match always happens
    from starting position in a string.
    """
 
 def search(regex_str: _StrLike, string: AnyStr, /) -> "Match[AnyStr]":
-   """
+    """
    Compile *regex_str* and search it in a *string*. Unlike `match`, this will search
    string for first position which matches regex (which still may be
    0 if regex is anchored).
    """
 
-
 def sub(
-   regex_str: _StrLike, 
-   replace: AnyStr | Callable[["Match[AnyStr]"], AnyStr], 
-   string: AnyStr, 
-   count: int = 0, 
-   flags: int = 0, 
-   /,
+    regex_str: _StrLike,
+    replace: AnyStr | Callable[["Match[AnyStr]"], AnyStr],
+    string: AnyStr,
+    count: int = 0,
+    flags: int = 0,
+    /,
 ) -> AnyStr:
-   """
+    """
    Compile *regex_str* and search for it in *string*, replacing all matches
    with *replace*, and returning the new string.
    
@@ -164,67 +162,56 @@ def sub(
    Note: availability of this function depends on :term:`MicroPython port`.
    """
 
-
 DEBUG: Final[int] = ...
 """
 Flag value, display debug information about compiled expression.
    (Availability depends on :term:`MicroPython port`.)
 """
 
-
-
-
 # noinspection PyPep8Naming
 class ure:
-   """
+    """
    Compiled regular expression. Instances of this class are created using
    `re.compile()`.
    """
 
-
-
-   def match(self, string: AnyStr, /) -> "Match[AnyStr]":
-      """
+    def match(self, string: AnyStr, /) -> "Match[AnyStr]":
+        """
       Similar to the module-level functions :meth:`match`, :meth:`search`
       and :meth:`sub`.
       Using methods is (much) more efficient if the same regex is applied to
       multiple strings.
       """
-
-   def search(self, string: AnyStr, /) -> "Match[AnyStr]":
-      """
+    def search(self, string: AnyStr, /) -> "Match[AnyStr]":
+        """
       Similar to the module-level functions :meth:`match`, :meth:`search`
       and :meth:`sub`.
       Using methods is (much) more efficient if the same regex is applied to
       multiple strings.
       """
-
-   
-   def sub(
-      self, 
-      replace: AnyStr | Callable[["Match[AnyStr]"], AnyStr], 
-      string: AnyStr, 
-      count: int = 0, 
-      flags: int = 0, 
-      /,
-   ) -> AnyStr:
-      """
+    def sub(
+        self,
+        replace: AnyStr | Callable[["Match[AnyStr]"], AnyStr],
+        string: AnyStr,
+        count: int = 0,
+        flags: int = 0,
+        /,
+    ) -> AnyStr:
+        """
       Similar to the module-level functions :meth:`match`, :meth:`search`
       and :meth:`sub`.
       Using methods is (much) more efficient if the same regex is applied to
       multiple strings.
       """
-
-   def split(self, string: AnyStr, max_split: int = -1, /) -> list[AnyStr]:
-      """
+    def split(self, string: AnyStr, max_split: int = -1, /) -> list[AnyStr]:
+        """
       Split a *string* using regex. If *max_split* is given, it specifies
       maximum number of splits to perform. Returns list of strings (there
       may be up to *max_split+1* elements if it's specified).
       """
 
-
 class Match(Generic[AnyStr]):
-   """
+    """
    Match objects as returned by `match()` and `search()` methods, and passed
    to the replacement function in `sub()`.
    
@@ -233,41 +220,35 @@ class Match(Generic[AnyStr]):
    this is not possible within code written entirely in Python and therefore not possible within typing code.
    """
 
-
-
-   def group(self, index: int, /) -> AnyStr:
-      """
+    def group(self, index: int, /) -> AnyStr:
+        """
       Return matching (sub)string. *index* is 0 for entire match,
       1 and above for each capturing group. Only numeric groups are supported.
       """
-
-   def groups(self) -> tuple[AnyStr | Any, ...]:
-      """
+    def groups(self) -> tuple[AnyStr | Any, ...]:
+        """
       Return a tuple containing all the substrings of the groups of the match.
       
       Note: availability of this method depends on :term:`MicroPython port`.
       """
-
-   def start(self, index: int = ..., /) -> int:
-      """
+    def start(self, index: int = ..., /) -> int:
+        """
       Return the index in the original string of the start or end of the
       substring group that was matched.  *index* defaults to the entire
       group, otherwise it will select a group.
       
       Note: availability of these methods depends on :term:`MicroPython port`.
       """
-
-   def end(self, index: int = ..., /) -> int:
-      """
+    def end(self, index: int = ..., /) -> int:
+        """
       Return the index in the original string of the start or end of the
       substring group that was matched.  *index* defaults to the entire
       group, otherwise it will select a group.
       
       Note: availability of these methods depends on :term:`MicroPython port`.
       """
-
-   def span(self, index: int = ..., /) -> tuple[int, int]:
-      """
+    def span(self, index: int = ..., /) -> tuple[int, int]:
+        """
       Returns the 2-tuple ``(match.start(index), match.end(index))``.
       
       Note: availability of this method depends on :term:`MicroPython port`.

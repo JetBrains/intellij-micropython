@@ -41,24 +41,18 @@ behave not as expected.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Final, TypeVar
 
-class _TicksMs:
-   ...
-
-class _TicksUs:
-   ...
-
-class _TicksCPU:
-   ...
+class _TicksMs: ...
+class _TicksUs: ...
+class _TicksCPU: ...
 
 _Ticks: Final = TypeVar("_Ticks", _TicksMs, _TicksUs, _TicksCPU, int)
 
-
 def gmtime(secs: int | None = None, /) -> tuple[int, int, int, int, int, int, int, int]:
-   """
+    """
    Convert the time *secs* expressed in seconds since the Epoch (see above) into an
    8-tuple which contains: ``(year, month, mday, hour, minute, second, weekday, yearday)``
    If *secs* is not provided or None, then the current time from the RTC is used.
@@ -78,8 +72,10 @@ def gmtime(secs: int | None = None, /) -> tuple[int, int, int, int, int, int, in
    * yearday is 1-366
    """
 
-def localtime(secs: int | None = None, /) -> tuple[int, int, int, int, int, int, int, int]:
-   """
+def localtime(
+    secs: int | None = None, /
+) -> tuple[int, int, int, int, int, int, int, int]:
+    """
    Convert the time *secs* expressed in seconds since the Epoch (see above) into an
    8-tuple which contains: ``(year, month, mday, hour, minute, second, weekday, yearday)``
    If *secs* is not provided or None, then the current time from the RTC is used.
@@ -100,14 +96,14 @@ def localtime(secs: int | None = None, /) -> tuple[int, int, int, int, int, int,
    """
 
 def mktime(local_time: tuple[int, int, int, int, int, int, int, int], /) -> int:
-   """
+    """
    This is inverse function of localtime. It's argument is a full 8-tuple
    which expresses a time as per localtime. It returns an integer which is
    the number of seconds since Jan 1, 2000.
    """
 
 def sleep(seconds: float, /) -> None:
-   """
+    """
    Sleep for the given number of seconds. Some boards may accept *seconds* as a
    floating-point number to sleep for a fractional number of seconds. Note that
    other boards may not accept a floating-point argument, for compatibility with
@@ -115,7 +111,7 @@ def sleep(seconds: float, /) -> None:
    """
 
 def sleep_ms(ms: int, /) -> None:
-   """
+    """
    Delay for given number of milliseconds, should be positive or 0.
    
    This function will delay for at least the given number of milliseconds, but
@@ -125,7 +121,7 @@ def sleep_ms(ms: int, /) -> None:
    """
 
 def sleep_us(us: int, /) -> None:
-   """
+    """
    Delay for given number of microseconds, should be positive or 0.
    
    This function attempts to provide an accurate delay of at least *us*
@@ -134,7 +130,7 @@ def sleep_us(us: int, /) -> None:
    """
 
 def ticks_ms() -> _TicksMs:
-   """
+    """
     Returns an increasing millisecond counter with an arbitrary reference point, that
     wraps around after some value.
     
@@ -157,12 +153,12 @@ def ticks_ms() -> _TicksMs:
    """
 
 def ticks_us() -> _TicksUs:
-   """
+    """
    Just like `ticks_ms()` above, but in microseconds.
    """
 
 def ticks_cpu() -> _TicksCPU:
-   """
+    """
    Similar to `ticks_ms()` and `ticks_us()`, but with the highest possible resolution
    in the system. This is usually CPU clocks, and that's why the function is named that
    way. But it doesn't have to be a CPU clock, some other timing source available in a
@@ -176,7 +172,7 @@ def ticks_cpu() -> _TicksCPU:
    """
 
 def ticks_add(ticks: _Ticks, delta: int, /) -> _Ticks:
-   """
+    """
    Offset ticks value by a given number, which can be either positive or negative.
    Given a *ticks* value, this function allows to calculate ticks value *delta*
    ticks before or after it, following modular-arithmetic definition of tick values
@@ -202,7 +198,7 @@ def ticks_add(ticks: _Ticks, delta: int, /) -> _Ticks:
    """
 
 def ticks_diff(ticks1: _Ticks, ticks2: _Ticks, /) -> int:
-   """
+    """
    Measure ticks difference between values returned from `ticks_ms()`, `ticks_us()`,
    or `ticks_cpu()` functions, as a signed value which may wrap around.
    
@@ -267,7 +263,7 @@ def ticks_diff(ticks1: _Ticks, ticks2: _Ticks, /) -> int:
    """
 
 def time() -> int:
-   """
+    """
    Returns the number of seconds, as an integer, since the Epoch, assuming that
    underlying RTC is set and maintained as described above. If an RTC is not set, this
    function returns number of seconds since a port-specific reference point in time (for
@@ -294,7 +290,7 @@ def time() -> int:
    """
 
 def time_ns() -> int:
-   """
+    """
     Similar to `time()` but returns nanoseconds since the Epoch, as an integer (usually
     a big integer, so will allocate on the heap).
    """

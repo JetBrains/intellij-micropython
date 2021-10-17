@@ -19,13 +19,12 @@ is not yet implemented.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from uio import IOBase
 
-
 def decompress(data: bytes, wbits: int = 0, bufsize: int = 0, /) -> bytes:
-   """
+    """
    Return decompressed *data* as bytes. *wbits* is DEFLATE dictionary window
    size used during compression (8-15, the dictionary size is power of 2 of
    that value). Additionally, if value is positive, *data* is assumed to be
@@ -34,16 +33,13 @@ def decompress(data: bytes, wbits: int = 0, bufsize: int = 0, /) -> bytes:
    CPython and is ignored.
    """
 
-
 class DecompIO(IOBase[bytes]):
-   """
+    """
    Steam wrapper that decompresses a given stream containing zlib compressed data.
    """
 
-
-
-   def __init__(self, stream: IOBase[bytes], wbits: int = 0, /):
-      """
+    def __init__(self, stream: IOBase[bytes], wbits: int = 0, /):
+        """
       Create a `stream` wrapper which allows transparent decompression of
       compressed data in another *stream*. This allows to process compressed
       streams with data larger than available heap size. In addition to

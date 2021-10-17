@@ -17,15 +17,16 @@ data format.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Any, AnyStr
 
 from uio import IOBase
 
-
-def dump(obj: Any, stream: IOBase[str, Any], separators: tuple[str, str] | None = None, /) -> None:
-   """
+def dump(
+    obj: Any, stream: IOBase[str, Any], separators: tuple[str, str] | None = None, /
+) -> None:
+    """
    Serialise *obj* to a JSON string, writing it to the given *stream*.
    
    If specified, separators should be an ``(item_separator, key_separator)``
@@ -34,14 +35,14 @@ def dump(obj: Any, stream: IOBase[str, Any], separators: tuple[str, str] | None 
    """
 
 def dumps(obj: Any, separators: tuple[str, str] | None = None) -> str:
-   """
+    """
    Return *obj* represented as a JSON string.
    
    The arguments have the same meaning as in `dump`.
    """
 
 def load(stream: IOBase[str, Any]) -> Any:
-   """
+    """
    Parse the given *stream*, interpreting it as a JSON string and
    deserialising the data to a Python object.  The resulting object is
    returned.
@@ -51,7 +52,7 @@ def load(stream: IOBase[str, Any]) -> Any:
    """
 
 def loads(str: AnyStr) -> Any:
-   """
+    """
    Parse the JSON *str* and return an object.  Raises :exc:`ValueError` if the
    string is not correctly formed.
    """

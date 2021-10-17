@@ -11,13 +11,11 @@ bitmap images, which can then be sent to a display.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import overload, Final
 
 from uio import AnyWritableBuf
-
-
 
 MONO_VLSB: Final[int] = ...
 """
@@ -29,9 +27,6 @@ Monochrome (1-bit) color format
     at locations starting at the leftmost edge, 8 pixels lower.
 """
 
-
-
-
 MONO_HLSB: Final[int] = ...
 """
 Monochrome (1-bit) color format
@@ -41,9 +36,6 @@ Monochrome (1-bit) color format
     rightmost edge is reached. Further bytes are rendered on the next row, one
     pixel lower.
 """
-
-
-
 
 MONO_HMSB: Final[int] = ...
 """
@@ -55,43 +47,28 @@ Monochrome (1-bit) color format
     pixel lower.
 """
 
-
-
-
 RGB565: Final[int] = ...
 """
 Red Green Blue (16-bit, 5+6+5) color format
 """
-
-
-
 
 GS2_HMSB: Final[int] = ...
 """
 Grayscale (2-bit) color format
 """
 
-
-
-
 GS4_HMSB: Final[int] = ...
 """
 Grayscale (4-bit) color format
 """
-
-
-
 
 GS8: Final[int] = ...
 """
 Grayscale (8-bit) color format
 """
 
-
-
-
 class FrameBuffer:
-   """
+    """
    The FrameBuffer class provides a pixel buffer which can be drawn upon with
    pixels, lines, rectangles, text and even other FrameBuffer's. It is useful
    when generating output for displays.
@@ -108,10 +85,16 @@ class FrameBuffer:
        fbuf.hline(0, 10, 96, 0xffff)
    """
 
-
-
-   def __init__(self, buffer: AnyWritableBuf, width: int, height: int, format: int, stride: int = ..., /):
-      """
+    def __init__(
+        self,
+        buffer: AnyWritableBuf,
+        width: int,
+        height: int,
+        format: int,
+        stride: int = ...,
+        /,
+    ):
+        """
        Construct a FrameBuffer object.  The parameters are:
        
            - *buffer* is an object with a buffer protocol which must be large
@@ -135,84 +118,80 @@ class FrameBuffer:
        optionally *stride*.  Invalid *buffer* size or dimensions may lead to
        unexpected errors.
       """
-
-   def fill(self, c: int, /) -> None:
-      """
+    def fill(self, c: int, /) -> None:
+        """
        Fill the entire FrameBuffer with the specified color.
       """
-
-   @overload
-   def pixel(self, x: int, y: int, /) -> int:
-      """
+    @overload
+    def pixel(self, x: int, y: int, /) -> int:
+        """
        If *c* is not given, get the color value of the specified pixel.
        If *c* is given, set the specified pixel to the given color.
       """
-
-   @overload
-   def pixel(self, x: int, y: int, c: int, /) -> None:
-      """
+    @overload
+    def pixel(self, x: int, y: int, c: int, /) -> None:
+        """
        If *c* is not given, get the color value of the specified pixel.
        If *c* is given, set the specified pixel to the given color.
       """
-
-   def hline(self, x: int, y: int, w: int, c: int, /) -> None:
-      """
+    def hline(self, x: int, y: int, w: int, c: int, /) -> None:
+        """
        Draw a line from a set of coordinates using the given color and
        a thickness of 1 pixel. The `line` method draws the line up to
        a second set of coordinates whereas the `hline` and `vline`
        methods draw horizontal and vertical lines respectively up to
        a given length.
       """
-
-   def vline(self, x: int, y: int, h: int, c: int, /) -> None:
-      """
+    def vline(self, x: int, y: int, h: int, c: int, /) -> None:
+        """
        Draw a line from a set of coordinates using the given color and
        a thickness of 1 pixel. The `line` method draws the line up to
        a second set of coordinates whereas the `hline` and `vline`
        methods draw horizontal and vertical lines respectively up to
        a given length.
       """
-
-   def line(self, x1: int, y1: int, x2: int, y2: int, c: int, /) -> None:
-      """
+    def line(self, x1: int, y1: int, x2: int, y2: int, c: int, /) -> None:
+        """
        Draw a line from a set of coordinates using the given color and
        a thickness of 1 pixel. The `line` method draws the line up to
        a second set of coordinates whereas the `hline` and `vline`
        methods draw horizontal and vertical lines respectively up to
        a given length.
       """
-
-   def rect(self, x: int, y: int, w: int, h: int, c: int, /) -> None:
-      """
+    def rect(self, x: int, y: int, w: int, h: int, c: int, /) -> None:
+        """
        Draw a rectangle at the given location, size and color. The `rect`
        method draws only a 1 pixel outline whereas the `fill_rect` method
        draws both the outline and interior.
       """
-
-   def fill_rect(self, x: int, y: int, w: int, h: int, c: int, /) -> None:
-      """
+    def fill_rect(self, x: int, y: int, w: int, h: int, c: int, /) -> None:
+        """
        Draw a rectangle at the given location, size and color. The `rect`
        method draws only a 1 pixel outline whereas the `fill_rect` method
        draws both the outline and interior.
       """
-
-   def text(self, s: str, x: int, y: int, c: int = 1, /) -> None:
-      """
+    def text(self, s: str, x: int, y: int, c: int = 1, /) -> None:
+        """
        Write text to the FrameBuffer using the the coordinates as the upper-left
        corner of the text. The color of the text can be defined by the optional
        argument but is otherwise a default value of 1. All characters have
        dimensions of 8x8 pixels and there is currently no way to change the font.
       """
-
-   def scroll(self, xstep: int, ystep: int, /) -> None:
-      """
+    def scroll(self, xstep: int, ystep: int, /) -> None:
+        """
        Shift the contents of the FrameBuffer by the given vector. This may
        leave a footprint of the previous colors in the FrameBuffer.
       """
-
-   
-   def blit(self, fbuf: FrameBuffer, x: int, y: int, key: int = -1, pallet: FrameBuffer | None = None, /) -> None:
-      """
+    def blit(
+        self,
+        fbuf: FrameBuffer,
+        x: int,
+        y: int,
+        key: int = -1,
+        pallet: FrameBuffer | None = None,
+        /,
+    ) -> None:
+        """
        Draw another FrameBuffer on top of the current one at the given coordinates.
        If *key* is specified then it should be a color integer and the
        corresponding color will be considered transparent: all pixels with that

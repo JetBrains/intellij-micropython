@@ -17,7 +17,7 @@ This module provides functions to efficiently wait for events on multiple
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Iterable, Any, Final, Iterator
 
@@ -35,39 +35,34 @@ POLLHUP: Final[int] = ...
 POLLERR: Final[int] = ...
 """Socket got an asynchronous error."""
 
-
 def poll() -> "Poll":
-   """
+    """
    Create an instance of the Poll class.
    """
 
-
 def select(
-   rlist: Iterable[Any], 
-   wlist: Iterable[Any], 
-   xlist: Iterable[Any], 
-   timeout: int = -1, 
-   /,
+    rlist: Iterable[Any],
+    wlist: Iterable[Any],
+    xlist: Iterable[Any],
+    timeout: int = -1,
+    /,
 ) -> list[tuple[Any, int, Any, ...]]:
-   """
+    """
    Wait for activity on a set of objects.
    
    This function is provided by some MicroPython ports for compatibility
    and is not efficient. Usage of :class:`Poll` is recommended instead.
    """
 
-
 class Poll:
-   """
+    """
    The name, `Poll`, used for typing is not the same as the runtime name, `poll` (note lowercase `p`).
    The reason for this difference is that the runtime uses `poll` as both a class name and as a method name and
    this is not possible within code written entirely in Python and therefore not possible within typing code.
    """
 
-
-
-   def register(self, obj: IOBase, eventmask: int = POLLIN | POLLOUT, /) -> None:
-      """
+    def register(self, obj: IOBase, eventmask: int = POLLIN | POLLOUT, /) -> None:
+        """
       Register `stream` *obj* for polling. *eventmask* is logical OR of:
       
       * ``select.POLLIN``  - data available for reading
@@ -84,20 +79,17 @@ class Poll:
       Successive calls will update *obj*'s eventmask to the value of
       *eventmask* (i.e. will behave as `modify()`).
       """
-
-   def unregister(self, obj: IOBase, /) -> None:
-      """
+    def unregister(self, obj: IOBase, /) -> None:
+        """
       Unregister *obj* from polling.
       """
-
-   def modify(self, obj: IOBase, eventmask: int, /) -> None:
-      """
+    def modify(self, obj: IOBase, eventmask: int, /) -> None:
+        """
       Modify the *eventmask* for *obj*. If *obj* is not registered, `OSError`
       is raised with error of ENOENT.
       """
-
-   def poll(self, timeout: int = -1, /) -> list[tuple[Any, int, Any, ...]]:
-      """
+    def poll(self, timeout: int = -1, /) -> list[tuple[Any, int, Any, ...]]:
+        """
       Wait for at least one of the registered objects to become ready or have an
       exceptional condition, with optional timeout in milliseconds (if *timeout*
       arg is not specified or -1, there is no timeout).
@@ -119,9 +111,10 @@ class Poll:
       
          Tuples returned may contain more than 2 elements as described above.
       """
-
-   def ipoll(self, timeout: int = -1, flags: int = 0, /) -> Iterator[tuple[Any, int, Any, ...]]:
-      """
+    def ipoll(
+        self, timeout: int = -1, flags: int = 0, /
+    ) -> Iterator[tuple[Any, int, Any, ...]]:
+        """
       Like :meth:`poll.poll`, but instead returns an iterator which yields a
       `callee-owned tuple`. This function provides an efficient, allocation-free
       way to poll on streams.

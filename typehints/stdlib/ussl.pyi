@@ -19,26 +19,24 @@ The CPython version of ``ssl`` uses ``SSLError``.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.0.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Final
 
 from uio import StrOrBytesPath
 from usocket import Socket
 
-
-
 def wrap_socket(
-   sock: Socket, 
-   server_side: bool = False, 
-   keyfile: StrOrBytesPath | None = None, 
-   certfile: StrOrBytesPath | None = None,
-   cert_reqs: int = "CERT_NONE", 
-   ca_certs: str | None = None, 
-   do_handshake: bool = True, 
-   /,
+    sock: Socket,
+    server_side: bool = False,
+    keyfile: StrOrBytesPath | None = None,
+    certfile: StrOrBytesPath | None = None,
+    cert_reqs: int = "CERT_NONE",
+    ca_certs: str | None = None,
+    do_handshake: bool = True,
+    /,
 ) -> Socket:
-   """
+    """
    Takes a `stream` *sock* (usually socket.socket instance of ``SOCK_STREAM`` type),
    and returns an instance of ssl.SSLSocket, which wraps the underlying stream in
    an SSL context. Returned object has the usual `stream` interface methods like
@@ -59,18 +57,15 @@ def wrap_socket(
    :term:`MicroPython port`, some or all keyword arguments above may be not supported.
    """
 
-
 CERT_NONE: Final[int] = ...
 """
 Supported values for *cert_reqs* parameter.
 """
 
-
 CERT_OPTIONAL: Final[int] = ...
 """
 Supported values for *cert_reqs* parameter.
 """
-
 
 CERT_REQUIRED: Final[int] = ...
 """
