@@ -1,8 +1,8 @@
 """
-system error codes
+system error codes.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/errno.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/errno.rst.
 ==================================
 
 .. module:: errno
@@ -17,7 +17,7 @@ A particular inventory of codes depends on :term:`MicroPython port`.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Final, Dict
 

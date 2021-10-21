@@ -1,8 +1,8 @@
 """
-multithreading support
+multithreading support.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/_thread.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/_thread.rst.
 ========================================
 
 .. module:: _thread
@@ -19,4 +19,4 @@ and not yet described in this documentation.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver

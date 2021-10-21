@@ -1,8 +1,8 @@
 """
-zlib decompression
+zlib decompression.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/zlib.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/zlib.rst.
 =================================
 
 .. module:: zlib
@@ -19,7 +19,7 @@ is not yet implemented.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from uio import IOBase
 

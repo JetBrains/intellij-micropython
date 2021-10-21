@@ -1,8 +1,8 @@
 """
-TLS/SSL wrapper for socket objects
+TLS/SSL wrapper for socket objects.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/ssl.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/ssl.rst.
 
 |see_cpython_module| :mod:`python:ssl`.
 
@@ -19,7 +19,7 @@ The CPython version of ``ssl`` uses ``SSLError``.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import Final
 

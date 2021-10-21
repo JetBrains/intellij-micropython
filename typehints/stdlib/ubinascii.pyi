@@ -1,8 +1,8 @@
 """
-binary/ASCII conversions
+binary/ASCII conversions.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/binascii.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/binascii.rst.
 ===========================================
 
 .. module:: binascii
@@ -17,7 +17,7 @@ encodings of it in ASCII form (in both directions).
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 def hexlify(data: bytes, sep: str | bytes = ..., /) -> bytes:
     """

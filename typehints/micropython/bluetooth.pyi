@@ -1,15 +1,14 @@
 """
-Low-level Bluetooth radio functionality
+Low-level Bluetooth radio functionality.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/bluetooth.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/bluetooth.rst.
 
 This module provides an interface to a Bluetooth controller on a board.
 Currently this supports Bluetooth Low Energy (BLE) in Central, Peripheral,
 Broadcaster, and Observer roles, as well as GATT Server and Client and L2CAP
 connection-oriented-channels. A device may operate in multiple roles
 concurrently. Pairing (and bonding) is supported on some ports.
-
 This API is intended to match the low-level Bluetooth protocol and provide
 building-blocks for higher-level abstractions such as specific device types.
 
@@ -20,7 +19,7 @@ building-blocks for higher-level abstractions such as specific device types.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import overload, Any, Callable, Final
 

@@ -1,8 +1,8 @@
 """
-heap queue algorithm
+heap queue algorithm.
 
-Descriptions taken from 
-`https://raw.githubusercontent.com/micropython/micropython/master/docs/library/heapq.rst`, etc.
+Descriptions taken from:
+https://raw.githubusercontent.com/micropython/micropython/master/docs/library/heapq.rst.
 ====================================
 
 .. module:: heapq
@@ -20,7 +20,7 @@ that the first item of the list is always the smallest.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.1.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import TypeVar, Any, Final
 
