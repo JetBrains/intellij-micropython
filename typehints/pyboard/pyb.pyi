@@ -85,7 +85,7 @@ https://raw.githubusercontent.com/micropython/micropython/master/docs/library/py
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.1"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import ABC, abstractmethod
 from typing import NoReturn, overload, Sequence, runtime_checkable, Protocol
@@ -1862,6 +1862,15 @@ class I2C:
                                                    # starting at address 2 in the peripheral, timeout after 1 second
    """
 
+    CONTROLLER: ClassVar[int] = ...
+    """
+for initialising the bus to controller mode
+   """
+
+    PERIPHERAL: ClassVar[int] = ...
+    """
+for initialising the bus to peripheral mode
+   """
     def __init__(
         self,
         bus: int | str,
@@ -1923,9 +1932,10 @@ class I2C:
         """
       Check if an I2C device responds to the given address.  Only valid when in controller mode.
       """
+    @overload
     def mem_read(
         self,
-        data: int | AnyWritableBuf,
+        data: int,
         addr: int,
         memaddr: int,
         /,
@@ -1944,6 +1954,94 @@ class I2C:
       
       Returns the read data.
       This is only valid in controller mode.
+      """
+    @overload
+    def mem_read(
+        self,
+        data: AnyWritableBuf,
+        addr: int,
+        memaddr: int,
+        /,
+        *,
+        timeout: int = 5000,
+        addr_size: int = 8,
+    ) -> AnyWritableBuf:
+        """
+      Read from the memory of an I2C device:
+      
+        - ``data`` can be an integer (number of bytes to read) or a buffer to read into
+        - ``addr`` is the I2C device address
+        - ``memaddr`` is the memory location within the I2C device
+        - ``timeout`` is the timeout in milliseconds to wait for the read
+        - ``addr_size`` selects width of memaddr: 8 or 16 bits
+      
+      Returns the read data.
+      This is only valid in controller mode.
+      """
+    def mem_write(
+        self,
+        data: int | AnyWritableBuf,
+        addr: int,
+        memaddr: int,
+        /,
+        *,
+        timeout: int = 5000,
+        addr_size: int = 8,
+    ) -> None:
+        """
+      Write to the memory of an I2C device:
+      
+        - ``data`` can be an integer or a buffer to write from
+        - ``addr`` is the I2C device address
+        - ``memaddr`` is the memory location within the I2C device
+        - ``timeout`` is the timeout in milliseconds to wait for the write
+        - ``addr_size`` selects width of memaddr: 8 or 16 bits
+      
+      Returns ``None``.
+      This is only valid in controller mode.
+      """
+    @overload
+    def recv(self, recv: int, addr: int = 0x00, /, *, timeout: int = 5000,) -> bytes:
+        """
+      Receive data on the bus:
+      
+        - ``recv`` can be an integer, which is the number of bytes to receive,
+          or a mutable buffer, which will be filled with received bytes
+        - ``addr`` is the address to receive from (only required in controller mode)
+        - ``timeout`` is the timeout in milliseconds to wait for the receive
+      
+      Return value: if ``recv`` is an integer then a new buffer of the bytes received,
+      otherwise the same buffer that was passed in to ``recv``.
+      """
+    @overload
+    def recv(
+        self, recv: AnyWritableBuf, addr: int = 0x00, /, *, timeout: int = 5000,
+    ) -> AnyWritableBuf:
+        """
+      Receive data on the bus:
+      
+        - ``recv`` can be an integer, which is the number of bytes to receive,
+          or a mutable buffer, which will be filled with received bytes
+        - ``addr`` is the address to receive from (only required in controller mode)
+        - ``timeout`` is the timeout in milliseconds to wait for the receive
+      
+      Return value: if ``recv`` is an integer then a new buffer of the bytes received,
+      otherwise the same buffer that was passed in to ``recv``.
+      """
+    def send(self, addr: int = 0x00, /, *, timeout: int = 5000,) -> None:
+        """
+      Send data on the bus:
+      
+        - ``send`` is the data to send (an integer to send, or a buffer object)
+        - ``addr`` is the address to send to (only required in controller mode)
+        - ``timeout`` is the timeout in milliseconds to wait for the send
+      
+      Return value: ``None``.
+      """
+    def scan(self) -> list[int]:
+        """
+      Scan all I2C addresses from 0x01 to 0x7f and return a list of those that respond.
+      Only valid when in controller mode.
       """
 
 class LCD:

@@ -9,6 +9,7 @@ Currently this supports Bluetooth Low Energy (BLE) in Central, Peripheral,
 Broadcaster, and Observer roles, as well as GATT Server and Client and L2CAP
 connection-oriented-channels. A device may operate in multiple roles
 concurrently. Pairing (and bonding) is supported on some ports.
+
 This API is intended to match the low-level Bluetooth protocol and provide
 building-blocks for higher-level abstractions such as specific device types.
 
@@ -19,7 +20,7 @@ building-blocks for higher-level abstractions such as specific device types.
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.1"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import overload, Any, Callable, Final
 
@@ -437,7 +438,13 @@ class BLE:
        explicitly stopped), the ``_IRQ_SCAN_DONE`` event will be raised.
       """
     def gap_connect(
-        self, addr_type: int, addr: bytes, scan_duration_ms: int = 2000, /,
+        self,
+        addr_type: int,
+        addr: bytes,
+        scan_duration_ms: int = 2000,
+        min_conn_interval_us: int | None = None,
+        max_conn_interval_us: int | None = None,
+        /,
     ) -> None:
         """
        Connect to a peripheral.
@@ -445,6 +452,15 @@ class BLE:
        See :meth:`gap_scan <BLE.gap_scan>` for details about address types.
        
        On success, the ``_IRQ_PERIPHERAL_CONNECT`` event will be raised.
+       
+       The device will wait up to *scan_duration_ms* to receive an advertising
+       payload from the device.
+       
+       The connection interval can be configured in **micro**\ seconds using either
+       or both of *min_conn_interval_us* and *max_conn_interval_us*. Otherwise a
+       default interval will be chosen, typically between 30000 and 50000
+       microseconds. A shorter interval will increase throughput, at the expense
+       of power usage.
        
        
        

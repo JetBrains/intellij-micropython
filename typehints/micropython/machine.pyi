@@ -29,7 +29,7 @@ https://raw.githubusercontent.com/micropython/micropython/master/docs/library/ma
 __author__ = "Howard C Lovatt"
 __copyright__ = "Howard C Lovatt, 2020 onwards."
 __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython)."
-__version__ = "7.2.0"  # Version set by https://github.com/hlovatt/tag2ver
+__version__ = "7.2.1"  # Version set by https://github.com/hlovatt/tag2ver
 
 from typing import overload, NoReturn, Callable
 from typing import Sequence, ClassVar, Any, Final
@@ -886,7 +886,120 @@ class ADC:
       Take an analog reading and return an integer in the range 0-65535.
       The return value represents the raw reading taken by the ADC, scaled
       such that the minimum value is 0 and the maximum value is 65535.
-      machine.PWM.rst
+      """
+
+# noinspection PyShadowingNames
+class PWM:
+    """
+   This class provides pulse width modulation output.
+   
+   Example usage::
+   
+       from machine import PWM
+   
+       pwm = PWM(pin)          # create a PWM object on a pin
+       pwm.duty_u16(32768)     # set duty to 50%
+   
+       # reinitialise with a period of 200us, duty of 5us
+       pwm.init(freq=5000, duty_ns=5000)
+   
+       pwm.duty_ns(3000)       # set pulse width to 3us
+   
+       pwm.deinit()
+   """
+
+    def __init__(
+        self,
+        dest: Pin | int,
+        /,
+        *,
+        freq: int = ...,
+        duty_u16: int = ...,
+        duty_ns: int = ...,
+    ):
+        """
+      Construct and return a new PWM object using the following parameters:
+      
+         - *dest* is the entity on which the PWM is output, which is usually a
+           :ref:`machine.Pin <machine.Pin>` object, but a port may allow other values,
+           like integers.
+         - *freq* should be an integer which sets the frequency in Hz for the
+           PWM cycle.
+         - *duty_u16* sets the duty cycle as a ratio ``duty_u16 / 65535``.
+         - *duty_ns* sets the pulse width in nanoseconds.
+      
+      Setting *freq* may affect other PWM objects if the objects share the same
+      underlying PWM generator (this is hardware specific).
+      Only one of *duty_u16* and *duty_ns* should be specified at a time.
+      """
+    def init(self, *, freq: int = ..., duty_u16: int = ..., duty_ns: int = ...) -> None:
+        """
+      Modify settings for the PWM object.  See the above constructor for details
+      about the parameters.
+      """
+    def deinit(self) -> None:
+        """
+      Disable the PWM output.
+      """
+    @overload
+    def freq(self) -> int:
+        """
+      Get or set the current frequency of the PWM output.
+      
+      With no arguments the frequency in Hz is returned.
+      
+      With a single *value* argument the frequency is set to that value in Hz.  The
+      method may raise a ``ValueError`` if the frequency is outside the valid range.
+      """
+    @overload
+    def freq(self, value: int, /,) -> None:
+        """
+      Get or set the current frequency of the PWM output.
+      
+      With no arguments the frequency in Hz is returned.
+      
+      With a single *value* argument the frequency is set to that value in Hz.  The
+      method may raise a ``ValueError`` if the frequency is outside the valid range.
+      """
+    @overload
+    def duty_u16(self) -> int:
+        """
+      Get or set the current duty cycle of the PWM output, as an unsigned 16-bit
+      value in the range 0 to 65535 inclusive.
+      
+      With no arguments the duty cycle is returned.
+      
+      With a single *value* argument the duty cycle is set to that value, measured
+      as the ratio ``value / 65535``.
+      """
+    @overload
+    def duty_u16(self, value: int, /,) -> None:
+        """
+      Get or set the current duty cycle of the PWM output, as an unsigned 16-bit
+      value in the range 0 to 65535 inclusive.
+      
+      With no arguments the duty cycle is returned.
+      
+      With a single *value* argument the duty cycle is set to that value, measured
+      as the ratio ``value / 65535``.
+      """
+    @overload
+    def duty_ns(self) -> int:
+        """
+      Get or set the current pulse width of the PWM output, as a value in nanoseconds.
+      
+      With no arguments the pulse width in nanoseconds is returned.
+      
+      With a single *value* argument the pulse width is set to that value.
+      """
+    @overload
+    def duty_ns(self, value: int, /,) -> None:
+        """
+      Get or set the current pulse width of the PWM output, as a value in nanoseconds.
+      
+      With no arguments the pulse width in nanoseconds is returned.
+      
+      With a single *value* argument the pulse width is set to that value.
       """
 
 class UART:
@@ -1710,7 +1823,6 @@ class I2C:
       this argument is not recognised and the address size is always 8 bits).
       
       The method returns ``None``.
-      machine.I2S.rst   
       
       Memory operations
       -----------------
@@ -1719,6 +1831,184 @@ class I2C:
       from and written to.  In this case there are two addresses associated with an
       I2C transaction: the peripheral address and the memory address.  The following
       methods are convenience functions to communicate with such devices.
+      """
+
+class I2S:
+    """
+   I2S is a synchronous serial protocol used to connect digital audio devices. 
+   At the physical level, a bus consists of 3 lines: SCK, WS, SD.
+   The I2S class supports controller operation.  Peripheral operation is not supported.
+   
+   The I2S class is currently available as a Technical Preview.  During the preview period, feedback from 
+   users is encouraged.  Based on this feedback, the I2S class API and implementation may be changed.
+   
+   I2S objects can be created and initialized using::
+   
+       from machine import I2S
+       from machine import Pin
+       
+       # ESP32
+       sck_pin = Pin(14)   # Serial clock output
+       ws_pin = Pin(13)    # Word clock output
+       sd_pin = Pin(12)    # Serial data output
+       
+       or
+       
+       # PyBoards
+       sck_pin = Pin("Y6")   # Serial clock output
+       ws_pin = Pin("Y5")    # Word clock output
+       sd_pin = Pin("Y8")    # Serial data output
+       
+       audio_out = I2S(2, 
+                       sck=sck_pin, ws=ws_pin, sd=sd_pin,
+                       mode=I2S.TX, 
+                       bits=16,                       
+                       format=I2S.MONO,
+                       rate=44100, 
+                       ibuf=20000)
+                      
+       audio_in = I2S(2, 
+                      sck=sck_pin, ws=ws_pin, sd=sd_pin,
+                      mode=I2S.RX, 
+                      bits=32,                       
+                      format=I2S.STEREO,
+                      rate=22050, 
+                      ibuf=20000)
+                       
+   3 modes of operation are supported:
+    - blocking 
+    - non-blocking 
+    - uasyncio
+     
+   blocking::
+    
+      num_written = audio_out.write(buf) # blocks until buf emptied
+   
+      num_read = audio_in.readinto(buf) # blocks until buf filled
+      
+   non-blocking::
+    
+      audio_out.irq(i2s_callback)         # i2s_callback is called when buf is emptied
+      num_written = audio_out.write(buf)  # returns immediately
+           
+      audio_in.irq(i2s_callback)          # i2s_callback is called when buf is filled
+      num_read = audio_in.readinto(buf)   # returns immediately    
+    
+   uasyncio::
+    
+      swriter = uasyncio.StreamWriter(audio_out)
+      swriter.write(buf)
+      await swriter.drain()
+      
+      sreader = uasyncio.StreamReader(audio_in)
+      num_read = await sreader.readinto(buf)
+   """
+
+    RX: ClassVar[int] = ...
+    """
+for initialising the I2S bus ``mode`` to receive
+   """
+
+    TX: ClassVar[int] = ...
+    """
+for initialising the I2S bus ``mode`` to transmit
+   """
+
+    STEREO: ClassVar[int] = ...
+    """
+for initialising the I2S bus ``format`` to stereo
+   """
+
+    MONO: ClassVar[int] = ...
+    """
+for initialising the I2S bus ``format`` to mono
+   """
+    def __init__(
+        self,
+        id: int,
+        /,
+        *,
+        sck: Pin,
+        ws: Pin,
+        sd: Pin,
+        mode: int,
+        bits: int,
+        format: int,
+        rate: int,
+        ibuf: int,
+    ):
+        """
+      Construct an I2S object of the given id:
+      
+      - ``id`` identifies a particular I2S bus.  
+      
+      ``id`` is board and port specific:
+      
+        - PYBv1.0/v1.1: has one I2S bus with id=2.
+        - PYBD-SFxW: has two I2S buses with id=1 and id=2. 
+        - ESP32: has two I2S buses with id=0 and id=1. 
+      
+      Keyword-only parameters that are supported on all ports:
+       
+        - ``sck`` is a pin object for the serial clock line
+        - ``ws`` is a pin object for the word select line
+        - ``sd`` is a pin object for the serial data line
+        - ``mode`` specifies receive or transmit
+        - ``bits`` specifies sample size (bits), 16 or 32
+        - ``format`` specifies channel format, STEREO or MONO
+        - ``rate`` specifies audio sampling rate (samples/s)
+        - ``ibuf`` specifies internal buffer length (bytes)
+        
+      For all ports, DMA runs continuously in the background and allows user applications to perform other operations while 
+      sample data is transfered between the internal buffer and the I2S peripheral unit. 
+      Increasing the size of the internal buffer has the potential to increase the time that user applications can perform non-I2S operations
+      before underflow (e.g. ``write`` method) or overflow (e.g. ``readinto`` method).
+      """
+    def init(
+        self,
+        *,
+        sck: Pin,
+        ws: Pin,
+        sd: Pin,
+        mode: int,
+        bits: int,
+        format: int,
+        rate: int,
+        ibuf: int,
+    ) -> None:
+        """
+     see Constructor for argument descriptions
+      """
+    def deinit(self) -> None:
+        """
+     Deinitialize the I2S bus
+      """
+    def readinto(self, buf: AnyWritableBuf, /,) -> int:
+        """
+     Read audio samples into the buffer specified by ``buf``.  ``buf`` must support the buffer protocol, such as bytearray or array. 
+     "buf" byte ordering is little-endian.  For Stereo format, left channel sample precedes right channel sample. For Mono format, 
+     the left channel sample data is used.
+     Returns number of bytes read
+      """
+    def write(self, buf: AnyReadableBuf, /,) -> int:
+        """
+     Write audio samples contained in ``buf``. ``buf`` must support the buffer protocol, such as bytearray or array.
+     "buf" byte ordering is little-endian.  For Stereo format, left channel sample precedes right channel sample. For Mono format, 
+     the sample data is written to both the right and left channels.
+     Returns number of bytes written
+      """
+    def irq(self, handler: Callable[[], None], /,) -> None:
+        """
+     Set a callback. ``handler`` is called when ``buf`` is emptied (``write`` method) or becomes full (``readinto`` method).  
+     Setting a callback changes the ``write`` and ``readinto`` methods to non-blocking operation.
+     ``handler`` is called in the context of the MicroPython scheduler.
+      """
+    @staticmethod
+    def shift(buf: AnyWritableBuf, bits: int, shift: int, /,) -> None:
+        """
+     bitwise shift of all samples contained in ``buf``. ``bits`` specifies sample size in bits. ``shift`` specifies the number of bits to shift each sample. 
+     Positive for left shift, negative for right shift. 
+     Typically used for volume control.  Each bit shift changes sample volume by 6dB.
       """
 
 class RTC:
@@ -2103,6 +2393,7 @@ class SD:
         self,
         id: int = 0,
         pins: tuple[str, str, str] | tuple[Pin, Pin, Pin] = ("GP10", "GP11", "GP15"),
+        /,
     ):
         """
       Create a SD card object. See ``init()`` for parameters if initialization.
@@ -2111,6 +2402,7 @@ class SD:
         self,
         id: int = 0,
         pins: tuple[str, str, str] | tuple[Pin, Pin, Pin] = ("GP10", "GP11", "GP15"),
+        /,
     ) -> None:
         """
       Enable the SD card. In order to initialize the card, give it a 3-tuple:
@@ -2226,6 +2518,7 @@ class SDCard(AbstractBlockDev):
         mosi: int | str | Pin | None = None,
         cs: int | str | Pin | None = None,
         freq: int = 20000000,
+        /,
     ):
         """
        This class provides access to SD or MMC storage cards using either
@@ -2256,6 +2549,3 @@ class SDCard(AbstractBlockDev):
         
         - *freq* selects the SD/MMC interface frequency in Hz (only supported on the ESP32).
       """
-    def readblocks(self, blocknum: int, buf: bytes, offset: int = 0, /) -> None: ...
-    def writeblocks(self, blocknum: int, buf: bytes, offset: int = 0, /) -> None: ...
-    def ioctl(self, op: int, arg: int) -> int | None: ...
