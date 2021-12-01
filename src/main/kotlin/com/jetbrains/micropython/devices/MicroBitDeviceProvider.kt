@@ -45,7 +45,7 @@ class MicroBitDeviceProvider : MicroPythonDeviceProvider {
     val manager = PyPackageManager.getInstance(sdk)
     return manager.parseRequirements("""|uflash>=1.2.4,<1.3
                                         |docopt>=0.6.2,<0.7
-                                        |pyserial>=3.3,<4.0""".trimMargin())
+                                        |pyserial>=3.5,<4.0""".trimMargin())
   }
 
   override val typeHints: MicroPythonTypeHints by lazy {
