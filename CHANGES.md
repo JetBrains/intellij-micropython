@@ -1,6 +1,25 @@
 The Changelog
 =============
 
+1.3 — 2021-12-01
+----------------
+
+### Added 
+
+* Added many stubs for the MicroPython standard library and Pyboard
+  ([#176](https://github.com/vlasovskikh/intellij-micropython/pull/176))
+  (Thanks to [@hlovatt](https://github.com/hlovatt))
+
+### Changed
+
+* Compatibility with 2020.3-2021.3
+
+### Fixed
+
+* Fixed special keys in REPL on Windows for pyserial>=3.5
+  ([#175](https://github.com/vlasovskikh/intellij-micropython/issues/175))
+
+
 1.2 — 2021-08-05
 ----------------
 
