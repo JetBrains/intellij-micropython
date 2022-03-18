@@ -1,6 +1,16 @@
 The Changelog
 =============
 
+
+1.3.1 — 2022-03-18
+------------------
+
+### Changed
+
+* Compatibility with 2020.3-2022.1
+  ([#184](https://github.com/vlasovskikh/intellij-micropython/issues/184))
+
+
 1.3 — 2021-12-01
 ----------------
 
