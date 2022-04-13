@@ -17,6 +17,7 @@ The plugin supports Python development for these devices:
 * [ESP8266](https://github.com/vlasovskikh/intellij-micropython/wiki/ESP8266)
 * [PyBoard](https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard)
 * [BBC Micro:bit](https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro%3Abit)
+* [Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
 
 It will support more MicroPython devices and more device-specific and MicroPython-specific modules eventually. We are
 interested in your contributions to the project. Feel free to open issues and send pull requests!
@@ -62,7 +63,7 @@ See also [the changelog](CHANGES.md) for the plugin.
 
 ## Requirements
 
-* PyCharm 2020.2+ or IntelliJ 2020.2+
+* PyCharm 2020.3+ or IntelliJ 2020.3+
 * Python 3.5+
     * The MicroPython language version is 3.5. If you select a newer version, turn on <em>"File | Settings | Editor |
       Inspections | Python | Code compatibility inspection"</em> and add Python 3.5 to the compatibility list there
@@ -98,7 +99,7 @@ Python developer, Kotlin may be an interesting language for you to learn.
 The steps for setting up the development environment:
 
 1. Check out this project from GitHub
-2. Create a new project from existing sources in IntelliJ 2020.2 or newer
+2. Create a new project from existing sources in IntelliJ 2020.3 or newer
 
 To just run the development version use `./gradlew clean runIde` from the command line.
 

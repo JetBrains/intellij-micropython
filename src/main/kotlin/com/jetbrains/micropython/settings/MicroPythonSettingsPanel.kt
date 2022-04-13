@@ -16,16 +16,17 @@
 
 package com.jetbrains.micropython.settings
 
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.CheckBox
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.FormBuilder
-import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import java.awt.BorderLayout
@@ -38,7 +39,15 @@ import javax.swing.JPanel
  */
 class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
   private val deviceTypeCombo = ComboBox(MicroPythonDeviceProvider.providers.toTypedArray())
-  private val docsHyperlink = SwingHelper.createWebHyperlink("")
+  private var docsHyperlink = object : ActionLink() {
+    var url = ""
+
+    init {
+      addActionListener {
+        BrowserUtil.browse(url)
+      }
+    }
+  }
   private val devicePath = TextFieldWithBrowseButton()
   private val autoDetectDevicePath = CheckBox("Auto-detect device path").apply {
     addActionListener {
@@ -83,8 +92,8 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
       }
       addActionListener {
         docsHyperlink.apply {
-          setHyperlinkTarget(selectedProvider.documentationURL)
-          setHyperlinkText("Learn more about setting up ${selectedProvider.presentableName} devices")
+          url = selectedProvider.documentationURL
+          text = "Learn more about setting up ${selectedProvider.presentableName} devices"
           repaint()
         }
       }

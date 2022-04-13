@@ -21,23 +21,18 @@ Based on https://github.com/ntoll/microrepl by Nicholas H.Tollervey and the
 contributors.
 """
 
-import ctypes
 import errno
-import os
-import platform
 import sys
-import traceback
 from time import sleep
+import traceback
 
-from serial import Serial, SerialException
-from serial.tools import miniterm
+import serial
+import serial.tools.miniterm
 from serial.tools.miniterm import Miniterm, key_description
-
-if os.name == 'nt':
-    import msvcrt
 
 BAUDRATE = 115200
 PARITY = 'N'
+
 
 if sys.version_info >= (3, 0):
     def character(b):
@@ -49,9 +44,10 @@ else:
 
 def connect_miniterm(port):
     try:
-        ser = Serial(port, BAUDRATE, parity=PARITY, rtscts=False, xonxoff=False)
+        ser = serial.Serial(port, BAUDRATE, parity=PARITY, rtscts=False,
+                            xonxoff=False)
         return Miniterm(ser, echo=False)
-    except SerialException as e:
+    except serial.SerialException as e:
         if e.errno == errno.ENOENT:
             sys.stderr.write(
                 "Device %r not found. Check your "
@@ -79,116 +75,31 @@ def connect_miniterm(port):
         sys.exit(1)
 
 
-class Windows10Console(miniterm.Console):
-    """Patched Console to support ANSI control keys on Windows 10.
-
-    Based on a fix by Cefn Hoile https://github.com/pyserial/pyserial/pull/351
-    that hasn't been merged into pyserial yet.
-    """
-
-    fncodes = {
-        ';': '\1bOP',  # F1
-        '<': '\1bOQ',  # F2
-        '=': '\1bOR',  # F3
-        '>': '\1bOS',  # F4
-        '?': '\1b[15~',  # F5
-        '@': '\1b[17~',  # F6
-        'A': '\1b[18~',  # F7
-        'B': '\1b[19~',  # F8
-        'C': '\1b[20~',  # F9
-        'D': '\1b[21~',  # F10
-    }
-    navcodes = {
-        'H': '\x1b[A',  # UP
-        'P': '\x1b[B',  # DOWN
-        'K': '\x1b[D',  # LEFT
-        'M': '\x1b[C',  # RIGHT
-        'G': '\x1b[H',  # HOME
-        'O': '\x1b[F',  # END
-        'R': '\x1b[2~',  # INSERT
-        'S': '\x1b[3~',  # DELETE
-        'I': '\x1b[5~',  # PGUP
-        'Q': '\x1b[6~',  # PGDN
-    }
-
-    def __init__(self) -> None:
-        super().__init__()
-        # ANSI handling available through SetConsoleMode since Windows 10 v1511
-        # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
-        if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
-            ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
-            import ctypes.wintypes as wintypes
-            if not hasattr(wintypes, 'LPDWORD'):  # PY2
-                wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
-            SetConsoleMode = ctypes.windll.kernel32.SetConsoleMode
-            GetConsoleMode = ctypes.windll.kernel32.GetConsoleMode
-            GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-            mode = wintypes.DWORD()
-            GetConsoleMode(GetStdHandle(-11), ctypes.byref(mode))
-            if (mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0:
-                SetConsoleMode(GetStdHandle(-11), mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
-                self._saved_cm = mode
-
-    def __del__(self) -> None:
-        super().__del__()
-        try:
-            ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), self._saved_cm)
-        except AttributeError:  # in case no _saved_cm
-            pass
-
-    def getkey(self) -> str:
-        while True:
-            z = msvcrt.getwch()
-            if z == chr(13):
-                return chr(10)
-            elif z is chr(0) or z is chr(0xe0):
-                try:
-                    code = msvcrt.getwch()
-                    if z is chr(0):
-                        return self.fncodes[code]
-                    else:
-                        return self.navcodes[code]
-                except KeyError:
-                    pass
-            else:
-                return z
-
-
 def main():
     """
     The function that actually runs the REPL.
     """
     if len(sys.argv) != 2:
         print("Usage: microrepl.py /path/to/device")
-        sys.exit(1)
 
     port = sys.argv[1]
     print('Device path', port)
-
-    if os.name == 'nt':
-        stdout, stderr = sys.stdout, sys.stderr
-        term = connect_miniterm(port)
-        sys.stdout, sys.stderr = stdout, stderr
-        term.console = Windows10Console()
-    else:
-        term = connect_miniterm(port)
-
+    serial.tools.miniterm.EXITCHARCTER = character(b'\x1d')
+    miniterm = connect_miniterm(port)
     # Emit some helpful information about the program and MicroPython.
     shortcut_message = 'Quit: {} | Stop program: Ctrl+C | Reset: Ctrl+D\n'
     help_message = 'Type \'help()\' (without the quotes) then press ENTER.\n'
-    exit_character = character(b'\x1d')
-    term.exit_character = exit_character
-    exit_char = key_description(exit_character)
+    exit_char = key_description(serial.tools.miniterm.EXITCHARCTER)
     sys.stderr.write(shortcut_message.format(exit_char))
     sys.stderr.write(help_message)
     # Start everything.
-    term.set_rx_encoding('utf-8')
-    term.set_tx_encoding('utf-8')
-    term.start()
+    miniterm.set_rx_encoding('utf-8')
+    miniterm.set_tx_encoding('utf-8')
+    miniterm.start()
     sleep(0.5)
-    term.serial.write(b'\x03')  # Connecting stops the running program.
+    miniterm.serial.write(b'\x03')  # Connecting stops the running program.
     try:
-        term.join(True)
+        miniterm.join(True)
     except KeyboardInterrupt:
         pass
     sys.stderr.write('\nEXIT - see you soon... :-)\n')

@@ -118,9 +118,10 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     )
     val validationResult = facet.checkValid()
     if (validationResult != ValidationResult.OK) {
-      throw RuntimeConfigurationError(validationResult.errorMessage) {
+      val runQuickFix = Runnable {
         validationResult.quickFix.run(null)
       }
+      throw RuntimeConfigurationError(validationResult.errorMessage, runQuickFix)
     }
     facet.pythonPath ?: throw RuntimeConfigurationError("Python interpreter is not found")
     if (!facet.autoDetectDevicePath && facet.devicePath == null) {
