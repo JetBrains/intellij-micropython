@@ -27,6 +27,7 @@ Options:
 import time
 import sys
 import os
+import psutils
 from contextlib import suppress
 from typing import List, Iterable, TypeVar, Sequence, Set
 
@@ -46,17 +47,19 @@ def main(args: List[str]) -> None:
     opts = docopt(__doc__, argv=args)
     verbose = opts['--verbose']
     root = opts['PATH']
-
+    
     chdir = opts['--chdir']
     if chdir:
         os.chdir(chdir)
 
+    check_for_repl()        
+        
     port = opts['PORT']
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
     files = Files(board)
     rel_root = os.path.relpath(root, os.getcwd())
-
+    
     wait_for_board()
 
     if os.path.isdir(root):
@@ -134,6 +137,29 @@ def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:
     sys.stderr.write('\n')
     sys.stderr.flush()
 
+def check_for_repl():
+    print("Checking for MicroPython REPL processes...", file=sys.stderr)
+    targets = [
+        proc for proc in psutil.process_uter(attrs=['name', 'username','cmdline'])
+        if 'python' in proc.info['name']
+        and "microrepl.py" in str(proc.cmdline())
+        ]
+    if len(targets) != 0:
+        print("Oops, it looks like the MicroPython REPL is still running, asking it to close now...", file=sys.stderr)
+        for p in targets:
+            p.terminate()
+        _, alive = psutil.wait_procs(targets, timeout=300)
+    
+    if len(alive) >= 1:
+        print("Well, it looks like the MicroPython REPL is still running, trying to kill it now...", file=sys.stderr)
+        for p in targets:
+            p.kill()
+        _, notdead = psutil.wait_procs(targets, timeout=300)
+        
+    if len(notdead) >= 1:
+        print("Unable to close the MicroPython REPL automatically...", file=sys.stderr)
+        print("Please close it manually and try again", file=sys.stderr)
+        sys.exit()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
