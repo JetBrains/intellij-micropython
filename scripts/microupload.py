@@ -52,14 +52,14 @@ def main(args: List[str]) -> None:
     if chdir:
         os.chdir(chdir)
 
-    check_for_repl()        
-        
+    check_for_repl()
+
     port = opts['PORT']
     print('Connecting to {}'.format(port), file=sys.stderr)
     board = Pyboard(port)
     files = Files(board)
     rel_root = os.path.relpath(root, os.getcwd())
-    
+
     wait_for_board()
 
     if os.path.isdir(root):
@@ -149,17 +149,16 @@ def check_for_repl():
         for p in targets:
             p.terminate()
         _, alive = psutil.wait_procs(targets, timeout=300)
-    
-    if len(alive) >= 1:
-        print("Well, it looks like the MicroPython REPL is still running, trying to kill it now...", file=sys.stderr)
-        for p in targets:
-            p.kill()
-        _, notdead = psutil.wait_procs(targets, timeout=300)
-        
-    if len(notdead) >= 1:
-        print("Unable to close the MicroPython REPL automatically...", file=sys.stderr)
-        print("Please close it manually and try again", file=sys.stderr)
-        sys.exit()
+        if len(alive) >= 1:
+            print("Well, it looks like the MicroPython REPL is still running, trying to kill it now...", file=sys.stderr)
+            for p in targets:
+                p.kill()
+            _, notdead = psutil.wait_procs(targets, timeout=300)
+        if len(notdead) >= 1:
+            print("Unable to close the MicroPython REPL automatically...", file=sys.stderr)
+            print("Please close it manually and try again", file=sys.stderr)
+            sys.exit()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
