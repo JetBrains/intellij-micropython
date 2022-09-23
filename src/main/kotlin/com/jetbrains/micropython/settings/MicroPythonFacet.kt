@@ -40,7 +40,7 @@ import com.jetbrains.python.facet.LibraryContributingFacet
 import com.jetbrains.python.packaging.PyPackageManager
 import com.jetbrains.python.packaging.PyPackageManagerUI
 import com.jetbrains.python.psi.LanguageLevel
-import com.jetbrains.python.sdk.PythonSdkType
+import com.jetbrains.python.sdk.PySdkUtil
 import com.jetbrains.python.sdk.PythonSdkUtil
 import javax.swing.JComponent
 
@@ -71,8 +71,10 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     val boardHintsPaths = configuration.deviceProvider.typeHints?.paths?.map {
       "${plugin.pluginPath}/typehints/$it"
     } ?: emptyList()
-    FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
-    removeLegacyLibraries()
+    ApplicationManager.getApplication().invokeLater {
+      FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
+      removeLegacyLibraries()
+    }
   }
 
   override fun removeLibrary() {
@@ -82,7 +84,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   fun checkValid(): ValidationResult {
     val provider = configuration.deviceProvider
     val sdk = PythonSdkUtil.findPythonSdk(module)
-    if (sdk == null || PythonSdkUtil.isInvalid(sdk) || PythonSdkType.getLanguageLevelForSdk(sdk).isOlderThan(LanguageLevel.PYTHON35)) {
+    if (sdk == null || PythonSdkUtil.isInvalid(sdk) || PySdkUtil.getLanguageLevelForSdk(sdk).isOlderThan(LanguageLevel.PYTHON35)) {
       return ValidationResult("${provider.presentableName} support requires valid Python 3.5+ SDK")
     }
     val packageManager = PyPackageManager.getInstance(sdk)
