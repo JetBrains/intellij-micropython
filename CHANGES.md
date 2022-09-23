@@ -1,6 +1,13 @@
 The Changelog
 =============
 
+1.3.3 — 2022-09-23
+------------------
+
+### Fixed
+
+* Broken compatibility with the older PyCharm versions
+
 1.3.2 — 2022-09-23
 ------------------
 
