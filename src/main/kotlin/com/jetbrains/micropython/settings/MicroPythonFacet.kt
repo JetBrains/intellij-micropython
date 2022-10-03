@@ -71,8 +71,10 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
     val boardHintsPaths = configuration.deviceProvider.typeHints?.paths?.map {
       "${plugin.pluginPath}/typehints/$it"
     } ?: emptyList()
-    FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
-    removeLegacyLibraries()
+    ApplicationManager.getApplication().invokeLater {
+      FacetLibraryConfigurator.attachPythonLibrary(module, null, "MicroPython", boardHintsPaths)
+      removeLegacyLibraries()
+    }
   }
 
   override fun removeLibrary() {

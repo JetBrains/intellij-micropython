@@ -7,8 +7,8 @@ repositories {
 }
 
 plugins {
-    kotlin("jvm") version "1.5.20"
-    id("org.jetbrains.intellij") version "1.3.0"
+    kotlin("jvm") version "1.7.10"
+    id("org.jetbrains.intellij") version "1.9.0"
 }
 
 intellij {

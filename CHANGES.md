@@ -1,6 +1,21 @@
 The Changelog
 =============
 
+1.3.3 — 2022-09-23
+------------------
+
+### Fixed
+
+* Broken compatibility with the older PyCharm versions
+
+1.3.2 — 2022-09-23
+------------------
+
+### Fixed
+
+* An error on opening projects in PyCharm 2022.2.2
+  ([#205](https://github.com/JetBrains/intellij-micropython/issues/205))
+
 
 1.3.1 — 2022-03-18
 ------------------
