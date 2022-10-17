@@ -13,7 +13,9 @@ class MicroPythonToolWindowFactory : ToolWindowFactory, DumbAware {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val terminalContent = contentFactory.createContent(null, "REPL", false)
 
-        terminalContent.component = ToolWindowReplTab(project, terminalContent).createUI()
+        project.firstMicroPythonFacet?.let {
+            terminalContent.component = ToolWindowReplTab(it.module, terminalContent).createUI()
+        }
 
         toolWindow.contentManager.addContent(terminalContent)
     }

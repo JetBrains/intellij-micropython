@@ -18,7 +18,7 @@
       <p>Currently the plugin supports ESP8266, Pyboard, Micro:bit, and Raspberry Pi Pico devices. Your feedback and contributions
         are welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
-  <version>SNAPSHOT</version>
+  <version>SNAPSHOT-KB</version>
   <vendor>JetBrains</vendor>
 
   <depends>com.intellij.modules.lang</depends>
