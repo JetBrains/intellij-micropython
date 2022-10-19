@@ -22,6 +22,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
     init {
         val mySettingsProvider = JBTerminalSystemSettingsProvider()
         terminalWidget = ShellTerminalWidget(module.project, mySettingsProvider, parent)
+        terminalWidget.isEnabled = false
         deviceCommsManager.addListener(this)
     }
 
@@ -100,15 +101,20 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
 
     override fun onProcessStarted(ttyConnector: TtyConnector) {
         if (deviceConfiguration.clearReplOnLaunch) {
-            terminalWidget.terminal.clearScreen()
+            terminalWidget.currentSession.terminal.clearScreen()
         } else {
-            terminalWidget.terminal.nextLine()
+            terminalWidget.currentSession.terminal.nextLine()
         }
         connectWidgetTty(terminalWidget, ttyConnector)
+        terminalWidget.isEnabled = true
     }
 
     override fun onProcessDestroyed() {
         terminalWidget.stop()
+
+        terminalWidget.currentSession.terminal.nextLine()
+        terminalWidget.currentSession.terminal.writeCharacters("=== SESSION HAS BEEN INTERRUPTED ===")
+        terminalWidget.currentSession.terminal.nextLine()
     }
 
     override fun onProcessCreationFailed(reason: String) {
