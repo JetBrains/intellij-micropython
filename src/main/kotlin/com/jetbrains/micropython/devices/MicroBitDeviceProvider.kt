@@ -31,7 +31,7 @@ import com.jetbrains.python.packaging.PyRequirement
 /**
  * @author vlan
  */
-class MicroBitDeviceProvider : MicroPythonDeviceProvider {
+open class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val persistentName: String
     get() = "Micro:bit"
 
