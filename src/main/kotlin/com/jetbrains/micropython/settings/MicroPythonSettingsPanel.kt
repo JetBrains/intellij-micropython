@@ -30,9 +30,7 @@ import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import java.awt.BorderLayout
-import javax.swing.JButton
-import javax.swing.JList
-import javax.swing.JPanel
+import javax.swing.*
 
 /**
  * @author vlan
@@ -49,6 +47,9 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     }
   }
   private val devicePath = TextFieldWithBrowseButton()
+
+  private val connectionDelayModel = SpinnerNumberModel(0.5F, 0.0F, 599.9F, 0.1F)
+  private val boardConnectionDelaySpinner = JSpinner(connectionDelayModel)
   private val autoDetectDevicePath = CheckBox("Auto-detect device path").apply {
     addActionListener {
       update()
@@ -57,15 +58,15 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
 
   private val devicePathPanel: JPanel by lazy {
     FormBuilder.createFormBuilder()
-        .addLabeledComponent("Device path:", JPanel(BorderLayout()).apply {
-          add(devicePath, BorderLayout.CENTER)
-          add(JButton("Detect").apply {
-            addActionListener {
-              devicePath.text = module.microPythonFacet?.detectDevicePathSynchronously(selectedProvider) ?: ""
-            }
-          }, BorderLayout.EAST)
-        })
-        .panel
+      .addLabeledComponent("Device path:", JPanel(BorderLayout()).apply {
+        add(devicePath, BorderLayout.CENTER)
+        add(JButton("Detect").apply {
+          addActionListener {
+            devicePath.text = module.microPythonFacet?.detectDevicePathSynchronously(selectedProvider) ?: ""
+          }
+        }, BorderLayout.EAST)
+      })
+      .panel
   }
 
   init {
@@ -73,18 +74,21 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     border = IdeBorderFactory.createEmptyBorder(UIUtil.PANEL_SMALL_INSETS)
 
     val contentPanel = FormBuilder.createFormBuilder()
-        .addLabeledComponent("Device type:", deviceTypeCombo)
-        .addComponent(autoDetectDevicePath)
-        .addComponent(devicePathPanel)
-        .addComponent(docsHyperlink)
-        .panel
+      .addLabeledComponent("Device type:", deviceTypeCombo)
+      .addComponent(autoDetectDevicePath)
+      .addComponent(devicePathPanel)
+      .addLabeledComponent("Board detection delay (in seconds):", boardConnectionDelaySpinner)
+      .addComponent(docsHyperlink)
+      .panel
 
     add(contentPanel, BorderLayout.NORTH)
 
     deviceTypeCombo.apply {
-      renderer = object: SimpleListCellRenderer<MicroPythonDeviceProvider>() {
-        override fun customize(list: JList<out MicroPythonDeviceProvider>, value: MicroPythonDeviceProvider?,
-                               index: Int, selected: Boolean, hasFocus: Boolean) {
+      renderer = object : SimpleListCellRenderer<MicroPythonDeviceProvider>() {
+        override fun customize(
+          list: JList<out MicroPythonDeviceProvider>, value: MicroPythonDeviceProvider?,
+          index: Int, selected: Boolean, hasFocus: Boolean
+        ) {
           text = value?.presentableName ?: return
         }
       }
@@ -106,9 +110,10 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
   }
 
   fun isModified(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet): Boolean =
-      deviceTypeCombo.selectedItem != configuration.deviceProvider
-          || devicePath.text.nullize(true) != facet.devicePath
-          || autoDetectDevicePath.isSelected != facet.autoDetectDevicePath
+    deviceTypeCombo.selectedItem != configuration.deviceProvider
+            || devicePath.text.nullize(true) != facet.devicePath
+            || autoDetectDevicePath.isSelected != facet.autoDetectDevicePath
+            || boardConnectionDelaySpinner.value != facet.boardConnectionDelay
 
   fun getDisplayName(): String = "MicroPython"
 
@@ -116,12 +121,14 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     configuration.deviceProvider = selectedProvider
     facet.devicePath = devicePath.text.nullize(true)
     facet.autoDetectDevicePath = autoDetectDevicePath.isSelected
+    facet.boardConnectionDelay = boardConnectionDelaySpinner.value as Float
   }
 
   fun reset(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     deviceTypeCombo.selectedItem = configuration.deviceProvider
     devicePath.text = facet.devicePath ?: ""
     autoDetectDevicePath.isSelected = facet.autoDetectDevicePath
+    boardConnectionDelaySpinner.value = facet.boardConnectionDelay
     update()
   }
 

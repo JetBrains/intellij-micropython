@@ -24,6 +24,8 @@ class MicroPythonDevicesConfiguration : PersistentStateComponent<MicroPythonDevi
 
   @Attribute var autoDetectDevicePath: Boolean = true
 
+  @Attribute var boardConnectionDelay: Float = 0.5F
+
   override fun getState() = this
 
   override fun loadState(state: MicroPythonDevicesConfiguration) {

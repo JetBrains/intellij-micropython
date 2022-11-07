@@ -134,6 +134,12 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
       MicroPythonDevicesConfiguration.getInstance(module.project).autoDetectDevicePath = value
     }
 
+  var boardConnectionDelay: Float
+    get() = MicroPythonDevicesConfiguration.getInstance(module.project).boardConnectionDelay
+    set(value) {
+      MicroPythonDevicesConfiguration.getInstance(module.project).boardConnectionDelay = value
+    }
+
   fun getOrDetectDevicePathSynchronously(): String? =
       if (autoDetectDevicePath)
         detectDevicePathSynchronously(configuration.deviceProvider)
