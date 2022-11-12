@@ -21,31 +21,38 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.components.CheckBox
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
 
 class MicroPythonRunConfigurationEditor(config: MicroPythonRunConfiguration) : SettingsEditor<MicroPythonRunConfiguration>() {
   private val pathField = TextFieldWithBrowseButton()
+  private val runReplOnSuccess = CheckBox("Open MicroPython REPL on success", selected = true)
 
   init {
     val descriptor = FileChooserDescriptor(true, true, false, false, false, false)
-    val listener = ComponentWithBrowseButton.BrowseFolderActionListener("Select Path", "",
-                                                                        pathField,
-                                                                        config.project, descriptor,
-                                                                        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
+    val listener = ComponentWithBrowseButton.BrowseFolderActionListener(
+        "Select Path", "",
+        pathField,
+        config.project, descriptor,
+        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+    )
     pathField.addActionListener(listener)
   }
 
   override fun createEditor(): JComponent =
       FormBuilder.createFormBuilder()
           .addLabeledComponent("Path:", pathField)
+          .addComponent(runReplOnSuccess)
           .panel
 
   override fun applyEditorTo(s: MicroPythonRunConfiguration) {
     s.path = pathField.text
+    s.runReplOnSuccess = runReplOnSuccess.isSelected
   }
 
   override fun resetEditorFrom(s: MicroPythonRunConfiguration) {
     pathField.text = s.path
+    runReplOnSuccess.isSelected = s.runReplOnSuccess
   }
 }

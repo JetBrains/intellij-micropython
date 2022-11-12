@@ -41,6 +41,8 @@
                          id="com.jetbrains.micropython.configurable"
                          provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
     <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
+    <moduleService serviceImplementation="com.jetbrains.micropython.repl.MicroPythonReplManager"/>
+    <stepsBeforeRunProvider implementation="com.jetbrains.micropython.repl.StopReplBeforeRunTaskProvider"/>
     <localInspection language="Python"
                      displayName="MicroPython requirements inspection"
                      groupName="MicroPython"
@@ -56,11 +58,22 @@
     <deviceProvider implementation="com.jetbrains.micropython.devices.RPiPicoDeviceProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <facet.toolWindow id="MicroPython" anchor="bottom" factoryClass="com.jetbrains.micropython.ui.MicroPythonToolWindowFactory"
+                      secondary="false" icon="/icons/micropython_tw.svg"
+                      facetIdList="MicroPython"/>
+  </extensions>
+
   <actions>
     <group text="MicroPython" id="micropython" popup="true" icon="/icons/micropython.svg">
       <add-to-group group-id="ToolsMenu"/>
       <action class="com.jetbrains.micropython.actions.RunMicroReplAction" id="RunMicroReplAction"
-              text="MicroPython REPL" description="Run MicroPython REPL in Terminal" icon="AllIcons.Actions.Run_anything"/>
+              text="MicroPython REPL"
+              description="Run MicroPython REPL in a tool window"
+              icon="AllIcons.Actions.Run_anything">
+        <keyboard-shortcut first-keystroke="control shift R" keymap="Mac OS X 10.5+" />
+        <keyboard-shortcut first-keystroke="alt shift R" keymap="$default" />
+      </action>
       <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"
               text="Remove All Files from MicroPython Device"/>
     </group>

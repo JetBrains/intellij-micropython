@@ -134,6 +134,12 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
       MicroPythonDevicesConfiguration.getInstance(module.project).autoDetectDevicePath = value
     }
 
+  var clearReplOnLaunch: Boolean
+    get() = MicroPythonDevicesConfiguration.getInstance(module.project).clearReplOnLaunch
+    set(value) {
+      MicroPythonDevicesConfiguration.getInstance(module.project).clearReplOnLaunch = value
+    }
+
   fun getOrDetectDevicePathSynchronously(): String? =
       if (autoDetectDevicePath)
         detectDevicePathSynchronously(configuration.deviceProvider)
