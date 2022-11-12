@@ -27,10 +27,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
         deviceCommsManager.addListener(this)
     }
 
-    private fun connectWidgetTty(
-            terminalWidget: ShellTerminalWidget,
-            connector: TtyConnector
-    ) {
+    private fun connectWidgetTty(terminalWidget: ShellTerminalWidget, connector: TtyConnector) {
         if (terminalWidget.isSessionRunning) {
             terminalWidget.stop()
         }
@@ -55,6 +52,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
         val toolbarActions = DefaultActionGroup().apply {
             add(replStartAction())
             add(replStopAction())
+            add(clearReplOnLaunch())
         }
         val actionToolbar = actionManager.createActionToolbar("MicroPythonREPL", toolbarActions, false)
 
@@ -95,6 +93,21 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
                 }
             }
         }
+
+    private fun clearReplOnLaunch() = object : ToggleAction("Clear Window On Start",
+            "Clear REPL window on every start", AllIcons.Actions.GC) {
+        override fun isSelected(e: AnActionEvent): Boolean {
+            return deviceConfiguration.clearReplOnLaunch
+        }
+
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+            deviceConfiguration.clearReplOnLaunch = state
+        }
+
+        override fun getActionUpdateThread(): ActionUpdateThread {
+            return ActionUpdateThread.EDT
+        }
+    }
 
     override fun dispose() {
         deviceCommsManager.removeListener(this)

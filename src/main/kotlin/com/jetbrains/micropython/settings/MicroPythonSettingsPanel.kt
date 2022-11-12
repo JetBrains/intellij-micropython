@@ -54,7 +54,6 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
       update()
     }
   }
-  private val clearReplOnLaunch = CheckBox("Clear REPL window each time it starts")
 
   private val devicePathPanel: JPanel by lazy {
     FormBuilder.createFormBuilder()
@@ -77,7 +76,6 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
         .addLabeledComponent("Device type:", deviceTypeCombo)
         .addComponent(autoDetectDevicePath)
         .addComponent(devicePathPanel)
-        .addComponent(clearReplOnLaunch)
         .addComponent(docsHyperlink)
         .panel
 
@@ -111,7 +109,6 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
       deviceTypeCombo.selectedItem != configuration.deviceProvider
           || devicePath.text.nullize(true) != facet.devicePath
           || autoDetectDevicePath.isSelected != facet.autoDetectDevicePath
-          || clearReplOnLaunch.isSelected != facet.clearReplOnLaunch
 
   fun getDisplayName(): String = "MicroPython"
 
@@ -119,14 +116,12 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
     configuration.deviceProvider = selectedProvider
     facet.devicePath = devicePath.text.nullize(true)
     facet.autoDetectDevicePath = autoDetectDevicePath.isSelected
-    facet.clearReplOnLaunch = clearReplOnLaunch.isSelected
   }
 
   fun reset(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     deviceTypeCombo.selectedItem = configuration.deviceProvider
     devicePath.text = facet.devicePath ?: ""
     autoDetectDevicePath.isSelected = facet.autoDetectDevicePath
-    clearReplOnLaunch.isSelected = facet.clearReplOnLaunch
     update()
   }
 
