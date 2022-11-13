@@ -7,7 +7,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.modules
 import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
@@ -80,17 +79,18 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
     }
 
     private fun replStartAction() =
-        object : AnAction("Start", "Start REPL session", AllIcons.Actions.Execute), DumbAware {
+        object : AnAction("Restart", "Restart REPL session", AllIcons.Actions.Restart), DumbAware {
             override fun update(e: AnActionEvent) {
-                e.presentation.isEnabled = !deviceCommsManager.isRunning
+                e.presentation.isEnabled = true
             }
 
             override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
             override fun actionPerformed(e: AnActionEvent) {
-                if (!terminalWidget.isSessionRunning) {
-                    deviceCommsManager.startREPL()
+                if (terminalWidget.isSessionRunning) {
+                    deviceCommsManager.stopREPL()
                 }
+                deviceCommsManager.startREPL()
             }
         }
 
