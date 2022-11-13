@@ -47,7 +47,7 @@ class StopReplBeforeRunTaskProvider : BeforeRunTaskProvider<StopReplBeforeRunTas
             ApplicationManager.getApplication().invokeLater {
                 configuration.module?.let {
                     ApplicationManager.getApplication().runWriteAction {
-                        MicroPythonReplManager.getInstance().stopREPL()
+                        MicroPythonReplManager.getInstance(it).stopREPL()
                     }
                 }
             }
