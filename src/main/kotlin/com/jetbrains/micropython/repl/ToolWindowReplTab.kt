@@ -115,7 +115,8 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
 
     override fun onProcessStarted(ttyConnector: TtyConnector) {
         if (deviceConfiguration.clearReplOnLaunch) {
-            terminalWidget.currentSession.terminal.clearScreen()
+            terminalWidget.currentSession.terminalTextBuffer.clearHistory()
+            terminalWidget.currentSession.terminal.reset()
         } else {
             terminalWidget.currentSession.terminal.nextLine()
         }
