@@ -24,7 +24,7 @@ class MicroPythonDevicesConfiguration : PersistentStateComponent<MicroPythonDevi
 
   @Attribute var autoDetectDevicePath: Boolean = true
 
-  @Attribute var clearReplOnLaunch: Boolean = false
+  @Attribute var clearReplOnLaunch: Boolean = true
 
   override fun getState() = this
 
