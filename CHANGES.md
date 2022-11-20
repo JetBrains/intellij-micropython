@@ -1,6 +1,18 @@
 The Changelog
 =============
 
+1.4.0 - 2022-11-21
+------------------
+
+### Added
+
+* MicroPython REPL running in a dedicated tool window 
+  ([#139](https://github.com/JetBrains/intellij-micropython/pull/139))
+  (Thanks to [@lensvol](https://github.com/lensvol))
+* Support for the Micro:bit V2 device type
+  ([#186](https://github.com/JetBrains/intellij-micropython/pull/186))
+
+
 1.3.3 — 2022-09-23
 ------------------
 

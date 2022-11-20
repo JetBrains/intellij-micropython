@@ -56,9 +56,10 @@ See also [the changelog](CHANGES.md) for the plugin.
       ![Run](media/run.png)
 
 * MicroPython REPL
-    * Use <em>"Tools | MicroPython | MicroPython REPL"</em> menu to run a MicroPython shell on your device
+    * Use <em>"Tools | MicroPython | MicroPython REPL"</em> menu to run a MicroPython shell on your device. Or open 
+  MicroPython REPL tool window directly
 
-      ![REPL](media/repl.png)
+      ![REPL](media/repl_toolwindow.png)
 
 
 ## Requirements
