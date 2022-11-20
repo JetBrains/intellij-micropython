@@ -12,6 +12,10 @@ The Changelog
 * Support for the Micro:bit V2 device type
   ([#186](https://github.com/JetBrains/intellij-micropython/pull/186))
 
+### Changed
+
+* Compatibility with 2021.3-2022.3
+
 
 1.3.3 — 2022-09-23
 ------------------
