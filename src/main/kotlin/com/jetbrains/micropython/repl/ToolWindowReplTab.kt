@@ -54,6 +54,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
             add(clearReplOnLaunch())
         }
         val actionToolbar = actionManager.createActionToolbar("MicroPythonREPL", toolbarActions, false)
+        actionToolbar.targetComponent = terminalWidget.component
 
         return JPanel().apply {
             layout = BorderLayout()
