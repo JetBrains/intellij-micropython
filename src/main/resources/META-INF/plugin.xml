@@ -54,6 +54,7 @@
     <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.MicroBitV2DeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.Esp8266DeviceProvider"/>
+    <deviceProvider implementation="com.jetbrains.micropython.devices.Esp32DeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.PyboardDeviceProvider"/>
     <deviceProvider implementation="com.jetbrains.micropython.devices.RPiPicoDeviceProvider"/>
   </extensions>
