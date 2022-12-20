@@ -1,17 +1,18 @@
 from machine import Pin
 from typing import Optional
+from typing import Final
 
 HEAP_DATA: Final[int] = ...
-    """Used in ``idf_heap_info``."""
+"""Used in ``idf_heap_info``."""
 
 HEAP_EXEC: Final[int] = ...
-    """Used in ``idf_heap_info``."""
+"""Used in ``idf_heap_info``."""
 
 WAKEUP_ALL_LOW: Final[int] = ...
-    """Selects the wake level for pins."""
+"""Selects the wake level for pins."""
 
 WAKEUP_ANY_HIGH: Final[int] = ...
-    """Selects the wake level for pins."""
+"""Selects the wake level for pins."""
 
 def wake_on_touch(wake: bool):
     """
@@ -77,22 +78,22 @@ class Partition:
     """
 
     BOOT: Final[str] = ...
-        """Used in ``Partition`` constructor - The partition that will be booted at the next reset."""
+    """Used in ``Partition`` constructor - The partition that will be booted at the next reset."""
 
     RUNNING: Final[str] = ...
-        """Used in ``Partition`` constructor - The currently running partition."""
+    """Used in ``Partition`` constructor - The currently running partition."""
 
     TYPE_APP: Final[int] = ...
-        """
-        Used in ``Partition.find``
-        - for bootable firmware partitions (typically labelled ``factory``, ``ota_0``, ``ota_1``)
-        """
+    """
+    Used in ``Partition.find``
+    - for bootable firmware partitions (typically labelled ``factory``, ``ota_0``, ``ota_1``)
+    """
 
     TYPE_DATA: Final[int] = ...
-        """
-        Used in Partition.find
-        - for other partitions, e.g. ``nvs``, ``otadata``, ``phy_init``, ``vfs``.
-        """
+    """
+    Used in Partition.find
+    - for other partitions, e.g. ``nvs``, ``otadata``, ``phy_init``, ``vfs``.
+    """
 
     def __init__(self, id: str, block_size=4096, /):
         """
@@ -104,7 +105,7 @@ class Partition:
         """
 
     @classmethod
-    def find(type=TYPE_APP, subtype=0xff, label=None, block_size=4096) -> list:
+    def find(self, type=TYPE_APP, subtype=0xff, label=None, block_size=4096) -> list:
         """
         Find a partition specified by type, subtype and label.
 
@@ -114,26 +115,26 @@ class Partition:
         :return: A (possibly empty) list of Partition objects.
         """
 
-    def info() -> tuple:
+    def info(self) -> tuple:
         """
         :return: A 6-tuple ``(type, subtype, addr, size, label, encrypted)``.
         """
 
-    def readblocks(block_num, buf):
+    def readblocks(self, block_num, buf):
 
-    def readblocks(block_num, buf, offset):
+    def readblocks(self, block_num, buf, offset):
 
-    def writeblocks(block_num, buf):
+    def writeblocks(self, block_num, buf):
 
-    def writeblocks(block_num, buf, offset):
+    def writeblocks(self, block_num, buf, offset):
 
-    def ioctl(cmd, arg):
+    def ioctl(self, cmd, arg):
         """These methods implement the simple and extended block protocol defined by ``os.AbstractBlockDev``."""
 
-    def set_boot():
+    def set_boot(self):
         """Sets the partition as the boot partition."""
 
-    def get_next_update():
+    def get_next_update(self):
         """
         Gets the next update partition after this one, and returns a new Partition object.
 
@@ -142,7 +143,7 @@ class Partition:
         :return: The next partition to update given the current running one.
         """
 
-    def mark_app_valid_cancel_rollback():
+    def mark_app_valid_cancel_rollback(self):
         """
         Signals that the current boot is considered successful. Calling ``mark_app_valid_cancel_rollback`` is required
         on the first boot of a new partition to avoid an automatic rollback at the next boot. This uses the
@@ -171,18 +172,18 @@ class RMT:
         frequency, duty percent (0 to 100) and the output level to apply the carrier to (a boolean as per idle_level).
         """
 
-    def source_freq():
+    def source_freq(self):
         """
         :return: The source clock frequency. Currently the source clock is not configurable so this will always
         return 80MHz.
         """
 
-    def clock_div():
+    def clock_div(self):
         """
         :return: The clock divider. Note that the channel resolution is ``1 / (source_freq / clock_div)``.
         """
 
-    def wait_done(*, timeout=0):
+    def wait_done(self, *, timeout=0):
         """
         If the timeout keyword argument is given then block for up to this many milliseconds for transmission to
         complete.
@@ -191,7 +192,7 @@ class RMT:
         is being transmitted.
         """
 
-    def loop(enable_loop: bool):
+    def loop(self, enable_loop: bool):
         """
         Configure looping on the channel.
 
@@ -200,7 +201,7 @@ class RMT:
         completed and then transmission will stop.
         """
 
-    def write_pulses(duration, data=True):
+    def write_pulses(self, duration, data=True):
         """
         Begin transmitting a sequence. There are three ways to specify this:
 
@@ -240,13 +241,13 @@ class RMT:
 class ULP:
     """This class provides access to the Ultra-Low-Power co-processor."""
 
-    def set_wakeup_period(period_index: int, period_us):
+    def set_wakeup_period(self, period_index: int, period_us):
         """Set the wake-up period."""
 
-    def load_binary(load_addr, program_binary):
+    def load_binary(self, load_addr, program_binary):
         """Load a program_binary into the ULP at the given load_addr."""
 
-    def run(entry_point):
+    def run(self, entry_point):
         """Start the ULP running at the given entry_point."""
 
 class NVS:
@@ -259,31 +260,31 @@ class NVS:
     def __init__(self, namespace: str):
         """Create an object providing access to a namespace (which is automatically created if not present)."""
 
-    def set_i32(key, value):
+    def set_i32(self, key, value):
         """Sets a 32-bit signed integer value for the specified key. Remember to call commit!"""
 
-    def get_i32(key):
+    def get_i32(self, key):
         """
         Returns the signed integer value for the specified key. Raises an OSError if the key does not exist or has
         a different type.
         """
 
-    def set_blob(key, value):
+    def set_blob(self, key, value):
         """
         Sets a binary blob value for the specified key. The value passed in must support the buffer protocol,
         e.g. bytes, bytearray, str. (Note that esp-idf distinguishes blobs and strings, this method always writes a
         blob even if a string is passed in as value.) Remember to call commit!
         """
 
-    def get_blob(key, buffer):
+    def get_blob(self, key, buffer):
         """
         Reads the value of the blob for the specified key into the buffer, which must be a bytearray.
         Returns the actual length read. Raises an OSError if the key does not exist, has a different type, or if the
         buffer is too small.
         """
 
-    def erase_key(key):
+    def erase_key(self, key):
         """Erases a key-value pair."""
 
-    def commit():
+    def commit(self):
         """Commits changes made by set_xxx methods to flash."""
