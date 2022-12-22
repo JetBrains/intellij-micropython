@@ -31,8 +31,10 @@ For example::
     s.close()
 """
 
-from typing import overload, Optional, List, Tuple, Union, Any
+from typing import overload, Optional, List, Tuple, Union, Any, Final
 
+STA_IF: Final[int] = ...
+AP_IF: Final[int] = ...
 
 @overload
 def phy_mode() -> int:
