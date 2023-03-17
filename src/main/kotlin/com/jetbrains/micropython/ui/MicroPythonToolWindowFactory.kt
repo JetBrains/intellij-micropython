@@ -11,7 +11,7 @@ import com.jetbrains.micropython.settings.firstMicroPythonFacet
 
 class MicroPythonToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val contentFactory = ContentFactory.SERVICE.getInstance()
+        val contentFactory = ContentFactory.getInstance()
         val terminalContent = contentFactory.createContent(null, "REPL", false)
 
         project.firstMicroPythonFacet?.let {
