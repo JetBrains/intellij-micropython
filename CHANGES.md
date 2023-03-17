@@ -1,6 +1,15 @@
 The Changelog
 =============
 
+1.4.1 - 2023-03-17
+------------------
+
+### Added
+
+* Type Hints for ESP32 added
+  ([#218](https://github.com/JetBrains/intellij-micropython/pull/218))
+  (Thanks to [@MrNavaStar](https://github.com/MrNavaStar))
+
 1.4.0 - 2022-11-21
 ------------------
 
