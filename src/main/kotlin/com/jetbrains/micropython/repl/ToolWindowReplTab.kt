@@ -116,10 +116,10 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
 
     override fun onProcessStarted(ttyConnector: TtyConnector) {
         if (deviceConfiguration.clearReplOnLaunch) {
-            terminalWidget.currentSession.terminalTextBuffer.clearHistory()
-            terminalWidget.currentSession.terminal.reset()
+            terminalWidget.terminalTextBuffer.clearHistory()
+            terminalWidget.terminal.reset()
         } else {
-            terminalWidget.currentSession.terminal.nextLine()
+            terminalWidget.terminal.nextLine()
         }
         connectWidgetTty(terminalWidget, ttyConnector)
         terminalWidget.isEnabled = true
@@ -128,13 +128,13 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : CommsEventList
     override fun onProcessDestroyed() {
         terminalWidget.stop()
 
-        terminalWidget.currentSession.terminal.nextLine()
-        terminalWidget.currentSession.terminal.writeCharacters("=== SESSION HAS BEEN INTERRUPTED ===")
-        terminalWidget.currentSession.terminal.nextLine()
+        terminalWidget.terminal.nextLine()
+        terminalWidget.terminal.writeCharacters("=== SESSION HAS BEEN INTERRUPTED ===")
+        terminalWidget.terminal.nextLine()
     }
 
     override fun onProcessCreationFailed(reason: String) {
         terminalWidget.terminal.nextLine()
-        terminalWidget.currentSession.terminal.writeCharacters(reason)
+        terminalWidget.terminal.writeCharacters(reason)
     }
 }

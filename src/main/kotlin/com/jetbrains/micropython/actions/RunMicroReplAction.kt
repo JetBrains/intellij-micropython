@@ -32,7 +32,7 @@ class RunMicroReplAction : MicroPythonAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val editor = FileEditorManagerEx.getInstance(project).selectedTextEditor ?: return
+    val editor = FileEditorManagerEx.getInstanceEx(project).selectedTextEditor ?: return
 
     /*
     Here we make best effort to find out module which is relevant to the current event.

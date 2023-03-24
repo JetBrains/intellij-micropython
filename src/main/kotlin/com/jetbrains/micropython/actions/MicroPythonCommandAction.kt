@@ -16,12 +16,11 @@
 
 package com.jetbrains.micropython.actions
 
-import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
-import org.jetbrains.plugins.terminal.TerminalView
+import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 
 /**
  * @author vlan
@@ -31,8 +30,7 @@ abstract class MicroPythonCommandAction : MicroPythonAction() {
     val project = e.project ?: return
     val facet = project.firstMicroPythonFacet ?: return
     val command = getCommand(facet) ?: return
-
-    TerminalView.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
+    TerminalToolWindowManager.getInstance(project).createNewSession(object : LocalTerminalDirectRunner(project) {
       override fun getInitialCommand(envs: Map<String, String>): List<String> = command
     })
   }

@@ -16,6 +16,7 @@
 
 package com.jetbrains.micropython.actions
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.jetbrains.micropython.settings.MicroPythonFacet
 
 /**
@@ -27,4 +28,6 @@ class RemoveAllFilesFromDeviceAction : MicroPythonCommandAction() {
     val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return null
     return listOf(pythonPath, "${MicroPythonFacet.scriptsPath}/microcleanfs.py", devicePath)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
