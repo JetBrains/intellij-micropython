@@ -20,7 +20,7 @@ class RPiPicoDeviceProvider : MicroPythonDeviceProvider {
     get() = "Raspberry Pi Pico"
 
   override val documentationURL: String
-    get() = "https://www.raspberrypi.org/documentation/pico/getting-started/"
+    get() = "https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html"
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0x2E8A, 0x05))
