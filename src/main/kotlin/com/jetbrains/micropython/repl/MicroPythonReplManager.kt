@@ -7,7 +7,7 @@ import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.microPythonFacet
 import com.pty4j.PtyProcess
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
-import org.jetbrains.plugins.terminal.TerminalProcessOptions
+import org.jetbrains.plugins.terminal.ShellStartupOptions
 
 interface CommsEventListener {
     fun onProcessStarted(ttyConnector: TtyConnector)
@@ -45,13 +45,15 @@ class MicroPythonReplManager(module: Module) {
             return
         }
 
+        val initialShellCommand = mutableListOf(
+            facet.pythonPath!!,
+            "${MicroPythonFacet.scriptsPath}/microrepl.py",
+            devicePath
+        )
+
         val terminalRunner = object : LocalTerminalDirectRunner(currentModule.project) {
             override fun getInitialCommand(envs: MutableMap<String, String>): MutableList<String> {
-                return mutableListOf(
-                        facet.pythonPath!!,
-                        "${MicroPythonFacet.scriptsPath}/microrepl.py",
-                        devicePath
-                )
+                return initialShellCommand
             }
 
             fun getTtyConnector(process: PtyProcess): TtyConnector {
@@ -60,8 +62,11 @@ class MicroPythonReplManager(module: Module) {
         }
 
         synchronized(this) {
-            val terminalOptions = TerminalProcessOptions(null, null, null)
-            val process = terminalRunner.createProcess(terminalOptions, null)
+            val terminalOptions = ShellStartupOptions.Builder()
+                .workingDirectory(devicePath)
+                .shellCommand(initialShellCommand)
+                .build()
+            val process = terminalRunner.createProcess(terminalOptions)
             val ttyConnector = terminalRunner.getTtyConnector(process)
 
             currentProcess = process
