@@ -23,9 +23,12 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/ESP8266"
 
   override val usbIds: List<MicroPythonUsbId>
-    get() = listOf(MicroPythonUsbId(0x1A86, 0x7523),
-                   MicroPythonUsbId(0x10C4, 0xEA60),
-                   MicroPythonUsbId(0x0403, 0x6001))
+    get() = listOf(
+      MicroPythonUsbId(0x1A86, 0x7523),
+      MicroPythonUsbId(0x10C4, 0xEA60),
+      MicroPythonUsbId(0x0403, 0x6001),
+      MicroPythonUsbId(0x239A, 0x8038),  // Metro M4 Airlift Lite
+    )
 
   override val typeHints: MicroPythonTypeHints by lazy {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "esp8266"))
