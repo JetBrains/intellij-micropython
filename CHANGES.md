@@ -1,6 +1,18 @@
 The Changelog
 =============
 
+1.4.2 - 2023-10-11
+------------------
+
+### Fixed
+
+* Metro M4 Airlift Lite support added
+  ([#254](https://github.com/JetBrains/intellij-micropython/pull/254))
+  (Thanks to [@PierreDeQuebec](https://github.com/PierreDeQuebec))
+* Compatibility issue in REPL support is fixed
+  ([#253](https://github.com/JetBrains/intellij-micropython/pull/253))
+  (Thanks to [@lancelote](https://github.com/lancelote))
+
 1.4.1 - 2023-03-17
 ------------------
 
