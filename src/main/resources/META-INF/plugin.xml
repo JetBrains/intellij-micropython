@@ -1,8 +1,8 @@
-<idea-plugin url="https://github.com/vlasovskikh/intellij-micropython">
+<idea-plugin url="https://github.com/JetBrains/intellij-micropython">
   <name>MicroPython</name>
   <id>intellij-micropython</id>
   <change-notes><![CDATA[
-      <p>See <a href="https://github.com/vlasovskikh/intellij-micropython/blob/master/CHANGES.md">CHANGES.md</a> on GitHub.</p>
+      <p>See <a href="https://github.com/JetBrains/intellij-micropython/blob/master/CHANGES.md">CHANGES.md</a> on GitHub.</p>
     ]]></change-notes>
   <description><![CDATA[
       <p>Support for MicroPython devices in PyCharm and IntelliJ.</p>
@@ -16,7 +16,7 @@
       </ul>
       <br/>
       <p>Currently the plugin supports ESP8266, Pyboard, Micro:bit, and Raspberry Pi Pico devices. Your feedback and contributions
-        are welcome! See <a href="https://github.com/vlasovskikh/intellij-micropython">the project page</a> on GitHub.</p>
+        are welcome! See <a href="https://github.com/JetBrains/intellij-micropython">the project page</a> on GitHub.</p>
     ]]></description>
   <version>SNAPSHOT</version>
   <vendor>JetBrains</vendor>
