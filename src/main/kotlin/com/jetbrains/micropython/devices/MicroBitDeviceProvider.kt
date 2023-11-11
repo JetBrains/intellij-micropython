@@ -36,7 +36,7 @@ open class MicroBitDeviceProvider : MicroPythonDeviceProvider {
     get() = "Micro:bit"
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro:bit"
+    get() = "https://github.com/JetBrains/intellij-micropython/wiki/BBC-Micro:bit"
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0x0D28, 0x0204))

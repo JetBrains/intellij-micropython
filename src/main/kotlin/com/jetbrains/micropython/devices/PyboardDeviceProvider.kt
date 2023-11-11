@@ -36,7 +36,7 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
     get() = "Pyboard"
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard"
+    get() = "https://github.com/JetBrains/intellij-micropython/wiki/Pyboard"
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(MicroPythonUsbId(0xF055, 0x9800))
