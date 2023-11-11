@@ -38,8 +38,7 @@ class PyboardDeviceProvider : MicroPythonDeviceProvider {
   override val documentationURL: String
     get() = "https://github.com/JetBrains/intellij-micropython/wiki/Pyboard"
 
-  override val usbIds: List<MicroPythonUsbId>
-    get() = listOf(MicroPythonUsbId(0xF055, 0x9800))
+  override fun checkUsbId(usbId: MicroPythonUsbId): Boolean = usbId == MicroPythonUsbId(0xF055, 0x9800)
 
   override val typeHints: MicroPythonTypeHints by lazy {
     MicroPythonTypeHints(listOf("stdlib", "micropython", "pyboard"))

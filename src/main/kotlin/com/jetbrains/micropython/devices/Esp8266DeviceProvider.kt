@@ -22,7 +22,9 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
   override val documentationURL: String
     get() = "https://github.com/JetBrains/intellij-micropython/wiki/ESP8266"
 
-  override val usbIds: List<MicroPythonUsbId>
+  override fun checkUsbId(usbId: MicroPythonUsbId): Boolean = usbIds.contains(usbId)
+
+  val usbIds: List<MicroPythonUsbId>
     get() = listOf(
       MicroPythonUsbId(0x1A86, 0x7523),
       MicroPythonUsbId(0x10C4, 0xEA60),

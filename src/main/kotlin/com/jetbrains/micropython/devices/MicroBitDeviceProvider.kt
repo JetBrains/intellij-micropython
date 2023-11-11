@@ -38,8 +38,7 @@ open class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val documentationURL: String
     get() = "https://github.com/JetBrains/intellij-micropython/wiki/BBC-Micro:bit"
 
-  override val usbIds: List<MicroPythonUsbId>
-    get() = listOf(MicroPythonUsbId(0x0D28, 0x0204))
+  override fun checkUsbId(usbId: MicroPythonUsbId): Boolean = usbId == MicroPythonUsbId(0x0D28, 0x0204)
 
   override fun getPackageRequirements(sdk: Sdk): List<PyRequirement> {
     val manager = PyPackageManager.getInstance(sdk)

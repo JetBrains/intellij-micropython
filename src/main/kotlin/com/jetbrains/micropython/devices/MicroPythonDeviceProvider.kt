@@ -43,9 +43,7 @@ interface MicroPythonDeviceProvider {
   val persistentName: String
 
   val documentationURL: String
-
-  val usbIds: List<MicroPythonUsbId>
-    get() = emptyList()
+  fun checkUsbId(usbId: MicroPythonUsbId): Boolean
 
   val presentableName: String
     get() = persistentName
