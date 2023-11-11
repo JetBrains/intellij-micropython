@@ -14,9 +14,9 @@ The Python code development plugin for [MicroPython](http://micropython.org/) de
 
 The plugin supports Python development for these devices:
 
-* [ESP8266](https://github.com/vlasovskikh/intellij-micropython/wiki/ESP8266)
-* [PyBoard](https://github.com/vlasovskikh/intellij-micropython/wiki/Pyboard)
-* [BBC Micro:bit](https://github.com/vlasovskikh/intellij-micropython/wiki/BBC-Micro%3Abit)
+* [ESP8266](https://github.com/JetBrains/intellij-micropython/wiki/ESP8266)
+* [PyBoard](https://github.com/JetBrains/intellij-micropython/wiki/Pyboard)
+* [BBC Micro:bit](https://github.com/JetBrains/intellij-micropython/wiki/BBC-Micro%3Abit)
 * [Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
 
 It will support more MicroPython devices and more device-specific and MicroPython-specific modules eventually. We are

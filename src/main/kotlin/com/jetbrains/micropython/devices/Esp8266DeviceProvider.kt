@@ -20,7 +20,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     get() = "ESP8266"
 
   override val documentationURL: String
-    get() = "https://github.com/vlasovskikh/intellij-micropython/wiki/ESP8266"
+    get() = "https://github.com/JetBrains/intellij-micropython/wiki/ESP8266"
 
   override val usbIds: List<MicroPythonUsbId>
     get() = listOf(
