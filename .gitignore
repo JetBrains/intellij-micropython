@@ -1,5 +1,6 @@
 *.iml
 .idea/
+!/.idea/runConfigurations/
 .gradle/
 build/
 venv/
