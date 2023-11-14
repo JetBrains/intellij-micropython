@@ -28,7 +28,7 @@ intellij {
 }
 
 tasks {
-    register<Copy>("copyStubs") {
+    val copyStubs = register<Copy>("copyStubs") {
         dependsOn("prepareSandbox")
         from(projectDir) {
             include("typehints/")
@@ -36,11 +36,14 @@ tasks {
         }
         into("${intellij.sandboxDir.get()}/plugins/intellij-micropython")
     }
+    buildSearchableOptions {
+        dependsOn(copyStubs)
+    }
     buildPlugin {
-        dependsOn("copyStubs")
+        dependsOn(copyStubs)
     }
     runIde {
-        dependsOn("copyStubs")
+        dependsOn(copyStubs)
     }
     publishPlugin {
         token.set(config("publishToken"))
