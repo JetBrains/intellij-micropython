@@ -102,7 +102,8 @@ The steps for setting up the development environment:
 1. Check out this project from GitHub
 2. Create a new project from existing sources in IntelliJ
 
-To just run the development version use `./gradlew clean runIde` from the command line.
+To just run the development version use `./gradlew clean runIde` from the command line
+or just run **runIde** [run configuration](https://www.jetbrains.com/help/idea/run-debug-configuration.html).
 
 Contributions are welcome!
 
