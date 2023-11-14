@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 fun config(name: String) = project.findProperty(name).toString()
 
 val ideaVersion = config("ideaVersion")
@@ -7,8 +11,13 @@ repositories {
 }
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.20"
     id("org.jetbrains.intellij") version "1.15.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 intellij {
@@ -28,6 +37,14 @@ intellij {
 }
 
 tasks {
+    withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+            languageVersion = KotlinVersion.DEFAULT
+            // see https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
+            apiVersion = KotlinVersion.KOTLIN_1_8
+        }
+    }
     val copyStubs = register<Copy>("copyStubs") {
         dependsOn("prepareSandbox")
         from(projectDir) {
