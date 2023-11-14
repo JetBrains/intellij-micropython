@@ -12,10 +12,10 @@ plugins {
 }
 
 intellij {
-    version.set(ideaVersion)
-    pluginName.set("intellij-micropython")
-    updateSinceUntilBuild.set(false)
-    instrumentCode.set(false)
+    version = ideaVersion
+    pluginName = "intellij-micropython"
+    updateSinceUntilBuild = false
+    instrumentCode = false
     plugins.add("terminal")
 
     if (ideaVersion.contains("PC")) {
@@ -46,6 +46,6 @@ tasks {
         dependsOn(copyStubs)
     }
     publishPlugin {
-        token.set(config("publishToken"))
+        token = config("publishToken")
     }
 }
