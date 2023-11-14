@@ -39,6 +39,7 @@
     <runConfigurationProducer implementation="com.jetbrains.micropython.run.MicroPythonRunConfigurationProducer"/>
     <projectConfigurable groupId="language"
                          id="com.jetbrains.micropython.configurable"
+                         displayName="MicroPython"
                          provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
     <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
     <moduleService serviceImplementation="com.jetbrains.micropython.repl.MicroPythonReplManager"/>
