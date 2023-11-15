@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 fun config(name: String) = project.findProperty(name).toString()
 
 val ideaVersion = config("ideaVersion")
@@ -7,15 +11,20 @@ repositories {
 }
 
 plugins {
-    kotlin("jvm") version "1.7.10"
-    id("org.jetbrains.intellij") version "1.13.2"
+    kotlin("jvm") version "1.9.20"
+    id("org.jetbrains.intellij") version "1.16.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 intellij {
-    version.set(ideaVersion)
-    pluginName.set("intellij-micropython")
-    updateSinceUntilBuild.set(false)
-    instrumentCode.set(false)
+    version = ideaVersion
+    pluginName = "intellij-micropython"
+    updateSinceUntilBuild = false
+    instrumentCode = false
     plugins.add("terminal")
 
     if (ideaVersion.contains("PC")) {
@@ -28,7 +37,15 @@ intellij {
 }
 
 tasks {
-    register<Copy>("copyStubs") {
+    withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+            languageVersion = KotlinVersion.DEFAULT
+            // see https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
+            apiVersion = KotlinVersion.KOTLIN_1_8
+        }
+    }
+    val copyStubs = register<Copy>("copyStubs") {
         dependsOn("prepareSandbox")
         from(projectDir) {
             include("typehints/")
@@ -36,13 +53,16 @@ tasks {
         }
         into("${intellij.sandboxDir.get()}/plugins/intellij-micropython")
     }
+    buildSearchableOptions {
+        dependsOn(copyStubs)
+    }
     buildPlugin {
-        dependsOn("copyStubs")
+        dependsOn(copyStubs)
     }
     runIde {
-        dependsOn("copyStubs")
+        dependsOn(copyStubs)
     }
     publishPlugin {
-        token.set(config("publishToken"))
+        token = config("publishToken")
     }
 }
