@@ -2,9 +2,11 @@ package com.jetbrains.micropython.repl
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.microPythonFacet
+import com.jetbrains.python.sdk.baseDir
 import com.pty4j.PtyProcess
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
 import org.jetbrains.plugins.terminal.ShellStartupOptions
@@ -15,9 +17,7 @@ interface CommsEventListener {
     fun onProcessCreationFailed(reason: String)
 }
 
-@Service
-class MicroPythonReplManager(module: Module) {
-    private val currentModule: Module = module
+class MicroPythonReplManager(private val module: Module) {
     private var listeners: MutableList<CommsEventListener> = mutableListOf()
     private var currentProcess: Process? = null
     private var currentConnector: TtyConnector? = null
@@ -32,7 +32,7 @@ class MicroPythonReplManager(module: Module) {
             stopREPL()
         }
 
-        val facet = currentModule.microPythonFacet ?: return
+        val facet = module.microPythonFacet ?: return
         val devicePath = facet.getOrDetectDevicePathSynchronously()
 
         if (facet.pythonPath == null) {
@@ -51,7 +51,7 @@ class MicroPythonReplManager(module: Module) {
             devicePath
         )
 
-        val terminalRunner = object : LocalTerminalDirectRunner(currentModule.project) {
+        val terminalRunner = object : LocalTerminalDirectRunner(module.project) {
             override fun getInitialCommand(envs: MutableMap<String, String>): MutableList<String> {
                 return initialShellCommand
             }
@@ -63,7 +63,7 @@ class MicroPythonReplManager(module: Module) {
 
         synchronized(this) {
             val terminalOptions = ShellStartupOptions.Builder()
-                .workingDirectory(devicePath)
+                .workingDirectory(ModuleUtil.getModuleDirPath(module))
                 .shellCommand(initialShellCommand)
                 .build()
             val process = terminalRunner.createProcess(terminalOptions)
