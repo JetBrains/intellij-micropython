@@ -40,7 +40,7 @@
     <projectConfigurable groupId="language"
                          id="com.jetbrains.micropython.configurable"
                          displayName="MicroPython"
-                         provider="com.jetbrains.micropython.settings.MicroPythonConfigurableProvider"/>
+                         instance="com.jetbrains.micropython.settings.MicroPythonProjectConfigurable"/>
     <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
     <moduleService serviceImplementation="com.jetbrains.micropython.repl.MicroPythonReplManager"/>
     <stepsBeforeRunProvider implementation="com.jetbrains.micropython.repl.StopReplBeforeRunTaskProvider"/>
