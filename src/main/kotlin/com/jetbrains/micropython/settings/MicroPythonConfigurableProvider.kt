@@ -18,13 +18,11 @@ package com.jetbrains.micropython.settings
 
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.Project
-import com.intellij.util.PlatformUtils
 
 /**
  * @author vlan
  */
 class MicroPythonConfigurableProvider(val project: Project) : ConfigurableProvider() {
-  override fun createConfigurable() = MicroPythonProjectConfigurable(project)
+    override fun createConfigurable() = MicroPythonProjectConfigurable(project)
 
-  override fun canCreateConfigurable() = PlatformUtils.isPyCharm()
 }

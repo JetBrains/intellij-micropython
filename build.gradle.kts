@@ -27,13 +27,7 @@ intellij {
     instrumentCode = false
     plugins.add("terminal")
 
-    if (ideaVersion.contains("PC")) {
-        plugins.add("python-ce")
-    } else if (ideaVersion.contains("PY")) {
-        plugins.add("python")
-    } else {
-        plugins.add(config("pythonPlugin"))
-    }
+    plugins.add("python-ce")
 }
 
 tasks {
