@@ -1,5 +1,6 @@
 package com.jetbrains.micropython.ui
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -16,12 +17,9 @@ class MicroPythonToolWindowFactory : ToolWindowFactory, DumbAware {
 
         project.firstMicroPythonFacet?.let {
             terminalContent.component = ToolWindowReplTab(it.module, terminalContent).createUI()
-        }
-
-        toolWindow.contentManager.addContent(terminalContent)
-
-        project.firstMicroPythonFacet?.let {
-            MicroPythonReplManager.getInstance(it.module).startREPL()
+            toolWindow.contentManager.addContent(terminalContent)
+            project.service<MicroPythonReplManager>().startOrRestartRepl()
         }
     }
+
 }
