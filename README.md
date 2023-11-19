@@ -4,6 +4,7 @@
 [![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/v/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
 [![JetBrains IntelliJ plugins](https://img.shields.io/jetbrains/plugin/d/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
 [![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/9777-micropython)](https://plugins.jetbrains.com/plugin/9777-micropython)
+[![check](https://github.com/JetBrains/intellij-micropython/actions/workflows/check.yml/badge.svg?branch=master)](https://github.com/JetBrains/intellij-micropython/actions/workflows/check.yml)
 [![Join the chat at https://gitter.im/intellij-micropython/community](https://badges.gitter.im/intellij-micropython/community.svg)](https://gitter.im/intellij-micropython/community)
 
 The Python code development plugin for [MicroPython](http://micropython.org/) devices in
