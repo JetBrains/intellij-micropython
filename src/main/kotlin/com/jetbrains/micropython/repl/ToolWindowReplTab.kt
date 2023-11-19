@@ -20,6 +20,7 @@ import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
 import org.jetbrains.plugins.terminal.ShellStartupOptions
 import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import java.awt.BorderLayout
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 
 class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonReplControl {
@@ -117,7 +118,21 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
         terminalWidget.terminal.writeCharacters(reason)
     }
 
+    private fun interruptBanner() {
+        application.invokeLater(
+            {
+                with(terminalWidget.terminal) {
+                    nextLine()
+                    writeCharacters("=== SESSION HAS BEEN INTERRUPTED ===")
+                    nextLine()
+                }
+            },
+            { module.isDisposed }
+        )
+
+    }
     override fun stopRepl() {
+        interruptBanner()
         application.executeOnPooledThread {
             synchronized(this) {
                 terminalWidget.processTtyConnector?.process?.destroy()
@@ -126,10 +141,21 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
     }
 
     override fun startOrRestartRepl() {
-        if (terminalWidget.isSessionRunning) {
-            stopRepl()
+        interruptBanner()
+        application.executeOnPooledThread {
+            synchronized(this) {
+                terminalWidget.processTtyConnector?.process?.apply {
+                    if (isAlive) destroy()
+                    waitFor(10, TimeUnit.SECONDS)
+                }
+            }
+            application.invokeLater(
+                { startRepl() },
+                { module.project.isDisposed })
         }
+    }
 
+    private fun startRepl() {
         val facet = module.microPythonFacet ?: return
         val devicePath = facet.getOrDetectDevicePathSynchronously()
 
@@ -160,20 +186,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
 
             val process = terminalRunner.createProcess(terminalOptions)
             val ttyConnector = terminalRunner.createTtyConnector(process)
-            process.onExit().whenComplete { _, _ ->
-                application.invokeLater(
-                    {
-                        ActivityTracker.getInstance().inc()
-                        with(terminalWidget.terminal) {
-                            nextLine()
-                            writeCharacters("=== SESSION HAS BEEN INTERRUPTED ===")
-                            nextLine()
-                        }
-                    },
-                    { module.isDisposed }
-                )
-            }
-
+            process.onExit().whenComplete { _, _ -> ActivityTracker.getInstance().inc() }
             if (deviceConfiguration.clearReplOnLaunch) {
                 terminalWidget.terminalTextBuffer.clearHistory()
                 terminalWidget.terminal.reset()
