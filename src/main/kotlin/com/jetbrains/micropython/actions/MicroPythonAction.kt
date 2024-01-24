@@ -10,10 +10,9 @@ abstract class MicroPythonAction : AnAction() {
         val project = e.project ?: return
         val facet = project.firstMicroPythonFacet
         if (facet != null) {
-            e.presentation.isEnabled = facet.checkValid() == ValidationResult.OK
+            e.presentation.isEnabledAndVisible = facet.checkValid() == ValidationResult.OK
         } else {
-            e.presentation.isVisible = false
-            e.presentation.isEnabled = false
+            e.presentation.isEnabledAndVisible = false
         }
     }
 }

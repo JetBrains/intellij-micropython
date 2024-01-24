@@ -30,6 +30,7 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -39,7 +40,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
 import com.jetbrains.micropython.repl.MicroPythonReplManager
@@ -87,7 +87,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     if (runReplOnSuccess && state != null) {
       return RunStateWrapper(state) {
         ApplicationManager.getApplication().invokeLater {
-          MicroPythonReplManager.getInstance(currentModule).startREPL()
+          project.service<MicroPythonReplManager>().startOrRestartRepl()
           ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
         }
       }
