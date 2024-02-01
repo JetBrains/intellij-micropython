@@ -16,6 +16,12 @@ concurrency:
 
 jobs:
   build-plugin:
+    strategy:
+      matrix:
+        platform-version: [ 232, 233 ]
+
+    env:
+      ORG_GRADLE_PROJECT_platformVersion: ${{ matrix.platform-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -28,13 +34,21 @@ jobs:
           distribution: corretto
           java-version: 17
 
+      # Sets `ORG_GRADLE_PROJECT_version` environment variable to override plugin version
+      # based on build number and platform version.
+      # For example, for build number `1234` and platform version `232` produces `1234-2023.2-SNAPSHOT`
+      - name: Calculate version
+        run: |
+          platform_version="${{ matrix.platform-version }}"
+          echo "ORG_GRADLE_PROJECT_version=${{ github.run_number }}-20${platform_version:0:-1}.${platform_version: -1}-SNAPSHOT" >> $GITHUB_ENV
+
       - name: Build plugin
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ":buildPlugin -Pversion=SNAPSHOT-${{ github.run_number }}"
+          arguments: ":buildPlugin"
 
       - name: Upload plugin archive
         uses: actions/upload-artifact@v3
         with:
-          name: intellij-micropython-SNAPSHOT-${{ github.run_number }}
-          path: build/distributions/intellij-micropython-SNAPSHOT-${{ github.run_number }}.zip
+          name: intellij-micropython-${{ env.ORG_GRADLE_PROJECT_version }}
+          path: build/distributions/intellij-micropython-${{ env.ORG_GRADLE_PROJECT_version }}.zip

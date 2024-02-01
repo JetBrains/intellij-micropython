@@ -4,7 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun config(name: String) = project.findProperty(name).toString()
 
-val ideaVersion = config("ideaVersion")
+val ideaVersion: String by project
+val platformVersion: String by project
 
 repositories {
     mavenCentral()
@@ -13,6 +14,7 @@ repositories {
 plugins {
     kotlin("jvm") version "1.9.20"
     id("org.jetbrains.intellij") version "1.16.0"
+    id("net.saliman.properties") version "1.5.2"
 }
 
 java {
@@ -25,6 +27,7 @@ intellij {
     pluginName = "intellij-micropython"
     updateSinceUntilBuild = false
     instrumentCode = false
+    sandboxDir = layout.buildDirectory.dir("idea-sandbox-$platformVersion").map { it.asFile.absolutePath }
     plugins.add("terminal")
 
     if (ideaVersion.contains("PC")) {
@@ -33,6 +36,25 @@ intellij {
         plugins.add("python")
     } else {
         plugins.add(config("pythonPlugin"))
+    }
+}
+
+sourceSets {
+    main {
+        resources.srcDirs("src/$platformVersion/main/resources")
+    }
+    test {
+        resources.srcDirs("src/$platformVersion/test/resources")
+    }
+}
+kotlin {
+    sourceSets {
+        main {
+            kotlin.srcDirs("src/$platformVersion/main/kotlin")
+        }
+        test {
+            kotlin.srcDirs("src/$platformVersion/test/kotlin")
+        }
     }
 }
 
