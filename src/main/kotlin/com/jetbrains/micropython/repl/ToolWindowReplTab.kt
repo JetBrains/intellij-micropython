@@ -189,7 +189,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
             process.onExit().whenComplete { _, _ -> ActivityTracker.getInstance().inc() }
             if (deviceConfiguration.clearReplOnLaunch) {
                 terminalWidget.terminalTextBuffer.clearHistory()
-                terminalWidget.terminal.reset()
+                terminalWidget.terminal.reset(true)
             } else {
                 terminalWidget.terminal.nextLine()
             }
