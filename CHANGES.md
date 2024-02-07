@@ -1,6 +1,30 @@
 The Changelog
 =============
 
+1.4.3 - 2024-02-07
+------------------
+
+### Added
+
+* Auto-detect a wider range of RP2040 devices
+  ([#257](https://github.com/JetBrains/intellij-micropython/pull/257))
+  (Thanks to [@rtyley](https://github.com/rtyley))
+
+### Fixed
+
+* Update Pico documentation URL
+  ([#252](https://github.com/JetBrains/intellij-micropython/pull/252))
+* Update links to project's GitHub in the plugin descriptor
+  ([#256](https://github.com/JetBrains/intellij-micropython/pull/256))
+  (Thanks to [@lensvol](https://github.com/lensvol))
+* Fix for #262 - REPL does not start on windows
+  ([264](https://github.com/JetBrains/intellij-micropython/pull/264))
+  (Thanks to [@elmot](https://github.com/elmot))
+
+### Changed
+
+* Compatibility with 2023.3
+
 1.4.2 - 2023-10-11
 ------------------
 
