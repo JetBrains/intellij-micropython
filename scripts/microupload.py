@@ -133,7 +133,7 @@ def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:
         sys.stderr.flush()
     sys.stderr.write('\n')
     sys.stderr.flush()
-
-
+time.sleep(3) 
+files.put(remote_path, fd.read())
 if __name__ == '__main__':
     main(sys.argv[1:])
