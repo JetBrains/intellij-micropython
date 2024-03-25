@@ -16,14 +16,6 @@
         ]
     },
     "default": {
-        "adafruit-ampy": {
-            "hashes": [
-                "sha256:46cbb1ebb585c2c01b9d34625dbef618df95c4256a1fc6ac13cb13bbd4a8b6c0",
-                "sha256:cd8d6b831a1c76d712e30e224e3945428f77bb0c6cccbf06239b31aaf4d4e5b7"
-            ],
-            "index": "pypi",
-            "version": "==1.0.7"
-        },
         "click": {
             "hashes": [
                 "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13",

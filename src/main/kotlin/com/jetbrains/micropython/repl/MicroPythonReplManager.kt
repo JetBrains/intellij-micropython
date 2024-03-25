@@ -21,4 +21,4 @@ class MicroPythonReplManager(private val project: Project) : MicroPythonReplCont
 
 }
 
-val MICROPYTHON_REPL_CONTROL = Topic(MicroPythonReplControl::class.java)
+public val MICROPYTHON_REPL_CONTROL = Topic(MicroPythonReplControl::class.java)

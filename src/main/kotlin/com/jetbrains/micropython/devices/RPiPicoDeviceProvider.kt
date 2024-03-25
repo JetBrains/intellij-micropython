@@ -59,14 +59,4 @@ class RPiPicoDeviceProvider : MicroPythonDeviceProvider {
                                         |adafruit-ampy>=1.0.5,<1.1""".trimMargin())
   }
 
-  override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
-                                      environment: ExecutionEnvironment): CommandLineState? {
-    val module = configuration.module ?: return null
-    val command = getMicroUploadCommand(configuration.path, module) ?: return null
-
-    return object : CommandLineState(environment) {
-      override fun startProcess() =
-          OSProcessHandler(GeneralCommandLine(command))
-    }
-  }
-}
+ }
