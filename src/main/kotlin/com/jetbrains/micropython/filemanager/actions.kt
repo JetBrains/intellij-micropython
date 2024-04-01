@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.wm.IdeFocusManager
+import com.jetbrains.intellij.fileManager.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -21,14 +22,15 @@ abstract class BaseFileAction(text: String) : DumbAwareAction(text) {
             e.presentation.isEnabled = false
             return
         }
-        e.presentation.isEnabled = files.isNotEmpty() && isEnabled(e.getData(TARGET_DIR_KEY))
+        e.presentation.isEnabled = files.isNotEmpty() && isEnabled(e.getData(TARGET_DIR_KEY)?.fileUri)
     }
 
     open fun isEnabled(target: URI?): Boolean = true
 
     override fun actionPerformed(e: AnActionEvent) {
         val selected = e.getData(FILES_KEY) ?: return
-        perform(selected, e.getData(TARGET_DIR_KEY), e.getData(FILE_LIST_COMPONENT))
+        val selectedUris = selected.mapNotNull{ it.fileUri}
+        perform(selectedUris, e.getData(TARGET_DIR_KEY)?.fileUri, e.getData(FILE_LIST_COMPONENT))
     }
 
     abstract fun perform(selected: List<URI>, targetUri: URI?, component: FileListComponent?)
@@ -85,8 +87,13 @@ private fun deleteRecursively(file: Path) {
 
 class MoveFilesAction : BaseFileProcessingAction("Move", "move", { from, to -> moveRecursively(from, to) })
 
-open class BaseFileProcessingAction(text: String, private val actionDescription: String, private val action: (Path, Path) -> Unit) : BaseFileAction(text) {
-    override fun isEnabled(target: URI?) = target != null && target.fromLocalFs()
+open class BaseFileProcessingAction(
+    text: String,
+    private val actionDescription: String,
+    private val action: (Path, Path) -> Unit
+) : BaseFileAction(text) {
+    override fun isEnabled(target: URI?) =
+        target != null && target.scheme in listOf("file", MicroPythonBoardFiles.SCHEME)
 
     override fun perform(selected: List<URI>, targetUri: URI?, component: FileListComponent?) {
         if (targetUri == null) return
@@ -101,7 +108,14 @@ open class BaseFileProcessingAction(text: String, private val actionDescription:
                 }
             } catch (e: Exception) {
                 LOG.info(e)
-                Notifications.Bus.notify(Notification("File Manager Errors", "Failed to $actionDescription", "Failed to $actionDescription: $e", NotificationType.ERROR))
+                Notifications.Bus.notify(
+                    Notification(
+                        "File Manager Errors",
+                        "Failed to $actionDescription",
+                        "Failed to $actionDescription: $e",
+                        NotificationType.ERROR
+                    )
+                )
             }
             component?.refresh()
             component?.oppositeSide?.refresh()
@@ -113,8 +127,17 @@ class DeleteFilesAction : BaseFileAction("Delete...") {
     override fun perform(selected: List<URI>, targetUri: URI?, component: FileListComponent?) {
         GlobalScope.launch(Swing) {
             try {
-                val filesText = if (selected.size == 1) Paths.get(selected.first()).fileName.toString() else "${selected.size} files"
-                if (Messages.showYesNoDialog(component?.project, "Do you want to delete $filesText? You won't be able to undo this operation.", "Delete", "Delete", "Cancel", null) == Messages.YES) {
+                val filesText =
+                    if (selected.size == 1) Paths.get(selected.first()).fileName.toString() else "${selected.size} files"
+                if (Messages.showYesNoDialog(
+                        component?.project,
+                        "Do you want to delete $filesText? You won't be able to undo this operation.",
+                        "Delete",
+                        "Delete",
+                        "Cancel",
+                        null
+                    ) == Messages.YES
+                ) {
                     runInBackground {
                         for (uri in selected) {
                             deleteRecursively(Paths.get(uri))
@@ -123,7 +146,14 @@ class DeleteFilesAction : BaseFileAction("Delete...") {
                 }
             } catch (e: Exception) {
                 LOG.info(e)
-                Notifications.Bus.notify(Notification("File Manager Errors", "Failed to delete", "Failed to delete: $e", NotificationType.ERROR))
+                Notifications.Bus.notify(
+                    Notification(
+                        "File Manager Errors",
+                        "Failed to delete",
+                        "Failed to delete: $e",
+                        NotificationType.ERROR
+                    )
+                )
             }
             if (component != null) {
                 component.refresh()

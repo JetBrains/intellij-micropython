@@ -12,13 +12,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 class FileManagerComponent(project: Project) {
-    val mainComponent: JComponent
-    private val leftSide = FileListComponent(project, "file.manager.left.side.uri")
-    private val rightSide = FileListComponent(project, "file.manager.right.side.uri")
+    val mainComponent: JComponent = JPanel(BorderLayout())
+    private val leftSide = RealFileListComponent(project)
+    private val rightSide = MicroPythonFileListComponent(project)
     private val splitter = JBSplitter(0.5f)
 
     init {
-        mainComponent = JPanel(BorderLayout())
         splitter.firstComponent = leftSide.panel
         splitter.secondComponent = rightSide.panel
         splitter.setAndLoadSplitterProportionKey("file-manager.splitter")
@@ -43,7 +42,7 @@ class FileManagerToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val fileManagerComponent = FileManagerComponent(project)
-        val content = ContentFactory.SERVICE.getInstance().createContent(fileManagerComponent.mainComponent, "", false)
+        val content = ContentFactory.getInstance().createContent(fileManagerComponent.mainComponent, "", false)
         content.setPreferredFocusedComponent { fileManagerComponent.activeSide.preferredFocusableComponent }
         toolWindow.contentManager.addContent(content)
     }

@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.filemanager
+package com.jetbrains.intellij.fileManager
 
 import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineDispatcher
