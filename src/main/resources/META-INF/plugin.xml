@@ -48,6 +48,7 @@
                      groupName="MicroPython"
                      enabledByDefault="true"
                      implementationClass="com.jetbrains.micropython.inspections.MicroPythonRequirementsInspection"/>
+    <treeStructureProvider implementation="com.jetbrains.micropython.filesystem.MicroPythonDeviceFilesTree" order="first"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.jetbrains.micropython">
@@ -77,5 +78,19 @@
       <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"
               text="Remove All Files from MicroPython Device"/>
     </group>
+
+    <group id="FileManagerPopupGroup">
+      <action class="com.jetbrains.micropython.filemanager.CopyFilesAction" id="FileManagerCopyFiles">
+        <keyboard-shortcut first-keystroke="F5" keymap="$default"/>
+      </action>
+      <action class="com.jetbrains.micropython.filemanager.MoveFilesAction" id="FileManagerMoveFiles">
+        <keyboard-shortcut first-keystroke="F6" keymap="$default"/>
+      </action>
+      <action class="com.jetbrains.micropython.filemanager.DeleteFilesAction" id="FileManagerDeleteFiles">
+        <keyboard-shortcut first-keystroke="F8" keymap="$default"/>
+      </action>
+      <reference id="CompareTwoFiles"/>
+    </group>
   </actions>
+
 </idea-plugin>
