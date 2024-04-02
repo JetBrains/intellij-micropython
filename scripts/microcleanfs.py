@@ -13,67 +13,24 @@
 # limitations under the License.
 
 
-"""Remove the contents of the file system on a MicroPython device.
-
-Usage:
-    microcleanfs PORT [options]
-
-    Options:
-    -f --force     Remove ALL files from filesystem w/o preserving excludes
+"""Remove the contents of the file system on a MicroPython device, skipping boot.py
 """
-
-import traceback
-from typing import List
-
-import sys
-import time
-
-from ampy.files import Files
-from ampy.pyboard import Pyboard, PyboardError
-from docopt import docopt
+import os
 
 
-def main(args: List[str]) -> None:
-    opts = docopt(__doc__, argv=args)
-    port = opts['PORT']
-    force = opts['--force']
-
-    print('Connecting to {}'.format(port), file=sys.stderr)
-    board = Pyboard(port)
-    files = Files(board)
-
-    # Specifying subdirectories DOES NOT work as they will be deleted when the
-    # parent directory is deleted. Specifying top level directories DOES work.
-    exclude_files = ['boot.py']
-
-    print('Removing the contents of the file system')
-    wait_for_board()
-    for name in files.ls(long_format=False):
-        if force or name not in exclude_files:
-            try:
-                files.rm(name)
-            except (RuntimeError, PyboardError):
-                try:
-                    files.rmdir(name)
-                except (RuntimeError, PyboardError):
-                    print('Unknown Error removing file {}'.format(name),
-                          file=sys.stderr)
-
-    print('Done')
+def delete_recursive(folder):
+    for fileInfo in os.ilistdir(folder):
+        name = folder + fileInfo[0]
+        if fileInfo[1] == 16384:
+            print("Scanning " + name, end="\r\n")
+            delete_recursive(name + '/')
+            os.rmdir(name)
+        else:
+            if name == 'boot.py':
+                print("Skipping boot.py", end="\r\n")
+            else:
+                print("Deleting " + name, end="\r\n")
+                os.remove(name)
 
 
-def wait_for_board() -> None:
-    """Wait for some ESP8266 devices to become ready for REPL commands."""
-    time.sleep(0.5)
-
-
-if __name__ == '__main__':
-    try:
-        main(sys.argv[1:])
-        exitcode = 0
-    except:
-        traceback.print_exc()
-        exitcode = 1
-    finally:
-        input('Press ENTER to continue')
-    sys.exit(exitcode)
+delete_recursive('')

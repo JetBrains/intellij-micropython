@@ -1,6 +1,7 @@
 package com.jetbrains.micropython.actions
 
 import com.intellij.facet.ui.ValidationResult
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
@@ -15,4 +16,6 @@ abstract class MicroPythonAction : AnAction() {
             e.presentation.isEnabledAndVisible = false
         }
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
