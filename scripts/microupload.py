@@ -31,9 +31,8 @@ from contextlib import suppress
 from typing import List, Iterable, TypeVar, Sequence, Set
 
 from docopt import docopt
-from ampy.pyboard import Pyboard
-from ampy.files import Files, DirectoryExistsError
-
+from mpremote.transport_serial import SerialTransport
+from mpremote.transport import TransportError
 
 __all__ = []
 
@@ -53,11 +52,9 @@ def main(args: List[str]) -> None:
 
     port = opts['PORT']
     print('Connecting to {}'.format(port), file=sys.stderr)
-    board = Pyboard(port)
-    files = Files(board)
     rel_root = os.path.relpath(root, os.getcwd())
 
-    wait_for_board()
+    transport = SerialTransport(device=port)
 
     if os.path.isdir(root):
         to_upload = [os.path.join(rel_root, x)
@@ -74,15 +71,15 @@ def main(args: List[str]) -> None:
                   file=sys.stderr, flush=True)
         remote_dir = os.path.dirname(path)
         if remote_dir:
-            make_dirs(files, remote_dir, created_cache)
-        with open(local_path, 'rb') as fd:
-            files.put(remote_path, fd.read())
+            make_dirs(transport, remote_dir, created_cache)
+        transport.enter_raw_repl(soft_reset=False)
+        transport.fs_put(local_path, remote_path)
 
     print('Soft reboot', file=sys.stderr, flush=True)
-    soft_reset(board)
+    soft_reset(transport)
 
 
-def make_dirs(files: Files, path: str,
+def make_dirs(transport: SerialTransport, path: str,
               created_cache: Set[str] = None) -> None:
     """Make all the directories the specified relative path consists of."""
     if path == '.':
@@ -91,16 +88,19 @@ def make_dirs(files: Files, path: str,
         created_cache = set()
     parent = os.path.dirname(path)
     if parent and parent not in created_cache:
-        make_dirs(files, parent, created_cache)
-    with suppress(DirectoryExistsError):
+        make_dirs(transport, parent, created_cache)
+    posix_path = path.replace(os.path.sep, '/')
+    try:
         posix_path = path.replace(os.path.sep, '/')
-        files.mkdir(posix_path)
+        transport.fs_mkdir(posix_path)
         created_cache.add(path)
+    except TransportError:
+        pass
 
 
-def soft_reset(board: Pyboard) -> None:
+def soft_reset(transport: SerialTransport) -> None:
     """Perform soft-reset of the ESP8266 board."""
-    board.serial.write(b'\x03\x04')
+    transport.enter_raw_repl(soft_reset=True)
 
 
 def list_files(path: str, excluded: List[str]) -> Iterable[str]:
@@ -114,11 +114,6 @@ def list_files(path: str, excluded: List[str]) -> Iterable[str]:
         for f in files:
             if os.path.join(abs_root, f) not in excluded and not f.startswith('.'):
                 yield os.path.relpath(os.path.join(root, f), path)
-
-
-def wait_for_board() -> None:
-    """Wait for some ESP8266 devices to become ready for REPL commands."""
-    time.sleep(0.5)
 
 
 def progress(msg: str, xs: Sequence[T]) -> Iterable[T]:
