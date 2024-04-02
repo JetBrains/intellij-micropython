@@ -28,7 +28,10 @@ import com.intellij.terminal.TerminalExecutionConsole
 import com.intellij.ui.content.ContentFactory
 import com.jetbrains.micropython.repl.MicroPythonReplManager
 import com.jetbrains.micropython.settings.MicroPythonFacet
+import com.jetbrains.micropython.settings.MicroPythonFacetType
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
+
+private val COMMAND_KEY = com.intellij.openapi.util.Key<Boolean>("MicroPythonCommand")
 
 class RemoveAllFilesFromDeviceAction : MicroPythonAction() {
 
@@ -50,9 +53,9 @@ class RemoveAllFilesFromDeviceAction : MicroPythonAction() {
         Disposer.register(facet, console)
 
         osProcessHandler.addProcessListener(
-            object: ProcessListener{
+            object : ProcessListener {
                 override fun processTerminated(event: ProcessEvent) {
-                    with(console.terminalWidget.terminal){
+                    with(console.terminalWidget.terminal) {
                         nextLine()
                         writeCharacters("==== Finished with exit code ${event.exitCode} ====")
                     }
@@ -60,16 +63,18 @@ class RemoveAllFilesFromDeviceAction : MicroPythonAction() {
             }
         )
 
-        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("MicroPython") ?: return
+        val toolWindow =
+            ToolWindowManager.getInstance(project).getToolWindow(MicroPythonFacetType.PRESENTABLE_NAME) ?: return
         toolWindow.show()
         val contentManager = toolWindow.contentManager
-        var content = contentManager.findContent("Command")
+        var content = contentManager.contents.firstOrNull { it.getUserData(COMMAND_KEY) ?: false }
         if (content == null) {
-            content = ContentFactory.getInstance().createContent(null, "Command", true)
+            content = ContentFactory.getInstance().createContent(console.component, "Command", true)
+            content.putUserData(COMMAND_KEY, true)
+            content.isCloseable = true
             contentManager.addContent(content)
         }
 
-        content.component = console.component
         toolWindow.activate(null)
         contentManager.setSelectedContent(content)
         osProcessHandler.startNotify()

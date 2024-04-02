@@ -39,7 +39,6 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
 import com.jetbrains.micropython.repl.MicroPythonReplManager
@@ -88,7 +87,6 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
       return RunStateWrapper(state) {
         ApplicationManager.getApplication().invokeLater {
           project.service<MicroPythonReplManager>().startOrRestartRepl()
-          ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
         }
       }
     }
