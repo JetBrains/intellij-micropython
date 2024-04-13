@@ -25,7 +25,7 @@
   <depends>com.intellij.modules.python</depends>
   <depends>org.jetbrains.plugins.terminal</depends>
 
-  <idea-version since-build="233" until-build="233.*"/>
+  <idea-version since-build="233.11799.241" until-build="233.*"/>
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.jetbrains.micropython.deviceProvider"

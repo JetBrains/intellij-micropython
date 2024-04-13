@@ -9,8 +9,14 @@ import com.intellij.ide.projectView.impl.ProjectViewPane
 import com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
+import com.intellij.ide.scratch.ScratchTreeStructureProvider
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.components.service
+import com.intellij.openapi.components.services
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -18,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.containers.JBIterable
 import com.jetbrains.micropython.settings.firstMicroPythonFacet
 import org.jetbrains.annotations.Nls
 
@@ -33,6 +40,24 @@ class MicroPythonDeviceFilesTree(val project: Project) : TreeStructureProvider, 
         ?.updateFromRoot(true)
     }
   }
+  override fun getData(selected: Collection<AbstractTreeNode<*>>, dataId: String): Any? {
+    if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
+      return DataProvider { slowId: String -> getSlowData(slowId, selected) }
+    }
+    return null
+  }
+
+  private fun getSlowData(dataId: String, selected: Collection<AbstractTreeNode<*>>): Any? {
+    if (LangDataKeys.PASTE_TARGET_PSI_ELEMENT.`is`(dataId)) {
+      val singleSelected = selected.firstOrNull()
+      if (singleSelected is MPFilesDirectoryNode) {
+        val file = singleSelected.virtualFile
+        val project = singleSelected.getProject()
+        return project?.service<PsiManager>()?.findDirectory(file ?: return null)
+      }
+    }
+    return null
+  }
 
   override fun modify(
     parent: AbstractTreeNode<*>,
@@ -46,7 +71,7 @@ class MicroPythonDeviceFilesTree(val project: Project) : TreeStructureProvider, 
     val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return children
     var mpRoot: AbstractTreeNode<*>? = null
     try {
-      val fileSystem = MicroPythonVFS.readFromBoard(pythonPath, devicePath)
+      val fileSystem = MicroPythonVFS.readFromBoard(project, pythonPath, devicePath)
       val fsRoot = PsiManager.getInstance(project).findDirectory(fileSystem.root)
       if (fsRoot != null) {
         mpRoot = MPDeviceRoot(project, fsRoot, settings)

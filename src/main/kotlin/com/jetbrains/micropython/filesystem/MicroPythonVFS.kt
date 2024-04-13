@@ -4,17 +4,21 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileAttributes
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFile.PROP_NAME
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.openapi.vfs.newvfs.events.*
+import com.intellij.util.PathUtil
 import com.intellij.util.application
 import com.intellij.util.asSafely
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 
-//VFileContentChangeEvent (com.intellij.openapi.vfs.newvfs.events)
 
 class MicroPythonVFS(val project: Project, private val pythonPath: String, private val portName: String) : NewVirtualFileSystem() {
 
@@ -35,6 +39,7 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
   }
 
   private fun readFs() {
+    root.files.clear()
     val dirList = runMPRemote("run", "C:\\Users\\elmot\\PycharmProjects\\pythonProject3\\dir-r.py")
     dirList.lines()
       .filter { it.isNotBlank() }
@@ -46,15 +51,15 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
           val oldParent = filePtr!!
           filePtr = oldParent.findChild(s) as MicroPythonDirectory?
           if (filePtr == null) {
-            filePtr = MicroPythonDirectory(s, oldParent, 0/*todo*/)
+            filePtr = MicroPythonDirectory(s, oldParent, 0/*todo step C*/)
             oldParent.files.add(filePtr)
           }
         }
         if (fields[1] == "D") {
-          filePtr!!.files.add(MicroPythonDirectory(pathComponents.last(), filePtr, 0/*todo*/))
+          filePtr!!.files.add(MicroPythonDirectory(pathComponents.last(), filePtr, 0/*todo step C*/))
         }
         else {
-          filePtr!!.files.add(MicroPythonFile(pathComponents.last(), filePtr, 0/*todo*/, fields[2].toLong()))
+          filePtr!!.files.add(MicroPythonFile(pathComponents.last(), filePtr, 0/*todo step C*/, fields[2].toLong()))
         }
       }
   }
@@ -83,7 +88,7 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
   }
 
   override fun refresh(asynchronous: Boolean) {
-    //TODO("Not yet implemented")
+    //TODO("Not yet implemented") step D
   }
 
   override fun refreshAndFindFileByPath(path: String): VirtualFile? {
@@ -97,9 +102,12 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
 
   override fun deleteFile(requestor: Any?, file: VirtualFile) {
     if (file.fileSystem !is MicroPythonVFS) throw IOException()
+    if (!file.exists()) throw IOException()
     val events = listOf(VFileDeleteEvent(requestor, file))
     publisher.value.before(events)
-    TODO("Not yet implemented")
+    //todo recursion?
+    runMPRemote("fs", "rm", file.path) //todo verify
+    (file.parent as MicroPythonDirectory).files.remove(file)
     publisher.value.after(events)
   }
 
@@ -118,15 +126,7 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
   }
 
   override fun createChildFile(requestor: Any?, parent: VirtualFile, name: String): VirtualFile {
-    if (parent.fileSystem !is MicroPythonVFS) throw IOException()
-    val events = listOf(VFileCreateEvent(requestor, parent, name, false, null, null, null))
-    publisher.value.before(events)
-    val directory = parent.asSafely<MicroPythonDirectory>() ?: throw IOException("Not a directory")
-    runMPRemote("fs", "touch", directory.path + "/" + name)
-    val virtualFile = directory.fileSystem.MicroPythonFile(name = name, directory, System.currentTimeMillis(), 0)
-    directory.files.add(virtualFile)
-    publisher.value.after(events)
-    return virtualFile
+    throw IOException("Not supported")
   }
 
   override fun createChildDirectory(requestor: Any?, parent: VirtualFile, name: String): VirtualFile {
@@ -143,10 +143,33 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
 
   override fun copyFile(requestor: Any?, file: VirtualFile, newParent: VirtualFile, copyName: String): VirtualFile {
     if (newParent.fileSystem !is MicroPythonVFS) throw IOException()
+    val mpNewParent = newParent as MicroPythonDirectory
     val events = listOf(VFileCopyEvent(requestor, file, newParent, copyName))
     publisher.value.before(events)
-    TODO("Not yet implemented")
+    val newFile = MicroPythonFile(copyName, mpNewParent, System.currentTimeMillis(), file.length)
+    mpNewParent.files.add(newFile)
+    when {
+      file.fileSystem === newParent.fileSystem ->
+        runMPRemote("fs", "cp", file.path, newFile.path)
+      file.isInLocalFileSystem -> {
+        val path = PathUtil.toSystemIndependentName(file.path)
+        runMPRemote("fs", "cp", ":$path", newFile.path)
+      }
+      else -> {
+        val tempFile = FileUtil.createTempFile("micropython-fs-copy", null, true)
+        try {
+          tempFile.writeBytes(file.contentsToByteArray())
+          val path = PathUtil.toSystemIndependentName(tempFile.path)
+          runMPRemote("fs", "cp", ":$path", newFile.path)
+        }
+        finally {
+          tempFile.delete()
+        }
+      }
+    }
+    //todo verify
     publisher.value.after(events)
+    return newFile
   }
 
   override fun list(file: VirtualFile): Array<String> =
@@ -159,10 +182,10 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
 
   override fun setTimeStamp(file: VirtualFile, timeStamp: Long) {
     (file as MicroPythonFileBase).myTimeStamp = timeStamp
-    //todo
+    //todo step E
   }
 
-  override fun isWritable(file: VirtualFile): Boolean = true
+  override fun isWritable(file: VirtualFile): Boolean = file.isWritable
 
   override fun setWritable(file: VirtualFile, writableFlag: Boolean) {
   }
@@ -178,9 +201,7 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
   }
 
   override fun getOutputStream(file: VirtualFile, requestor: Any?, modStamp: Long, timeStamp: Long): OutputStream {
-
-    return file.asSafely<MicroPythonFileBase>()?.getOutputStream(requestor, modStamp, timeStamp)
-           ?: throw IOException("Cannot write content of ${file.path}")
+    throw IOException("Not supported")
   }
 
   override fun getLength(file: VirtualFile): Long {
@@ -193,6 +214,8 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
     //TODO("Not yet implemented")???
     return findFileByPath(path)
   }
+
+  override fun extractPresentableUrl(path: String): String = "mpfs://$path"
 
   override fun getRank(): Int = 1
 
@@ -213,6 +236,10 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
     override fun getCanonicalFile(): VirtualFile = this
 
     override fun setWritable(writable: Boolean) {
+    }
+
+    override fun getPresentableName(): String {
+      return super.getPresentableName()
     }
 
     override fun getName(): String = myName
@@ -257,56 +284,35 @@ class MicroPythonVFS(val project: Project, private val pythonPath: String, priva
 
   inner class MicroPythonFile(name: String, parent: MicroPythonDirectory?, timeStamp: Long, private var initialLength: Long) :
     MicroPythonFileBase(name, parent, timeStamp) {
-    private var bytes: MicroPythonByteStream? = null
+    internal var bytes: ByteArray? = null
 
     override fun findChild(name: String): NewVirtualFile? = null
 
     override fun isDirectory(): Boolean = false
     override fun getChildren(): Array<VirtualFile> = emptyArray()
-    override fun getLength(): Long = bytes?.size()?.toLong() ?: initialLength
+    override fun getLength(): Long = bytes?.size?.toLong() ?: initialLength
     override fun isWritable(): Boolean = false
-    private fun loadFromDevice(forced: Boolean): MicroPythonByteStream {
+    private fun loadFromDevice(forced: Boolean): ByteArray {
       if (!exists) throw IOException("Does not exists")
       if (!forced && bytes != null) return bytes!!
+      //todo binary files?
       val content = runMPRemote("cat", path)
-      bytes = MicroPythonByteStream().apply {
-        write(content.toByteArray())
-      }
+      bytes = content.toByteArray()
       return bytes!!
     }
 
-    fun saveToDevice() {
-      TODO()
-    }
-
     override fun contentsToByteArray(): ByteArray {
-      loadFromDevice(false)
-      return bytes!!.toByteArray()
+      return loadFromDevice(false)
     }
 
     override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long): OutputStream {
       if (!exists()) throw IOException("Does not exists")
-      val events = listOf(VFileContentChangeEvent(requestor, this, timeStamp, newModificationStamp))
-      publisher.value.before(events)
-      try {
-        bytes = MicroPythonByteStream()
-        myTimeStamp = newTimeStamp
-      }
-      finally {
-        publisher.value.after(events)
-      }
-      return bytes!!
-    }
-
-    inner class MicroPythonByteStream : ByteArrayOutputStream() {
-      override fun close() {
-        saveToDevice()
-      }
+      throw IOException("Not supported")
     }
 
     override fun getInputStream(): InputStream {
       val result = loadFromDevice(false)
-      return ByteArrayInputStream(result.toByteArray())
+      return ByteArrayInputStream(result)
     }
 
     override fun refresh(asynchronous: Boolean, recursive: Boolean, postRunnable: Runnable?) {
