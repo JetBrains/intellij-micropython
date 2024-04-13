@@ -43,7 +43,7 @@ class FileManagerToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val fileManagerComponent = FileManagerComponent(project)
-        val content = ContentFactory.SERVICE.getInstance().createContent(fileManagerComponent.mainComponent, "", false)
+        val content = ContentFactory.getInstance().createContent(fileManagerComponent.mainComponent, "", false)
         content.setPreferredFocusedComponent { fileManagerComponent.activeSide.preferredFocusableComponent }
         toolWindow.contentManager.addContent(content)
     }

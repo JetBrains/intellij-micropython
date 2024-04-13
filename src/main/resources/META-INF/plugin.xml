@@ -33,6 +33,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup displayType="BALLOON" id="File Manager Errors" />
     <facetType implementation="com.jetbrains.micropython.settings.MicroPythonFacetType"/>
     <framework.detector implementation="com.jetbrains.micropython.settings.MicroPythonFacetDetector"/>
     <configurationType implementation="com.jetbrains.micropython.run.MicroPythonConfigurationType"/>

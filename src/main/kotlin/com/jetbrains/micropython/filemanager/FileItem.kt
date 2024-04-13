@@ -1,12 +1,11 @@
 package com.jetbrains.micropython.filemanager
 
-import com.intellij.util.io.URLUtil
-import com.intellij.util.io.isDirectory
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.isDirectory
 
 sealed class FileItem {
     abstract val isDirectory: Boolean
@@ -31,8 +30,8 @@ fun computeChildren(uri: URI): List<FileItem> {
     return usePath(uri) { path ->
         val result = ArrayList<FileItem>()
         val localFs = uri.scheme.equals("file", ignoreCase = true)
-        val parentUri = path.parent?.toCorrectUri() ?: (if (!localFs) {
-            Paths.get(URI(uri.rawSchemeSpecificPart.substringBefore("!/"))).parent.toCorrectUri()
+        val parentUri = path.parent?.toUri() ?: (if (!localFs) {
+            Paths.get(URI(uri.rawSchemeSpecificPart.substringBefore("!/"))).parent.toUri()
         }
         else null)
         if (parentUri != null) {
@@ -45,19 +44,12 @@ fun computeChildren(uri: URI): List<FileItem> {
     }
 }
 
-fun createFileItem(path: Path) = FileItem.Regular(path.toCorrectUri(), path.isDirectory(), path.fileName.toString())
+fun createFileItem(path: Path) = FileItem.Regular(path.toUri(), path.isDirectory(), path.fileName.toString())
 
 fun URI.fromLocalFs() = "file".equals(scheme, ignoreCase = true)
 
 fun URI.toPresentableForm(): String =
         if (fromLocalFs()) path else toString()
-
-fun Path.toCorrectUri(): URI {
-    val uri = toUri()
-    if (uri.scheme != "jar") return uri
-    val fullString = uri.toString()
-    return URI(URLUtil.unescapePercentSequences(fullString.substringBefore("!/")) + "!/" + fullString.substringAfter("!/", ""))
-}
 
 fun <T> usePath(uri: URI, action: (Path) -> T): T {
     val fileSystem = if (!uri.fromLocalFs()) {

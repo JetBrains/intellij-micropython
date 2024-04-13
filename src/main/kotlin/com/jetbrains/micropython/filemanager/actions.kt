@@ -3,6 +3,7 @@ package com.jetbrains.micropython.filemanager
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
@@ -15,6 +16,7 @@ import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 
 abstract class BaseFileAction(text: String) : DumbAwareAction(text) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
     override fun update(e: AnActionEvent) {
         val files = e.getData(FILES_KEY)
         if (files == null) {
@@ -83,7 +85,7 @@ private fun deleteRecursively(file: Path) {
     })
 }
 
-class MoveFilesAction : BaseFileProcessingAction("Move", "move", { from, to -> moveRecursively(from, to) })
+class MoveFilesAction : BaseFileProcessingAction("Move", "move", { from, to -> moveRecursively(from, to)}) {}
 
 open class BaseFileProcessingAction(text: String, private val actionDescription: String, private val action: (Path, Path) -> Unit) : BaseFileAction(text) {
     override fun isEnabled(target: URI?) = target != null && target.fromLocalFs()

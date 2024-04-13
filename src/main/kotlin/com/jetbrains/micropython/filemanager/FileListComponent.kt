@@ -10,14 +10,13 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.SystemProperties
+import com.intellij.util.application
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -28,16 +27,18 @@ import java.awt.event.*
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Paths
-import java.util.function.Function
 import javax.swing.*
 
 private const val GO_DOWN_ACTION = "GoDown"
 private const val GO_OPPOSITE_ACTION = "GoToOppositeSide"
 private const val GO_UP_ACTION = "GoUp"
+val FILES_KEY = DataKey.create<List<URI>>("FILE_MANAGER_FILES")
+val TARGET_DIR_KEY = DataKey.create<URI?>("FILE_MANAGER_TARGET_DIR")
+val FILE_LIST_COMPONENT = DataKey.create<FileListComponent?>("FILE_MANAGER_LIST_COMPONENT")
 
 internal val LOG = Logger.getInstance("#com.jetbrains.intellij.fileManager")
 
-class FileListComponent(internal val project: Project) {
+class FileListComponent(internal val project: Project, private val storageKey: String) {
     val panel: JComponent
     private val listModel: SortedListModel<FileItem>
     private val list: JBList<FileItem>
@@ -48,12 +49,20 @@ class FileListComponent(internal val project: Project) {
     var oppositeSide: FileListComponent? = null
 
     init {
-        val comparator = compareByDescending<FileItem> { it is FileItem.ParentDirectory }.thenByDescending(FileItem::isDirectory).thenComparing(Function { it.name}, String.CASE_INSENSITIVE_ORDER)
+        val comparator = compareByDescending<FileItem> { it is FileItem.ParentDirectory }
+            .thenByDescending(FileItem::isDirectory)
+            .thenComparing({ it.name }, String.CASE_INSENSITIVE_ORDER)
         listModel = SortedListModel(comparator)
         list = JBList(listModel)
         list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
         list.cellRenderer = object : SimpleListCellRenderer<FileItem>() {
-            override fun customize(list: JList<out FileItem>, value: FileItem?, index: Int, selected: Boolean, hasFocus: Boolean) {
+            override fun customize(
+                list: JList<out FileItem>,
+                value: FileItem?,
+                index: Int,
+                selected: Boolean,
+                hasFocus: Boolean
+            ) {
                 if (value == null) return
                 text = value.name
                 icon = when {
@@ -71,7 +80,8 @@ class FileListComponent(internal val project: Project) {
 
         val ctrlMask = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
         list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), GO_DOWN_ACTION)
-        list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlMask), GO_DOWN_ACTION)
+        list.getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, ctrlMask), GO_DOWN_ACTION)
         list.actionMap.put(GO_DOWN_ACTION, object : AbstractAction() {
             override fun actionPerformed(e: ActionEvent) {
                 goDown()
@@ -84,14 +94,15 @@ class FileListComponent(internal val project: Project) {
             }
         }.installOn(list)
 
-        list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlMask), GO_UP_ACTION)
+        list.getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, ctrlMask), GO_UP_ACTION)
         list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), GO_UP_ACTION)
         list.actionMap.put(GO_UP_ACTION, object : AbstractAction() {
             override fun actionPerformed(e: ActionEvent) {
                 goUp()
             }
         })
-        list.addFocusListener(object: FocusListener {
+        list.addFocusListener(object : FocusListener {
             override fun focusLost(e: FocusEvent?) {
                 deactivate()
             }
@@ -101,14 +112,25 @@ class FileListComponent(internal val project: Project) {
             }
         })
 
+        DataManager.registerDataProvider(list) { key ->
+            when (key) {
+                CommonDataKeys.VIRTUAL_FILE_ARRAY.name -> getSelectedVirtualFiles()
+                FILES_KEY.name -> list.selectedValuesList.map { it.uri }
+                TARGET_DIR_KEY.name -> oppositeSide?.current
+                FILE_LIST_COMPONENT.name -> this
+                else -> null
+            }
+        }
         val group = ActionManager.getInstance().getAction("FileManagerPopupGroup") as ActionGroup
-        PopupHandler.installPopupHandler(list, group, ActionPlaces.UNKNOWN, ActionManager.getInstance())
+        PopupHandler.installPopupMenu(list, group, ActionPlaces.UNKNOWN)
     }
 
-    private fun getSelectedVirtualFiles() = list.selectedValuesList.mapNotNull { it.toVirtualFile() }.toTypedArray()
+    private fun getSelectedVirtualFiles() = list.selectedValuesList.mapNotNull {
+        VirtualFileManager.getInstance().refreshAndFindFileByUrl(it.uri.toString()) //todo background
+    }.toTypedArray()
 
     val preferredFocusableComponent: JComponent
-      get() = list
+        get() = list
 
     private fun goUp() {
         val up = listModel.items.firstOrNull() as? FileItem.ParentDirectory ?: return
@@ -123,34 +145,36 @@ class FileListComponent(internal val project: Project) {
     private fun navigate(item: FileItem) {
         if (item.isDirectory) {
             navigate(item.uri, (item as? FileItem.ParentDirectory)?.thisUri)
-        }
-        else if (FileTypeManager.getInstance().getFileTypeByFileName(item.name) == ArchiveFileType.INSTANCE) {
+        } else if (FileTypeManager.getInstance().getFileTypeByFileName(item.name) == ArchiveFileType.INSTANCE) {
             if (item.uri.fromLocalFs()) {
                 val archiveUri = usePath(item.uri) { path ->
                     FileSystems.newFileSystem(path).use {
-                        it.rootDirectories.firstOrNull()?.toCorrectUri()
+                        it.rootDirectories.firstOrNull()?.toUri()
                     }
                 }
                 if (archiveUri != null) {
                     navigate(archiveUri)
                 }
             }
-        }
-        else {
-            try {
-                val file = item.toVirtualFile()
-                if (file != null) {
-                    FileEditorManager.getInstance(project).openFile(file, true)
-                }
-            } catch (e: Exception) {
-                LOG.info(e)
-            }
-        }
-    }
+        } else {
+            application.executeOnPooledThread(
+                {
+                    try {
+                        val file = VirtualFileManager.getInstance().refreshAndFindFileByUrl(item.uri.toString())
 
-    private fun FileItem.toVirtualFile(): VirtualFile? {
-        val url = VfsUtilCore.convertFromUrl(uri.toURL())
-        return VirtualFileManager.getInstance().refreshAndFindFileByUrl(url)
+
+                        if (file != null) {
+                            application.invokeLater(
+                                { FileEditorManager.getInstance(project).openFile(file, true) },
+                                { project.isDisposed })
+
+                        }
+                    } catch (e: Exception) {
+                        LOG.info(e)
+                    }
+                }
+            )
+        }
     }
 
     fun deactivate() {
@@ -168,8 +192,7 @@ class FileListComponent(internal val project: Project) {
 
         if (oldSelection.isEmpty()) {
             selectFirstItem()
-        }
-        else {
+        } else {
             selectItems { it in oldSelection }
         }
         active = true
@@ -196,13 +219,14 @@ class FileListComponent(internal val project: Project) {
         return navigate(uri)
     }
 
-    private fun getDefaultURI() = Paths.get(SystemProperties.getUserHome()).toCorrectUri().toString()
+    private fun getDefaultURI() = Paths.get(SystemProperties.getUserHome()).toUri().toString()
 
     private fun navigate(uri: URI, toSelect: URI? = null): Job {
         return GlobalScope.launch(Swing) {
             val children = runInBackground { computeChildren(uri) }
             current = uri
             locationLabel.text = uri.toPresentableForm()
+            PropertiesComponent.getInstance(project).setValue(storageKey, uri.toString())
             listModel.setAll(children)
             if (toSelect != null) {
                 selectItems { it.uri == toSelect }
@@ -217,7 +241,7 @@ class FileListComponent(internal val project: Project) {
     fun attachToOppositeSide(side: FileListComponent) {
         list.focusTraversalKeysEnabled = false
         list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), GO_OPPOSITE_ACTION)
-        list.actionMap.put(GO_OPPOSITE_ACTION, object: AbstractAction() {
+        list.actionMap.put(GO_OPPOSITE_ACTION, object : AbstractAction() {
             override fun actionPerformed(e: ActionEvent?) {
                 deactivate()
                 side.activate()
