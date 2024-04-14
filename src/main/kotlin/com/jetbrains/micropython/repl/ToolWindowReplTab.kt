@@ -171,7 +171,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
 
         val initialShellCommand = listOf(
             facet.pythonPath!!,"-m", "mpremote",
-            "connect", devicePath,
+            "connect", devicePath, "soft-reset",
             "repl")
 
         val terminalRunner = LocalTerminalDirectRunner(module.project)
