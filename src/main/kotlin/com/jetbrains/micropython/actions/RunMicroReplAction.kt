@@ -16,39 +16,13 @@
 
 package com.jetbrains.micropython.actions
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.micropython.repl.MicroPythonReplManager
-import com.jetbrains.micropython.settings.firstMicroPythonFacet
 
 class RunMicroReplAction : MicroPythonAction() {
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    val editor = FileEditorManagerEx.getInstanceEx(project).selectedTextEditor ?: return
-
-    /*
-    Here we make our best to find out module which is relevant to the current event.
-    There are two cases to consider:
-    1) There is an open file present.
-    2) No files are opened.
-    */
-
-    val virtualFile: VirtualFile? = FileDocumentManager.getInstance().getFile(editor.document)
-    val module: Module? = if (virtualFile != null) {
-      ModuleUtil.findModuleForFile(virtualFile, project)
-    } else {
-      project.firstMicroPythonFacet?.module
-    }
-
-    project.service<MicroPythonReplManager>().startOrRestartRepl()
+    e.project?.service<MicroPythonReplManager>()?.startOrRestartRepl()
   }
 }

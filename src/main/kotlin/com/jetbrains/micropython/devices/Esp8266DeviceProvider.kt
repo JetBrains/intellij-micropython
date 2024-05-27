@@ -40,17 +40,7 @@ class Esp8266DeviceProvider : MicroPythonDeviceProvider {
     val manager = PyPackageManager.getInstance(sdk)
     return manager.parseRequirements("""|pyserial>=3.5,<4.0
                                         |docopt>=0.6.2,<0.7
-                                        |adafruit-ampy>=1.0.5,<1.1""".trimMargin())
+                                        |mpremote>=1.22.0,<1.23""".trimMargin())
   }
 
-  override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
-                                      environment: ExecutionEnvironment): CommandLineState? {
-    val module = configuration.module ?: return null
-    val command = getMicroUploadCommand(configuration.path, module) ?: return null
-
-    return object : CommandLineState(environment) {
-      override fun startProcess() =
-          OSProcessHandler(GeneralCommandLine(command))
-    }
-  }
 }

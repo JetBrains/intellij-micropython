@@ -13,8 +13,8 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.application
 import com.jediterm.terminal.TtyConnector
 import com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration
-import com.jetbrains.micropython.settings.MicroPythonFacet
 import com.jetbrains.micropython.settings.microPythonFacet
+import com.jetbrains.python.sdk.basePath
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import org.jetbrains.plugins.terminal.LocalTerminalDirectRunner
 import org.jetbrains.plugins.terminal.ShellStartupOptions
@@ -85,9 +85,21 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
     }
 
     private val replStartAction =
-        object : DumbAwareAction("Restart", "Restart REPL session", AllIcons.Actions.Restart) {
+        object : DumbAwareAction() {
             override fun update(e: AnActionEvent) {
-                e.presentation.isEnabled = true
+                with(e.presentation) {
+                    isEnabled = true
+                    if(terminalWidget.isSessionRunning) {
+                        text="Restart"
+                        description= "Restart REPL session"
+                        icon= AllIcons.Actions.Restart
+                    } else {
+                        text="Start"
+                        description= "Start REPL session"
+                        icon= AllIcons.Toolwindows.ToolWindowRun
+                    }
+                }
+
             }
 
             override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -148,10 +160,13 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
                     if (isAlive) destroy()
                     waitFor(10, TimeUnit.SECONDS)
                 }
+                while(terminalWidget.isSessionRunning){
+                    Thread.sleep(100)
+                }
+                application.invokeLater(
+                    { startRepl() },
+                    { module.project.isDisposed })
             }
-            application.invokeLater(
-                { startRepl() },
-                { module.project.isDisposed })
         }
     }
 
@@ -169,11 +184,10 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
             return
         }
 
-        val initialShellCommand = mutableListOf(
-            facet.pythonPath!!,
-            "${MicroPythonFacet.scriptsPath}/microrepl.py",
-            devicePath
-        )
+        val initialShellCommand = listOf(
+            facet.pythonPath!!,"-m", "mpremote",
+            "connect", devicePath, "soft-reset",
+            "repl")
 
         val terminalRunner = LocalTerminalDirectRunner(module.project)
 
@@ -181,18 +195,26 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
             val terminalOptions = terminalRunner.configureStartupOptions(
                 ShellStartupOptions.Builder()
                     .shellCommand(initialShellCommand)
+                    .workingDirectory(module.basePath)
                     .build()
             )
 
-            val process = terminalRunner.createProcess(terminalOptions)
-            val ttyConnector = terminalRunner.createTtyConnector(process)
-            process.onExit().whenComplete { _, _ -> ActivityTracker.getInstance().inc() }
             if (deviceConfiguration.clearReplOnLaunch) {
                 terminalWidget.terminalTextBuffer.clearHistory()
-                terminalWidget.terminal.reset(true)
+                terminalWidget.terminal.apply {
+                    reset(true)
+                    writeCharacters("Quit: Ctrl+X | Stop program: Ctrl+C | Reset: Ctrl+D")
+                    nextLine()
+                    writeCharacters("Type 'help()' (without the quotes) then press ENTER.")
+                    nextLine()
+                    scrollUp(6)
+                }
             } else {
                 terminalWidget.terminal.nextLine()
             }
+            val process = terminalRunner.createProcess(terminalOptions)
+            val ttyConnector = terminalRunner.createTtyConnector(process)
+            process.onExit().whenComplete { _, _ -> ActivityTracker.getInstance().inc() }
             connectWidgetTty(terminalWidget, ttyConnector)
             terminalWidget.isEnabled = true
         }

@@ -107,7 +107,7 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
   private fun findSerialPorts(deviceProvider: MicroPythonDeviceProvider, indicator: ProgressIndicator): List<String> {
     val timeout = 1_000
     val pythonPath = pythonPath ?: return emptyList()
-    val command = listOf(pythonPath, "$scriptsPath/findusb.py")
+    val command = listOf(pythonPath, "-m", "mpremote", "devs")
     val process = CapturingProcessHandler(GeneralCommandLine(command))
     val output = process.runProcessWithProgressIndicator(indicator, timeout)
     return when {
@@ -116,7 +116,8 @@ class MicroPythonFacet(facetType: FacetType<out Facet<*>, *>, module: Module, na
       output.exitCode != 0 -> emptyList()
       else -> {
         output.stdoutLines.associate {
-          Pair(MicroPythonUsbId.parse(it.substringBefore(' ')), it.substringAfter(' '))
+          //line format: COM23 E6614103E7329124 2e8a:000c Microsoft None
+          line -> line.split(' ').let { MicroPythonUsbId.parse(it[2]) to it[0] }
         }.filterKeys { deviceProvider.checkUsbId(it) }.values.toList()
       }
     }

@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 docopt = "*"
-adafruit-ampy = "*"
+mpremote = "*"
 pyserial = "*"
 
 [dev-packages]

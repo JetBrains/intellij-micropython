@@ -54,6 +54,7 @@ open class MicroBitDeviceProvider : MicroPythonDeviceProvider {
   override val detectedModuleNames: Set<String>
     get() = linkedSetOf("microbit")
 
+
   override fun getRunCommandLineState(configuration: MicroPythonRunConfiguration,
                                       environment: ExecutionEnvironment): CommandLineState? {
     val pythonPath = configuration.module?.microPythonFacet?.pythonPath ?: return null
