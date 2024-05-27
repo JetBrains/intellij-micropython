@@ -85,9 +85,21 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
     }
 
     private val replStartAction =
-        object : DumbAwareAction("Restart", "Restart REPL session", AllIcons.Actions.Restart) {
+        object : DumbAwareAction() {
             override fun update(e: AnActionEvent) {
-                e.presentation.isEnabled = true
+                with(e.presentation) {
+                    isEnabled = true
+                    if(terminalWidget.isSessionRunning) {
+                        text="Restart"
+                        description= "Restart REPL session"
+                        icon= AllIcons.Actions.Restart
+                    } else {
+                        text="Start"
+                        description= "Start REPL session"
+                        icon= AllIcons.Toolwindows.ToolWindowRun
+                    }
+                }
+
             }
 
             override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -148,10 +160,13 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
                     if (isAlive) destroy()
                     waitFor(10, TimeUnit.SECONDS)
                 }
+                while(terminalWidget.isSessionRunning){
+                    Thread.sleep(100)
+                }
+                application.invokeLater(
+                    { startRepl() },
+                    { module.project.isDisposed })
             }
-            application.invokeLater(
-                { startRepl() },
-                { module.project.isDisposed })
         }
     }
 
