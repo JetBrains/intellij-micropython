@@ -59,6 +59,9 @@ tasks {
     buildPlugin {
         dependsOn(copyStubs)
     }
+    verifyPlugin {
+        dependsOn(copyStubs)
+    }
     runIde {
         dependsOn(copyStubs)
     }
