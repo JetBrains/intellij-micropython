@@ -1,6 +1,14 @@
 The Changelog
 =============
 
+1.4.4 - 2024-07-13
+------------------
+
+### Fixed
+
+* Compatibility with 2024.1.x IDEs
+* REPL should work fine with the latest IDE versions
+
 1.4.2 - 2023-10-11
 ------------------
 
