@@ -62,6 +62,8 @@
     <facet.toolWindow id="MicroPython" anchor="bottom" factoryClass="com.jetbrains.micropython.ui.MicroPythonToolWindowFactory"
                       secondary="false" icon="/icons/micropython_tw.svg"
                       facetIdList="MicroPython"/>
+    <toolWindow factoryClass="com.jetbrains.micropython.repl.MicroPythonToolWindow" id="com.jetbrains.micropython.repl.MicroPythonToolWindow"
+                canCloseContents="true"/>
   </extensions>
 
   <actions>
@@ -71,11 +73,24 @@
               text="MicroPython REPL"
               description="Run MicroPython REPL in a tool window"
               icon="AllIcons.Actions.Run_anything">
-        <keyboard-shortcut first-keystroke="control shift R" keymap="Mac OS X 10.5+" />
-        <keyboard-shortcut first-keystroke="alt shift R" keymap="$default" />
       </action>
-      <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"
-              text="Remove All Files from MicroPython Device"/>
+<!--      <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"-->
+<!--              text="Remove All Files from MicroPython Device"/>-->
+    </group>
+    <action id="com.jetbrains.micropython.repl.ReplOpen" class="com.jetbrains.micropython.repl.ReplOpen" text="WebRepl Open">
+      <add-to-group group-id="MainToolbarGeneralActionsGroup"/>
+      <add-to-group group-id="ToolsMenu"/>
+      <keyboard-shortcut first-keystroke="control shift R" keymap="Mac OS X 10.5+" />
+      <keyboard-shortcut first-keystroke="alt shift R" keymap="$default" />
+    </action>
+    <group id="micropython.repl.FSToolbar">
+      <action id="micropython.repl.UploadFile" class="com.jetbrains.micropython.repl.UploadFile"/>
+<!--      <action id="micropython.repl.ResetAfterUpload" class="com.jetbrains.micropython.repl.UploadFileAndReset"/>-->
+      <action id="micropython.repl.Refresh" class="com.jetbrains.micropython.repl.Refresh"/>
+      <action id="micropython.repl.Delete" class="com.jetbrains.micropython.repl.DeleteFile"/>
+    </group>
+    <group id="micropython.repl.ReplToolbar">
+      <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.repl.InstantRun" text="Instant Run"/>
     </group>
   </actions>
 </idea-plugin>

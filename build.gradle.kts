@@ -36,6 +36,10 @@ intellij {
     }
 }
 
+dependencies {
+    implementation("org.java-websocket:Java-WebSocket:1.5.7")
+}
+
 tasks {
     withType<KotlinCompile> {
         compilerOptions {
@@ -68,3 +72,4 @@ tasks {
         token = config("publishToken")
     }
 }
+
