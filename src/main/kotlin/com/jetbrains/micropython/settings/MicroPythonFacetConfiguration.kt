@@ -38,12 +38,14 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
     return arrayOf(MicroPythonFacetEditorTab(this, facet))
   }
 
+  @Deprecated("Deprecated in Java")
   override fun readExternal(element: Element?) {
     val deviceName = element?.getChild("device")?.getAttribute("name")?.value
     val device = MicroPythonDeviceProvider.providers.firstOrNull { it.persistentName == deviceName }
     deviceProvider = device ?: MicroPythonDeviceProvider.default
   }
 
+  @Deprecated("Deprecated in Java")
   override fun writeExternal(element: Element?) {
     val deviceElement = Element("device")
     deviceElement.setAttribute("name", deviceProvider.persistentName)
