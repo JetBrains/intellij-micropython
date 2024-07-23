@@ -46,12 +46,12 @@ __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython).
 __version__ = "7.3.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import abstractmethod
-from typing import Protocol, Callable, overload, Any, ClassVar, Final, NoReturn
+from typing import Protocol, Callable, overload, Any, ClassVar, Final
 
 import pyb
 
 @overload
-def country(code: str, /) -> NoReturn | str:
+def country(code: str, /) -> str:
     """
     Get or set the two-letter ISO 3166-1 Alpha-2 country code to be used for
         radio compliance.
@@ -63,7 +63,7 @@ def country(code: str, /) -> NoReturn | str:
     The default code ``"XX"`` represents the "worldwide" region.
     """
 
-def hostname(self, name: str) -> NoReturn | str:
+def hostname(self, name: str) -> str:
     """Get or set the hostname that will identify this device on the network. It will
     be used by all interfaces.
 
@@ -98,39 +98,39 @@ MODE_11G: Final[int] = ...
 MODE_11N: Final[int] = ...
 """IEEE 802.11n"""
 
-STA_IF:int = 0
+STA_IF: int = 0
 """station interface"""
 
-AP_IF:int = 1
+AP_IF: int = 1
 """access point interface"""
 
-STAT_IDLE:int = 0
+STAT_IDLE: int = 0
 """no connection and no activity"""
 
-STAT_CONNECTING:int = 1
+STAT_CONNECTING: int = 1
 """connecting in progress"""
 
-STAT_WRONG_PASSWORD:int = 2
+STAT_WRONG_PASSWORD: int = 2
 """failed due to incorrect password"""
 
-STAT_NO_AP_FOUND:int = 3
+STAT_NO_AP_FOUND: int = 3
 """failed because no access point replied"""
 
-STAT_CONNECT_FAIL:int = 4
+STAT_CONNECT_FAIL: int = 4
 """failed due to other problems"""
 
-STAT_GOT_IP:int = 5
+STAT_GOT_IP: int = 5
 """connection successful"""
 
-AUTH_OPEN:int = 0
+AUTH_OPEN: int = 0
 
-AUTH_WEP:int = 1
+AUTH_WEP: int = 1
 
-AUTH_WPA_PSK:int = 2
+AUTH_WPA_PSK: int = 2
 
-AUTH_WPA2_PSK:int = 3
+AUTH_WPA2_PSK: int = 3
 
-AUTH_WPA_WPA2_PSK:int = 4
+AUTH_WPA_WPA2_PSK: int = 4
 
 @overload
 def phy_mode(self) -> int:
