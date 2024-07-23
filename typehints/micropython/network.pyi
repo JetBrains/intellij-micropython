@@ -62,7 +62,7 @@ def country(code: str = "", /) -> str:
     The default code ``"XX"`` represents the "worldwide" region.
     """
 
-def hostname(self, name: str = "") -> str:
+def hostname(name: str = "") -> str:
     """Get or set the hostname that will identify this device on the network. It will
     be used by all interfaces.
 
