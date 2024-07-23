@@ -46,33 +46,48 @@ __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython).
 __version__ = "7.3.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import abstractmethod
-from typing import Protocol, Callable, overload, Any, ClassVar, Final
+from typing import Protocol, Callable, overload, Any, ClassVar, Final, NoReturn
 
 import pyb
 
-def country(code: str = "", /) -> str:
+@overload
+def country() -> str:
     """
-    Get or set the two-letter ISO 3166-1 Alpha-2 country code to be used for
+    Get the two-letter ISO 3166-1 Alpha-2 country code to be used for
         radio compliance.
-
-    If the *code* parameter is provided, the country will be set to this value.
-    If the function is called without parameters, it returns the current
-    country.
 
     The default code ``"XX"`` represents the "worldwide" region.
     """
 
-def hostname(name: str = "", /) -> str:
-    """Get or set the hostname that will identify this device on the network. It will
+@overload
+def country(code: str) -> NoReturn:
+    """
+    Set the two-letter ISO 3166-1 Alpha-2 country code to be used for
+        radio compliance.
+
+    The default code ``"XX"`` represents the "worldwide" region.
+    """
+
+@overload
+def hostname() -> str:
+    """Get the hostname that will identify this device on the network. It will
     be used by all interfaces.
 
     This hostname is used for:
         * Sending to the DHCP server in the client request. (If using DHCP)
         * Broadcasting via mDNS. (If enabled)
 
-        If the *name* parameter is provided, the hostname will be set to this value.
-        If the function is called without parameters, it returns the current
-        hostname.
+        The default hostname is typically the name of the board.
+    """
+
+@overload
+def hostname(name: str) -> NoReturn:
+    """Set the hostname that will identify this device on the network. It will
+    be used by all interfaces.
+
+    This hostname is used for:
+        * Sending to the DHCP server in the client request. (If using DHCP)
+        * Broadcasting via mDNS. (If enabled)
 
         A change in hostname is typically only applied during connection. For DHCP
         this is because the hostname is part of the DHCP client request, and the
@@ -123,7 +138,7 @@ STAT_GOT_IP: int = 5
 
 AUTH_OPEN: int = 0
 
-AUTH_WEP: int = 1
+AUTH_WEP:int = 1
 
 AUTH_WPA_PSK: int = 2
 
@@ -132,7 +147,7 @@ AUTH_WPA2_PSK: int = 3
 AUTH_WPA_WPA2_PSK: int = 4
 
 @overload
-def phy_mode(self) -> int:
+def phy_mode() -> int:
     """
     Get or set the PHY mode.
     
@@ -148,7 +163,7 @@ def phy_mode(self) -> int:
    """
 
 @overload
-def phy_mode(self, mode: int, /) -> None:
+def phy_mode(mode: int, /) -> None:
     """
     Get or set the PHY mode.
     
