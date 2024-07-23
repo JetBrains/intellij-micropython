@@ -678,7 +678,7 @@ Selects the IRQ trigger type.
       Availability: cc3200, stm32 ports.
       """
     @overload
-    def dive(self) -> int:
+    def drive(self) -> int:
         """
       Get or set the pin drive strength.
       See the constructor documentation for details of the ``drive`` argument.
