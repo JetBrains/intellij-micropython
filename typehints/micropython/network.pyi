@@ -46,7 +46,7 @@ __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython).
 __version__ = "7.3.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import abstractmethod
-from typing import Protocol, Callable, overload, Any, ClassVar, Final, NoReturn
+from typing import Protocol, Callable, overload, Any, ClassVar, Final
 
 import pyb
 
@@ -60,7 +60,7 @@ def country() -> str:
     """
 
 @overload
-def country(code: str) -> NoReturn:
+def country(code: str) -> None:
     """
     Set the two-letter ISO 3166-1 Alpha-2 country code to be used for
         radio compliance.
@@ -81,7 +81,7 @@ def hostname() -> str:
     """
 
 @overload
-def hostname(name: str) -> NoReturn:
+def hostname(name: str) -> None:
     """Set the hostname that will identify this device on the network. It will
     be used by all interfaces.
 
