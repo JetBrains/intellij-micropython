@@ -50,7 +50,7 @@ from typing import Protocol, Callable, overload, Any, ClassVar, Final
 
 import pyb
 
-def country(code: str, /) -> str:
+def country(code: str = "", /) -> str:
     """
     Get or set the two-letter ISO 3166-1 Alpha-2 country code to be used for
         radio compliance.
@@ -62,7 +62,7 @@ def country(code: str, /) -> str:
     The default code ``"XX"`` represents the "worldwide" region.
     """
 
-def hostname(self, name: str) -> str:
+def hostname(self, name: str = "") -> str:
     """Get or set the hostname that will identify this device on the network. It will
     be used by all interfaces.
 
