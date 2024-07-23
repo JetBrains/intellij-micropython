@@ -3,6 +3,7 @@ network configuration.
 
 Descriptions taken from:
 https://raw.githubusercontent.com/micropython/micropython/master/docs/library/network.rst.
+https://github.com/Josverl/micropython-stubs/blob/main/stubs/micropython-v1_19_1-esp32-GENERIC/network.py
 ****************************************
 
 .. module:: network
@@ -45,9 +46,48 @@ __license__ = "MIT https://opensource.org/licenses/MIT (as used by MicroPython).
 __version__ = "7.3.0"  # Version set by https://github.com/hlovatt/tag2ver
 
 from abc import abstractmethod
-from typing import Protocol, Callable, overload, Any, ClassVar, Final
+from typing import Protocol, Callable, overload, Any, ClassVar, Final, NoReturn
 
 import pyb
+
+@overload
+def country(code: str, /) -> NoReturn | str:
+    """
+    Get or set the two-letter ISO 3166-1 Alpha-2 country code to be used for
+        radio compliance.
+
+    If the *code* parameter is provided, the country will be set to this value.
+    If the function is called without parameters, it returns the current
+    country.
+
+    The default code ``"XX"`` represents the "worldwide" region.
+    """
+
+def hostname(self, name: str) -> NoReturn | str:
+    """Get or set the hostname that will identify this device on the network. It will
+    be used by all interfaces.
+
+    This hostname is used for:
+        * Sending to the DHCP server in the client request. (If using DHCP)
+        * Broadcasting via mDNS. (If enabled)
+
+        If the *name* parameter is provided, the hostname will be set to this value.
+        If the function is called without parameters, it returns the current
+        hostname.
+
+        A change in hostname is typically only applied during connection. For DHCP
+        this is because the hostname is part of the DHCP client request, and the
+        implementation of mDNS in most ports only initialises the hostname once
+        during connection. For this reason, you must set the hostname before
+        activating/connecting your network interfaces.
+
+        The length of the hostname is limited to 32 characters.
+        :term:`MicroPython ports <MicroPython port>` may choose to set a lower
+        limit for memory reasons. If the given name does not fit, a `ValueError`
+        is raised.
+
+        The default hostname is typically the name of the board.
+    """
 
 MODE_11B: Final[int] = ...
 """IEEE 802.11b"""
@@ -57,6 +97,41 @@ MODE_11G: Final[int] = ...
 
 MODE_11N: Final[int] = ...
 """IEEE 802.11n"""
+
+STA_IF:int = 0
+"""station interface"""
+
+AP_IF:int = 1
+"""access point interface"""
+
+STAT_IDLE:int = 0
+"""no connection and no activity"""
+
+STAT_CONNECTING:int = 1
+"""connecting in progress"""
+
+STAT_WRONG_PASSWORD:int = 2
+"""failed due to incorrect password"""
+
+STAT_NO_AP_FOUND:int = 3
+"""failed because no access point replied"""
+
+STAT_CONNECT_FAIL:int = 4
+"""failed due to other problems"""
+
+STAT_GOT_IP:int = 5
+"""connection successful"""
+
+AUTH_OPEN:int = 0
+
+AUTH_WEP:int = 1
+
+AUTH_WPA_PSK:int = 2
+
+AUTH_WPA2_PSK:int = 3
+
+AUTH_WPA_WPA2_PSK:int = 4
+
 @overload
 def phy_mode(self) -> int:
     """
