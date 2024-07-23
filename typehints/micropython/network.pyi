@@ -50,7 +50,6 @@ from typing import Protocol, Callable, overload, Any, ClassVar, Final
 
 import pyb
 
-@overload
 def country(code: str, /) -> str:
     """
     Get or set the two-letter ISO 3166-1 Alpha-2 country code to be used for
