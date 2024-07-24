@@ -140,7 +140,7 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
         }
     }
 
-    override fun startOrRestartRepl() {
+    override fun startOrRestartRepl(interrupt: Boolean) {
         interruptBanner()
         application.executeOnPooledThread {
             synchronized(this) {
@@ -150,12 +150,12 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
                 }
             }
             application.invokeLater(
-                { startRepl() },
+                { startRepl(interrupt) },
                 { module.project.isDisposed })
         }
     }
 
-    private fun startRepl() {
+    private fun startRepl(interrupt: Boolean) {
         val facet = module.microPythonFacet ?: return
         val devicePath = facet.getOrDetectDevicePathSynchronously()
 
@@ -173,7 +173,9 @@ class ToolWindowReplTab(val module: Module, parent: Disposable) : MicroPythonRep
             facet.pythonPath!!,
             "${MicroPythonFacet.scriptsPath}/microrepl.py",
             devicePath
-        )
+        ).apply {
+            if(!interrupt) add("--nointerrupt")
+        }
 
         val terminalRunner = LocalTerminalDirectRunner(module.project)
 
