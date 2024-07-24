@@ -87,7 +87,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     if (runReplOnSuccess && state != null) {
       return RunStateWrapper(state) {
         ApplicationManager.getApplication().invokeLater {
-          project.service<MicroPythonReplManager>().startOrRestartRepl()
+          project.service<MicroPythonReplManager>().startOrRestartRepl(false)
           ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
         }
       }

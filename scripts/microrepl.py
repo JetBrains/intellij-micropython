@@ -79,8 +79,8 @@ def main():
     """
     The function that actually runs the REPL.
     """
-    if len(sys.argv) != 2:
-        print("Usage: microrepl.py /path/to/device")
+    if len(sys.argv) not in range(2, 3):
+        print("Usage: microrepl.py /path/to/device [--nointerrupt]")
 
     port = sys.argv[1]
     print('Device path', port)
@@ -97,7 +97,8 @@ def main():
     miniterm.set_tx_encoding('utf-8')
     miniterm.start()
     sleep(0.5)
-    miniterm.serial.write(b'\x03')  # Connecting stops the running program.
+    if len(sys.argv) != 3 or sys.argv[2] != '--nointerrupt':
+        miniterm.serial.write(b'\x03')  # Connecting stops the running program.
     try:
         miniterm.join(True)
     except KeyboardInterrupt:

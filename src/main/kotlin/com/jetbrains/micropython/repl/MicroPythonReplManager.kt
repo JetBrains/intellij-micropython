@@ -7,7 +7,7 @@ import com.intellij.util.messages.Topic
 
 interface MicroPythonReplControl {
     fun stopRepl()
-    fun startOrRestartRepl()
+    fun startOrRestartRepl(interrupt: Boolean = true)
 }
 
 @Service(Service.Level.PROJECT)
@@ -16,8 +16,8 @@ class MicroPythonReplManager(private val project: Project) : MicroPythonReplCont
         project.messageBus.syncPublisher(MICROPYTHON_REPL_CONTROL).stopRepl()
 
 
-    override fun startOrRestartRepl() =
-        project.messageBus.syncPublisher(MICROPYTHON_REPL_CONTROL).startOrRestartRepl()
+    override fun startOrRestartRepl(interrupt: Boolean) =
+        project.messageBus.syncPublisher(MICROPYTHON_REPL_CONTROL).startOrRestartRepl(interrupt)
 
 }
 
