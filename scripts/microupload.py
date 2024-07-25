@@ -22,6 +22,7 @@ Options:
     -X --exclude=PATH       Path to exclude, may be repeated.
     -C --chdir=PATH         Change current directory to path.
     -v --verbose            Verbose output.
+    -d --different          Only Upload if remote file is different to local file.
 """
 
 import time
@@ -31,21 +32,83 @@ from contextlib import suppress
 from typing import List, Iterable, TypeVar, Sequence, Set
 
 from docopt import docopt
-from ampy.pyboard import Pyboard
+from ampy.pyboard import Pyboard, PyboardError
 from ampy.files import Files, DirectoryExistsError
+from hashlib import sha1
+import textwrap
 
 
 __all__ = []
 
-verbose = False
+verbose = True
 T = TypeVar('T')
 
+def get_hash(self, filename):
+    command = """
+        import sys
+        from uhashlib import sha1
+        import ubinascii
+        hash = sha1()
+        with open('{0}', 'rb') as infile:
+            while True:
+                result = infile.read({1})
+                hash.update(result)
+                if result == b'':
+                    break
+            len = sys.stdout.write(ubinascii.hexlify(hash.digest()))
+            infile.close()
+    """.format(
+        filename, 32
+    )
+    self._pyboard.enter_raw_repl()
+    try:
+        out = self._pyboard.exec_(textwrap.dedent(command))
+    except PyboardError as ex:
+        # Check if this is an OSError #2, i.e. file doesn't exist and
+        # rethrow it as something more descriptive.
+        if ex.args[2].decode("utf-8").find("OSError: [Errno 2] ENOENT") != -1:
+            self._pyboard.exit_raw_repl()
+            return ""
+        else:
+            raise ex
+    self._pyboard.exit_raw_repl()
+    return out.decode('utf-8')
+
+def get_size(self, filename):
+    command = """
+        import sys
+        import os
+        
+        len = sys.stdout.write(str(os.stat('{0}')[6]).encode('utf-8'))
+    """.format(
+        filename
+    )
+    self._pyboard.enter_raw_repl()
+    try:
+        out = self._pyboard.exec_(textwrap.dedent(command))
+    except PyboardError as ex:
+        # Check if this is an OSError #2, i.e. file doesn't exist and
+        # rethrow it as something more descriptive.
+        if ex.args[2].decode("utf-8").find("OSError: [Errno 2] ENOENT") != -1:
+            self._pyboard.exit_raw_repl()
+            return "-1"
+        else:
+            raise ex
+    self._pyboard.exit_raw_repl()
+    return out.decode('utf-8')
+
+Files.get_hash = get_hash
+Files.get_size = get_size
 
 def main(args: List[str]) -> None:
     global verbose
+    
+    start_time = time.time()
+
     opts = docopt(__doc__, argv=args)
     verbose = opts['--verbose']
     root = opts['PATH']
+    different = opts['--different']
 
     chdir = opts['--chdir']
     if chdir:
@@ -64,7 +127,6 @@ def main(args: List[str]) -> None:
                      for x in list_files(root, opts['--exclude'])]
     else:
         to_upload = [rel_root]
-
     created_cache = set()
     for path in progress('Uploading files', to_upload):
         local_path = os.path.abspath(path)
@@ -75,11 +137,30 @@ def main(args: List[str]) -> None:
         remote_dir = os.path.dirname(path)
         if remote_dir:
             make_dirs(files, remote_dir, created_cache)
+            
         with open(local_path, 'rb') as fd:
-            files.put(remote_path, fd.read())
+            if different:
+                raw = fd.read()
+                local_file_size = str(os.stat(local_path)[6])
+                local_file_hash = sha1(raw).hexdigest()
+
+                remote_file_size = files.get_size(remote_path)
+                if local_file_size == remote_file_size:
+                    remote_file_hash = files.get_hash(remote_path)
+                    if remote_file_hash == local_file_hash:
+                        print("File Identical... Skipping upload", file=sys.stderr, flush=True)
+                    else:
+                        wait_for_board()
+                        files.put(remote_path, raw)
+                else:
+                    wait_for_board()
+                    files.put(remote_path, raw)
+            else:
+                files.put(remote_path, fd.read())
 
     print('Soft reboot', file=sys.stderr, flush=True)
     soft_reset(board)
+    print("--- %s seconds ---" % (time.time() - start_time), file=sys.stderr, flush=True)
 
 
 def make_dirs(files: Files, path: str,
