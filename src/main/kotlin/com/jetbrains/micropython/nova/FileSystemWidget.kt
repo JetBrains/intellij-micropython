@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.fs
+package com.jetbrains.micropython.nova
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -16,7 +16,6 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
-import com.jetbrains.micropython.repl.WebSocketTtyConnector
 import org.jetbrains.annotations.NonNls
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent

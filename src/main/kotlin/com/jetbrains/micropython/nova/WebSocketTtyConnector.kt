@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.repl
+package com.jetbrains.micropython.nova
 
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.Disposable
