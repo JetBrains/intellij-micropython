@@ -1,4 +1,4 @@
-package com.jetbrains.micropython.repl
+package com.jetbrains.micropython.nova
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -24,8 +24,6 @@ import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jediterm.terminal.TerminalMode
 import com.jediterm.terminal.ui.JediTermWidget
-import com.jetbrains.micropython.fs.FILE_SYSTEM_WIDGET_KEY
-import com.jetbrains.micropython.fs.FileSystemWidget
 import com.jetbrains.micropython.settings.MicroPythonFacetType
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import javax.swing.Icon
