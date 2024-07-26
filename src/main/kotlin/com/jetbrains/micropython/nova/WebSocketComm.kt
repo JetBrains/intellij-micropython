@@ -57,57 +57,37 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
     private val inPipe = PipedReader(outPipe, 1000)
 
-    private var url: String = "---"
+    private var uri: URI? = null
+    private var password: String? = null
 
     val ttyConnector: TtyConnector = WebSocketTtyConnector()
 
     @Throws(IOException::class)
     suspend fun connect(uri: URI, password: String) {
-        url = uri.toString()
-        webSocketMutex.withLock {
-            connected = false
-            ttySuspended = true
-            client?.close()
-            client = MpyWebSocketClient(uri).apply {
-                connectBlocking()
-                try {
-                    withTimeout(TIMEOUT.toLong()) {
-                        while (true) {
-                            when {
-                                offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)
-                                offTtyBuffer.length > PASSWORD_PROMPT.length * 2 -> {
-                                    offTtyBuffer.setLength(PASSWORD_PROMPT.length * 2)
-                                    throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                                }
+        this.uri = uri
+        this.password = password
+        reconnect()
+    }
 
-                                else -> {
-                                    if (offTtyBuffer.toString().contains(PASSWORD_PROMPT)) {
-                                        offTtyBuffer.clear()
-                                        send("$password\n")
-                                        while (!connected) {
-                                            when {
-                                                offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
-                                                offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
-                                                else -> delay(SHORT_DELAY)
-                                            }
-                                        }
-                                    } else {
-                                        throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                                    }
-                                    return@withTimeout
-                                }
-                            }
-                        }
-                    }
-                    ttySuspended = false
-                } catch (e: TimeoutCancellationException) {
-                    throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
-                } finally {
-                    offTtyBuffer.clear()
-                }
+    @Throws(IOException::class)
+    suspend fun upload(fullName: @NonNls String, code: @NonNls String) {
+        val escaped = code.map {
+            when (it) {
+                '\n' -> "\\n"
+                '\r' -> "\\r"
+                '\'' -> "\\'"
+                '\\' -> "\\\\"
+                in 0.toChar()..31.toChar(), in 127.toChar()..255.toChar() -> "\\x%02x".format(it)
+                else -> it
             }
-
-        }
+        }.joinToString("")
+        blindExecute(
+            """
+with open('$fullName', 'wb') as f:
+    f.write(b'$escaped')
+    f.close()
+"""
+        )
     }
 
     @Throws(IOException::class)
@@ -228,7 +208,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
     }
 
     inner class WebSocketTtyConnector : TtyConnector {
-        override fun getName(): String = url
+        override fun getName(): String = (uri ?: "---").toString()
         override fun close() = Disposer.dispose(this@WebSocketComm)//todo Am I right?
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
@@ -268,5 +248,56 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
             client?.close()
         } catch (_: IOException) {
         }
+    }
+
+    @Throws(IOException::class)
+    suspend fun reconnect() {
+        val uri = this.uri ?: throw IOException("Not connected")
+        webSocketMutex.withLock {
+            connected = false
+            ttySuspended = true
+            client?.close()
+            client = MpyWebSocketClient(uri).apply {
+                connectBlocking()
+                try {
+                    withTimeout(TIMEOUT.toLong()) {
+                        while (true) {
+                            when {
+                                offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)
+                                offTtyBuffer.length > PASSWORD_PROMPT.length * 2 -> {
+                                    offTtyBuffer.setLength(PASSWORD_PROMPT.length * 2)
+                                    throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
+                                }
+
+                                else -> {
+                                    if (offTtyBuffer.toString().contains(PASSWORD_PROMPT)) {
+                                        offTtyBuffer.clear()
+                                        send("$password\n")
+                                        while (!connected) {
+                                            when {
+                                                offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
+                                                offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
+                                                else -> delay(SHORT_DELAY)
+                                            }
+                                        }
+                                    } else {
+                                        throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
+                                    }
+                                    return@withTimeout
+                                }
+                            }
+                        }
+                    }
+                    ttySuspended = false
+                } catch (e: TimeoutCancellationException) {
+                    throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
+                } finally {
+                    offTtyBuffer.clear()
+                }
+            }
+
+        }
+
+
     }
 }

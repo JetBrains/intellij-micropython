@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
@@ -17,14 +18,19 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.ui.IconManager
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jediterm.terminal.TerminalMode
+import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.jetbrains.micropython.settings.MicroPythonFacetType
+import com.jetbrains.rd.util.URI
+import kotlinx.coroutines.Dispatchers
+import com.intellij.openapi.application.EDT
+import kotlinx.coroutines.withContext
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -45,25 +51,27 @@ class ReplOpen : DumbAwareAction("Open REPL", null, MicroPythonFacetType.LOGO) {
 class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val newDisposable = Disposer.newDisposable(toolWindow.disposable, "Webrepl")
-    val connector = WebSocketTtyConnector("ws://192.168.50.68:8266", "passwd") {
+    val comm = WebSocketComm {
       it.printStackTrace()
     }
-    Disposer.register(newDisposable, connector)
+    Disposer.register(newDisposable, comm)
 
     val tabbedPane = JBTabbedPane()
-    connector.connect()
-    val jediTermWidget = jediTermWidget(connector)
+    val jediTermWidget = jediTermWidget(comm.ttyConnector)
     tabbedPane.addTab("REPL", jediTermWidget)
-    val fileSystemWidget = FileSystemWidget(project, connector)
+    val fileSystemWidget = FileSystemWidget(project, comm)
     tabbedPane.addTab("File System", fileSystemWidget)
     val content = ContentFactory.getInstance().createContent(tabbedPane, "WebRepl", true)
     FILE_SYSTEM_WIDGET_KEY.set(content, fileSystemWidget)
     content.setDisposer(newDisposable)
     toolWindow.contentManager.addContent(content)
-    fileSystemWidget.refresh()
+    runWithModalProgressBlocking(project, "Initializing WebREPL") {
+      comm.connect(URI("ws://192.168.50.68:8266"), "passwd")
+      fileSystemWidget.refresh()
+    }
   }
 
-  private fun jediTermWidget(connector: WebSocketTtyConnector): JComponent {
+  private fun jediTermWidget(connector: TtyConnector): JComponent {
     val mySettingsProvider = JBTerminalSystemSettingsProvider()
     val terminal = JediTermWidget(mySettingsProvider)
     terminal.isEnabled = false
@@ -88,7 +96,7 @@ class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
 }
 
 abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", icon) {
-  abstract fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor)
+  abstract suspend fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor)
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val editor = FileEditorManager
@@ -97,34 +105,39 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
                  ?: return
     val fileSystemWidget = ToolWindowManager
                              .getInstance(project)
-                             .getToolWindow("com.jetbrains.micropython.repl.MicroPythonToolWindow")
+      .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")
                              ?.contentManager
                              ?.selectedContent
                              ?.getUserData(FILE_SYSTEM_WIDGET_KEY)
                            ?: return
-    performAction(fileSystemWidget, editor)
+    runWithModalProgressBlocking(project, "Board data exchange...") {
+      performAction(fileSystemWidget, editor)
+    }
   }
 }
 
 class Refresh : ReplAction("Refresh", AllIcons.Actions.Refresh) {
-  override fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
+  override suspend fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
     fileSystemWidget.refresh()
   }
 }
 
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
-  override fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
-    val code = editor.asSafely<TextEditor>()
-                 ?.editor
-                 ?.document
-                 ?.text ?: return
-
-    fileSystemWidget.connector.instantRun(code)
+  override suspend fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
+    val code = withContext(Dispatchers.EDT) {
+      editor.asSafely<TextEditor>()
+        ?.editor
+        ?.document
+        ?.text
+    }
+    if (code != null) {
+      fileSystemWidget.comm.instantRun(code)
+    }
   }
 }
 
 class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
-  override fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
+  override suspend fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
     fileSystemWidget.deleteCurrent()
   }
 }
@@ -132,28 +145,17 @@ class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
 
 open class UploadFile(text: String = "Upload File", icon: Icon = AllIcons.Actions.Upload) : ReplAction(text, icon) {
 
-  override fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
-    val code = editor.asSafely<TextEditor>()
-                 ?.editor
-                 ?.document
-                 ?.text ?: return
+  override suspend fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
+    val code = editor.asSafely<TextEditor>()?.editor?.document?.text ?: return
     val file = editor.file
-    val fullName =
-      ProjectRootManagerEx
-        .getInstance(fileSystemWidget.project)
-        .contentRoots.firstNotNullOfOrNull {
-          root -> VfsUtil.getRelativePath(file, root)
-        } ?: return
-
-    fileSystemWidget.connector.upload(fullName, code)
-    fileSystemWidget.refresh()
-  }
-}
-
-class UploadFileAndReset : UploadFile("Upload File",
-                                      IconManager.getInstance().createLayered(AllIcons.Actions.Upload, AllIcons.Actions.New)) {
-  override fun performAction(fileSystemWidget: FileSystemWidget, editor: FileEditor) {
-    super.performAction(fileSystemWidget, editor)
-    fileSystemWidget.connector.write("\u0004")
+    val fullName = readAction {
+      ProjectRootManagerEx.getInstance(fileSystemWidget.project).contentRoots.firstNotNullOfOrNull { root ->
+        VfsUtil.getRelativePath(file, root)
+      }
+    }
+    if (fullName != null) {
+        fileSystemWidget.comm.upload(fullName, code)
+        fileSystemWidget.refresh()
+      }
   }
 }

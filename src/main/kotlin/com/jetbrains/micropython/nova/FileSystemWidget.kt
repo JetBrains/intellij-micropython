@@ -4,11 +4,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.util.Key
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -16,6 +18,8 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -50,8 +54,11 @@ with open('$name','rb') as f:
           print(b.hex())
 """
 
-class FileSystemWidget(val project: Project, val connector: WebSocketTtyConnector) : BorderLayoutPanel() {
-  private val tree: Tree  = Tree(DefaultTreeModel(DirNode("/", "/"), true))
+class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLayoutPanel() {
+  private val tree: Tree = Tree(newTreeModel())
+
+  private fun newTreeModel() = DefaultTreeModel(DirNode("/", "/"), true)
+
   init {
     tree.setCellRenderer(object : ColoredTreeCellRenderer() {
 
@@ -76,16 +83,21 @@ class FileSystemWidget(val project: Project, val connector: WebSocketTtyConnecto
         if(e.button == MouseEvent.BUTTON1 && e.clickCount==2) {
           tree.getClosestPathForLocation(e.x, e.y)?.lastPathComponent.asSafely<FileNode>()
           ?.let { fileNode ->
-            val hex = connector.blindExecute(fileReadCommand(fileNode.fullName))
-            val text = hex
-              .filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
-              .chunked(2)
-              .map { it.toInt(16).toByte() }
-              .toByteArray()
-              .toString(StandardCharsets.UTF_8)
-            val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileNode.name)
-            val infoFile = LightVirtualFile("micropython: ${fileNode.fullName}", fileType, text)
-            FileEditorManager.getInstance(project).openFile(infoFile, false)
+            runWithModalProgressBlocking(project, "Reading ${fileNode.fullName}") {
+              val hex = comm.blindExecute(fileReadCommand(fileNode.fullName))
+              val text = hex
+                .filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+                .chunked(2)
+                .map { it.toInt(16).toByte() }
+                .toByteArray()
+                .toString(StandardCharsets.UTF_8)
+              withContext(Dispatchers.EDT) {
+                val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileNode.name)
+                val infoFile = LightVirtualFile("micropython: ${fileNode.fullName}", fileType, text)
+                infoFile.isWritable = false
+                FileEditorManager.getInstance(project).openFile(infoFile, false)
+              }
+            }
           }
       }
     }
@@ -99,9 +111,12 @@ class FileSystemWidget(val project: Project, val connector: WebSocketTtyConnecto
     addToTop(actionToolbar.component)
   }
 
-  fun refresh() {
-    (tree.model.root as DirNode).removeAllChildren()
-    val dirList: String = connector.blindExecute(MPY_FS_SCAN)
+  suspend fun refresh() {
+    if (!comm.isConnected()) {
+      comm.reconnect()
+    }
+    val newModel = newTreeModel()
+    val dirList: String = comm.blindExecute(MPY_FS_SCAN)
     dirList
       .lines()
       .filter { it.isNotBlank() }
@@ -112,7 +127,7 @@ class FileSystemWidget(val project: Project, val connector: WebSocketTtyConnecto
           val fullName = fields[2]
           val names = fullName.split('/')
           val folders = if (flags and 0x4000 == 0) names.dropLast(1) else names
-          var currentFolder = tree.model.root as DirNode
+          var currentFolder = newModel.root as DirNode
           folders
             .filter { it.isNotBlank() }
             .forEach { name ->
@@ -128,20 +143,27 @@ class FileSystemWidget(val project: Project, val connector: WebSocketTtyConnecto
           }
         }
       }
-    val expandedPaths = TreeUtil.collectExpandedPaths(tree)
-    val selectedPath = tree.selectionPath
-    (tree.model as DefaultTreeModel).reload()
-    TreeUtil.restoreExpandedPaths(tree, expandedPaths)
-    TreeUtil.selectPath(tree, selectedPath)
+    withContext(Dispatchers.EDT) {
+      val expandedPaths = TreeUtil.collectExpandedPaths(tree)
+      val selectedPath = tree.selectionPath
+      tree.model = newModel
+      TreeUtil.restoreExpandedPaths(tree, expandedPaths)
+      TreeUtil.selectPath(tree, selectedPath)
+    }
   }
 
-  fun deleteCurrent() {
-    val fileName = tree.selectionPath?.lastPathComponent.asSafely<FileSystemNode>()?.fullName ?: return
-    val sure = MessageDialogBuilder
-      .yesNo(fileName, "Are you sure to delete $fileName?\n\r The operation is not reversible!")
-      .icon(AllIcons.General.Warning).ask(project)
-    if (sure) {
-      connector.blindExecute("import os\nos.remove('${fileName}')")
+  suspend fun deleteCurrent() {
+    val confirmedFileName = withContext(Dispatchers.EDT) {
+      val fileName = tree.selectionPath?.lastPathComponent.asSafely<FileSystemNode>()?.fullName
+      val sure = if (fileName != null) {
+        MessageDialogBuilder
+          .yesNo(fileName, "Are you sure to delete $fileName?\n\r The operation is not reversible!")
+          .icon(AllIcons.General.Warning).ask(project)
+      } else false
+      if (sure) fileName else null
+    }
+    if (confirmedFileName != null) {
+      comm.blindExecute("import os\nos.remove('${confirmedFileName}')")
       refresh()
     }
   }
