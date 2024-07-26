@@ -25,7 +25,13 @@ private const val PASSWORD_PROMPT = "Password:"
 private const val LOGIN_SUCCESS = "WebREPL connected"
 private const val LOGIN_FAIL = "Access denied"
 
+private const val BOUNDARY = "*********FSOP************"
+private const val START = "START"
+private const val END = "END"
+
+
 private const val TIMEOUT = 2000
+private const val LONG_TIMEOUT = 20000
 private const val SHORT_DELAY = 20L
 
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
@@ -46,11 +52,10 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
     private var offTtyBuffer = StringBuilder()
 
     private val webSocketMutex = Mutex()
-    private val pipeMutex = Mutex()
 
     private val outPipe = PipedWriter()
 
-    private val inPipe = PipedReader(outPipe, 100)
+    private val inPipe = PipedReader(outPipe, 1000)
 
     private var url: String = "---"
 
@@ -105,8 +110,82 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         }
     }
 
-    fun blindExecute(command: String): String {TODO()}
-    fun instantRun(command: @NonNls String) {TODO()}
+    @Throws(IOException::class)
+    suspend fun blindExecute(command: String): String {
+        if (!connected) {
+            throw IOException("Not connected")
+        }
+        if (ttySuspended) {
+            throw IOException("Not ready")
+        }
+        webSocketMutex.withLock {
+            ttySuspended = true
+            try {
+                client?.send("\u0003")
+                client?.send("\u0003")
+                client?.send("\u0003")
+                client?.send("\u0001")
+                client?.send("print('$BOUNDARY' + '$START')\n")
+                command.lines().forEach {
+                    client?.send("$it\n")
+                    delay(SHORT_DELAY)
+                    offTtyBuffer.setLength(0)
+                }
+                client?.send("print('$BOUNDARY' + '$END')\n")
+                delay(SHORT_DELAY)
+                offTtyBuffer.setLength(0)
+                client?.send("\u0004")
+                withTimeout(LONG_TIMEOUT.toLong()) {
+                    while (offTtyBuffer.indexOf(BOUNDARY + END) <= 0) {
+                        delay(SHORT_DELAY)
+                    }
+                }
+                return offTtyBuffer
+                    .toString().substringAfter(BOUNDARY + START)
+                    .substringBefore(BOUNDARY + END)
+                    .trim()
+            } finally {
+                client?.send("\u0002")
+                offTtyBuffer.clear()
+                ttySuspended = false
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    suspend fun instantRun(command: @NonNls String) {
+        if (!connected) {
+            throw IOException("Not connected")
+        }
+        if (ttySuspended) {
+            throw IOException("Not ready")
+        }
+        webSocketMutex.withLock {
+            ttySuspended = true
+            try {
+                client?.send("\u0003")
+                client?.send("\u0003")
+                client?.send("\u0003")
+                client?.send("\u0005")
+                while (!offTtyBuffer.contains("===")) {
+                    delay(SHORT_DELAY)
+                }
+                command.lines().forEach {
+                    offTtyBuffer.clear()
+                    client?.send("$it\n")
+                    offTtyBuffer.clear()
+                }
+                client?.send("#$BOUNDARY\n")
+                while (!offTtyBuffer.contains(BOUNDARY)) {
+                    delay(SHORT_DELAY)
+                }
+                offTtyBuffer.clear()
+                ttySuspended = false
+            } finally {
+                client?.send("\u0004")
+            }
+        }
+    }
 
     inner class MpyWebSocketClient(uri: URI) : WebSocketClient(uri) {
         init {
@@ -120,10 +199,8 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                 offTtyBuffer.append(message)
             } else {
                 runBlocking {
-                    pipeMutex.withLock {
                         outPipe.write(message)
                         outPipe.flush()
-                    }
                 }
             }
         }
@@ -156,9 +233,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
             return runBlocking {
-                pipeMutex.withLock {
                     inPipe.ready() || client?.hasBufferedData() ?: false
-                }
             }
         }
 
@@ -174,9 +249,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
         override fun read(text: CharArray, offset: Int, length: Int): Int {
             return runBlocking {
-                pipeMutex.withLock {
                     inPipe.read(text, offset, length)
-                }
             }
         }
     }

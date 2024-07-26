@@ -9,13 +9,17 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.Closeable
 import java.net.InetSocketAddress
 
-class WebSocketTestServer(tcpPort: Int, private vararg val sentences: Pair<String, String?>) :
+class WebSocketTestServer(tcpPort: Int) :
     WebSocketServer(InetSocketAddress("localhost", tcpPort)), Closeable {
 
     private var idx = 0
     private val exceptions = mutableListOf<Throwable>()
 
+    private var sentences: Array<out Pair<String, String?>> = emptyArray()
 
+    fun expect(vararg sentences: Pair<String, String?>) {
+        this.sentences = sentences
+    }
     override fun onError(conn: WebSocket?, ex: Exception) {
         exceptions.add(ex)
     }
@@ -71,5 +75,9 @@ class WebSocketTestServer(tcpPort: Int, private vararg val sentences: Pair<Strin
                     runBlocking { block(it) }
                 }
         }
+    }
+
+    fun ignoreExceptions() {
+        exceptions.clear()
     }
 }
