@@ -37,7 +37,9 @@ intellij {
 }
 
 dependencies {
-    implementation("org.java-websocket:Java-WebSocket:1.5.7")
+    implementation("org.java-websocket:Java-WebSocket:1.5.5")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
 }
 
 tasks {
@@ -71,5 +73,9 @@ tasks {
     publishPlugin {
         token = config("publishToken")
     }
-}
 
+    test {
+        testLogging.showExceptions = true
+        useJUnitPlatform()
+    }
+}
