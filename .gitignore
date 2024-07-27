@@ -5,6 +5,7 @@
 build/
 venv/
 tmp/
+out/
 
 # IntelliJ Platform Gradle Plugin
 .intellijPlatform/

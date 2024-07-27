@@ -1,6 +1,7 @@
 package com.jetbrains.micropython.nova
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -81,6 +82,31 @@ class RealConnect {
                 listOf("Test me", "Test me 2", ">>>"),
                 linesReceived
             )
+        }
+    }
+
+    @Test
+    @Disabled
+    fun longRunConnection() {
+        runBlocking {
+            comm.connect(URI.create(URL), PASSWORD)
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            println("Connected")
+            launch {
+                while (comm.isConnected()) {
+                    delay(20000)
+                    println("ping")
+                    comm.ping()
+                }
+            }
+            val start = System.currentTimeMillis()
+            while (comm.isConnected()) {
+                delay(1000)
+                println("Still alive")
+            }
+            println("Disconnect time: ${System.currentTimeMillis() - start}ms")
+
         }
     }
 

@@ -170,6 +170,7 @@ with open('$fullName', 'wb') as f:
     inner class MpyWebSocketClient(uri: URI) : WebSocketClient(uri) {
         init {
             isTcpNoDelay = true
+            connectionLostTimeout = 0
         }
 
         override fun onOpen(handshakedata: ServerHandshake) = Unit //Nothing to do
@@ -257,47 +258,47 @@ with open('$fullName', 'wb') as f:
             connected = false
             ttySuspended = true
             client?.close()
-            client = MpyWebSocketClient(uri).apply {
-                connectBlocking()
+            client = MpyWebSocketClient(uri).also { newClient ->
+                newClient.connectBlocking()
                 try {
                     withTimeout(TIMEOUT.toLong()) {
-                        while (true) {
+                        while (newClient.isOpen) {
                             when {
                                 offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)
                                 offTtyBuffer.length > PASSWORD_PROMPT.length * 2 -> {
                                     offTtyBuffer.setLength(PASSWORD_PROMPT.length * 2)
                                     throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
                                 }
-
-                                else -> {
-                                    if (offTtyBuffer.toString().contains(PASSWORD_PROMPT)) {
-                                        offTtyBuffer.clear()
-                                        send("$password\n")
-                                        while (!connected) {
-                                            when {
-                                                offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
-                                                offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
-                                                else -> delay(SHORT_DELAY)
-                                            }
-                                        }
-                                    } else {
-                                        throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                                    }
-                                    return@withTimeout
+                                offTtyBuffer.toString().contains(PASSWORD_PROMPT) -> break
+                                else -> throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
                                 }
                             }
+                        offTtyBuffer.clear()
+                        newClient.send("$password\n")
+                        while (!connected && newClient.isOpen) {
+                            when {
+                                offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
+                                offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
+                                else -> delay(SHORT_DELAY)
                         }
                     }
                     ttySuspended = false
+                    }
                 } catch (e: TimeoutCancellationException) {
+                    try {
+                        newClient.close()
+                    } catch (_: IOException) {}
                     throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
                 } finally {
                     offTtyBuffer.clear()
                 }
             }
-
         }
+    }
 
-
+    fun ping() {
+        if(isConnected()) {
+            client?.sendPing()
+        }
     }
 }
