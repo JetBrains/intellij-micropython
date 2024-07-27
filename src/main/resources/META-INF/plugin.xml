@@ -48,6 +48,7 @@
                      groupName="MicroPython"
                      enabledByDefault="true"
                      implementationClass="com.jetbrains.micropython.inspections.MicroPythonRequirementsInspection"/>
+    <notificationGroup displayType="BALLOON" id="Micropython" />
   </extensions>
 
   <extensions defaultExtensionNs="com.jetbrains.micropython">

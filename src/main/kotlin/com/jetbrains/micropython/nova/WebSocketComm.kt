@@ -1,5 +1,8 @@
 package com.jetbrains.micropython.nova
 
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.jediterm.terminal.TtyConnector
@@ -26,15 +29,31 @@ private const val LOGIN_SUCCESS = "WebREPL connected"
 private const val LOGIN_FAIL = "Access denied"
 
 private const val BOUNDARY = "*********FSOP************"
-private const val START = "START"
-private const val END = "END"
 
 
 private const val TIMEOUT = 2000
 private const val LONG_TIMEOUT = 20000
 private const val SHORT_DELAY = 20L
 
+private const val NOTIFICATION_GROUP = "Micropython"
+
+typealias ExecResponse = List<WebSocketComm.SingleExecResponse>
+
+fun ExecResponse.extractSingleResponse(): String? {
+    if (this.size != 1 || this[0].stderr.isNotEmpty()) {
+        val message = this.joinToString("\n") { it.stderr }
+        Notifications.Bus.notify(Notification(NOTIFICATION_GROUP, message, NotificationType.ERROR))
+        return null
+    } else {
+        return this[0].stdout
+    }
+}
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
+
+    data class SingleExecResponse(
+        val stdout: String,
+        val stderr: String
+    )
 
     @Volatile
     private var client: WebSocketClient? = null
@@ -69,29 +88,77 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         reconnect()
     }
 
+
     @Throws(IOException::class)
     suspend fun upload(fullName: @NonNls String, code: @NonNls String) {
-        val escaped = code.map {
-            when (it) {
-                '\n' -> "\\n"
-                '\r' -> "\\r"
-                '\'' -> "\\'"
-                '\\' -> "\\\\"
-                in 0.toChar()..31.toChar(), in 127.toChar()..255.toChar() -> "\\x%02x".format(it)
-                else -> it
+        val maxDataChunk = 180
+        var idx = 0
+        val commands = mutableListOf("___f=open('$fullName','wb')")
+        val chunk = StringBuilder()
+        while (idx < code.length) {
+            chunk.setLength(0)
+            while (chunk.length < maxDataChunk && idx < code.length) {
+                val c = code[idx++]
+                chunk.append(
+                    when (c) {
+                        '\n' -> "\\n"
+                        '\r' -> "\\r"
+                        '\'' -> "\\'"
+                        '\\' -> "\\\\"
+                        in 0.toChar()..31.toChar(), in 127.toChar()..255.toChar() -> "\\x%02x".format(c)
+                        else -> c
+                    }
+                )
             }
-        }.joinToString("")
-        blindExecute(
-            """
-with open('$fullName', 'wb') as f:
-    f.write(b'$escaped')
-    f.close()
-"""
-        )
+            commands.add("___f.write(b'$chunk')")
+        }
+        commands.add("___f.close()")
+        commands.add("del(___f)")
+        commands.add("print(os.stat('$fullName'))")
+        val result = webSocketMutex.withLock {
+            doBlindExecute(*commands.toTypedArray())
+        }
+        println("result = ${result}")
     }
 
     @Throws(IOException::class)
-    suspend fun blindExecute(command: String): String {
+    private suspend fun doBlindExecute(vararg commands: String): ExecResponse {
+        ttySuspended = true
+        val result = mutableListOf<SingleExecResponse>()
+        try {
+            client?.send("\u0003")
+            client?.send("\u0003")
+            client?.send("\u0003")
+            client?.send("\u0001")
+            while (!offTtyBuffer.endsWith("\n>")) {
+                delay(SHORT_DELAY)
+            }
+            offTtyBuffer.clear()
+            for (command in commands) {
+                command.lines().forEachIndexed { index, s ->
+                    client?.send("$s\n")
+                    delay(SHORT_DELAY)
+                }
+                client?.send("\u0004")
+                while (!(offTtyBuffer.startsWith("OK") && offTtyBuffer.endsWith("\u0004>") && offTtyBuffer.count { it == '\u0004' } == 2)) {
+                    delay(SHORT_DELAY)
+                }
+                val eotPos = offTtyBuffer.indexOf('\u0004')
+                val stdout = offTtyBuffer.substring(2, eotPos).trim()
+                val stderr = offTtyBuffer.substring(eotPos + 1, offTtyBuffer.length - 2).trim()
+                result.add(SingleExecResponse(stdout, stderr))
+                offTtyBuffer.clear()
+            }
+            return result
+        } finally {
+            client?.send("\u0002")
+            offTtyBuffer.clear()
+            ttySuspended = false
+        }
+    }
+
+    @Throws(IOException::class)
+    suspend fun blindExecute(vararg commands: String): ExecResponse {
         if (!connected) {
             throw IOException("Not connected")
         }
@@ -99,36 +166,7 @@ with open('$fullName', 'wb') as f:
             throw IOException("Not ready")
         }
         webSocketMutex.withLock {
-            ttySuspended = true
-            try {
-                client?.send("\u0003")
-                client?.send("\u0003")
-                client?.send("\u0003")
-                client?.send("\u0001")
-                client?.send("print('$BOUNDARY' + '$START')\n")
-                command.lines().forEach {
-                    client?.send("$it\n")
-                    delay(SHORT_DELAY)
-                    offTtyBuffer.setLength(0)
-                }
-                client?.send("print('$BOUNDARY' + '$END')\n")
-                delay(SHORT_DELAY)
-                offTtyBuffer.setLength(0)
-                client?.send("\u0004")
-                withTimeout(LONG_TIMEOUT.toLong()) {
-                    while (offTtyBuffer.indexOf(BOUNDARY + END) <= 0) {
-                        delay(SHORT_DELAY)
-                    }
-                }
-                return offTtyBuffer
-                    .toString().substringAfter(BOUNDARY + START)
-                    .substringBefore(BOUNDARY + END)
-                    .trim()
-            } finally {
-                client?.send("\u0002")
-                offTtyBuffer.clear()
-                ttySuspended = false
-            }
+            return doBlindExecute(*commands)
         }
     }
 
@@ -213,9 +251,7 @@ with open('$fullName', 'wb') as f:
         override fun close() = Disposer.dispose(this@WebSocketComm)//todo Am I right?
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
-            return runBlocking {
-                    inPipe.ready() || client?.hasBufferedData() ?: false
-            }
+            return inPipe.ready() || client?.hasBufferedData() ?: false
         }
 
         override fun waitFor(): Int = 0
@@ -229,9 +265,14 @@ with open('$fullName', 'wb') as f:
         }
 
         override fun read(text: CharArray, offset: Int, length: Int): Int {
-            return runBlocking {
-                    inPipe.read(text, offset, length)
+            while (isConnected) {
+                try {
+                    return inPipe.read(text, offset, length)
+                } catch (ex: IOException) {
+                    Thread.sleep(SHORT_DELAY)
+                }
             }
+            return -1
         }
     }
 

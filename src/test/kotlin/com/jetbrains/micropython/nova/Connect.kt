@@ -1,5 +1,6 @@
 package com.jetbrains.micropython.nova
 
+import com.jetbrains.micropython.nova.WebSocketComm.SingleExecResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import org.junit.jupiter.api.*
@@ -16,7 +17,7 @@ class Connect {
 
     @BeforeEach
     fun init() {
-        tcpPort = (2000..60000).random()
+        tcpPort = (50000..60000).random()
         server = WebSocketTestServer(tcpPort)
     }
 
@@ -39,24 +40,6 @@ class Connect {
             comm.connect(URI.create("ws://localhost:$tcpPort"), "pa55wd")
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
-        }
-    }
-
-    @Test
-    @Disabled("Not sure if this test is useful")
-    @Timeout(5000, unit = MILLISECONDS)
-    fun wrongPassword() {
-        expect(
-            "Password: " to "blahblah\n",
-            "Access denied" to null,
-        )
-        assertThrows<ConnectException> {
-            test { comm ->
-                comm.connect(URI.create("ws://localhost:$tcpPort"), "pa55wd")
-                assertTrue(comm.isConnected())
-                assertFalse(comm.isTtySuspended())
-                server.ignoreExceptions()
-            }
         }
     }
 
@@ -84,30 +67,26 @@ class Connect {
             ">>>" to "\u0003",
             ">>>" to "\u0003",
             ">>>" to "\u0001",
-            "raw REPL; CTRL-B to exit\n>" to "print('*********FSOP************' + 'START')\n",
-            "" to "print('Test me')\n",
-            "" to "print('*********FSOP************' + 'END')\n",
+            "raw REPL; CTRL-B to exit\n>" to "print('Test me')\n",
             "" to "\u0004",
-            ">OK*********FSOP************START\nTest me\n*********FSOP************END" to "\u0002",
-            ">>>" to "\u0003",
+            "OKTest me\n\u0004\u0004>" to "\u0002",
+            "\nMicroPython\nType \"help()\" for more information.\n>>>" to "\u0003",
             ">>>" to "\u0003",
             ">>>" to "\u0003",
             ">>>" to "\u0001",
-            "raw REPL; CTRL-B to exit\n>" to "print('*********FSOP************' + 'START')\n",
-            "" to "print('Test me 2')\n",
-            "" to "print('*********FSOP************' + 'END')\n",
+            "raw REPL; CTRL-B to exit\n>" to "print('Test me 2')\n",
             "" to "\u0004",
-            ">OK*********FSOP************START\nTest me 2\n*********FSOP************END" to "\u0002",
-            ">>>" to null,
+            "OKTest me 2\n\u0004\u0004>" to "\u0002",
+            "" to null,
         )
         test { comm ->
             comm.connect(URI.create("ws://localhost:$tcpPort"), "passwd")
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
             val responseA = comm.blindExecute("print('Test me')")
-            assertEquals("Test me", responseA)
+            assertEquals("Test me", responseA.extractSingleResponse())
             val responseB = comm.blindExecute("print('Test me 2')")
-            assertEquals("Test me 2", responseB)
+            assertEquals("Test me 2", responseB.extractSingleResponse())
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
             delay(300)
@@ -147,6 +126,39 @@ class Connect {
                 linesReceived
             )
         }
+    }
+
+    @Test
+    @Timeout(5000, unit = MILLISECONDS)
+    fun realBlindExecuteMultiple() {
+        expect(
+            "Password: " to "passwd\n",
+            "WebREPL connected" to "\u0003",
+            ">>>" to "\u0003",
+            ">>>" to "\u0003",
+            ">>>" to "\u0001",
+            "raw REPL; CTRL-B to exit\n>" to "print('Test me 0')\n",
+            "" to "\u0004",
+            "OKTest me 0\n\u0004\u0004>" to "print('Test me 1')\n",
+            "" to "\u0004",
+            "OKTest me 1\n\u0004\u0004>" to "\u0002",
+            "" to null,
+        )
+        test { comm ->
+            comm.connect(URI.create("ws://localhost:$tcpPort"), "passwd")
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            val response = comm.blindExecute("print('Test me 0')", "print('Test me 1')")
+            val expected = listOf(
+                SingleExecResponse("Test me 0", ""),
+                SingleExecResponse("Test me 1", ""),
+            )
+            assertIterableEquals(expected, response)
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            delay(300)
+        }
+
     }
 
 }

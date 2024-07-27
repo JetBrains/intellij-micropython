@@ -84,7 +84,9 @@ class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLa
           tree.getClosestPathForLocation(e.x, e.y)?.lastPathComponent.asSafely<FileNode>()
           ?.let { fileNode ->
             runWithModalProgressBlocking(project, "Reading ${fileNode.fullName}") {
-              val hex = comm.blindExecute(fileReadCommand(fileNode.fullName))
+              val result = comm.blindExecute(fileReadCommand(fileNode.fullName)).extractSingleResponse()
+              if (result != null) {
+                val hex = result
               val text = hex
                 .filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
                 .chunked(2)
@@ -97,6 +99,7 @@ class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLa
                 infoFile.isWritable = false
                 FileEditorManager.getInstance(project).openFile(infoFile, false)
               }
+            }
             }
           }
       }
@@ -116,9 +119,8 @@ class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLa
       comm.reconnect()
     }
     val newModel = newTreeModel()
-    val dirList: String = comm.blindExecute(MPY_FS_SCAN)
-    dirList
-      .lines()
+    val dirList = comm.blindExecute(MPY_FS_SCAN).extractSingleResponse() ?:return
+    dirList.lines()
       .filter { it.isNotBlank() }
       .forEach { line ->
         line.split(" ").let { fields ->
