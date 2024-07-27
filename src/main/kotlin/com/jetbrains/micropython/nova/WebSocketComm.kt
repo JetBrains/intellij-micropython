@@ -1,10 +1,8 @@
 package com.jetbrains.micropython.nova
 
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.Strings
 import com.jediterm.terminal.TtyConnector
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -23,6 +21,7 @@ import java.net.ConnectException
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import kotlin.coroutines.cancellation.CancellationException
 
 private const val PASSWORD_PROMPT = "Password:"
 private const val LOGIN_SUCCESS = "WebREPL connected"
@@ -32,22 +31,20 @@ private const val BOUNDARY = "*********FSOP************"
 
 
 private const val TIMEOUT = 2000
-private const val LONG_TIMEOUT = 20000
+private const val LONG_TIMEOUT = 20000L
 private const val SHORT_DELAY = 20L
-
-private const val NOTIFICATION_GROUP = "Micropython"
 
 typealias ExecResponse = List<WebSocketComm.SingleExecResponse>
 
-fun ExecResponse.extractSingleResponse(): String? {
+fun ExecResponse.extractSingleResponse(): String {
     if (this.size != 1 || this[0].stderr.isNotEmpty()) {
         val message = this.joinToString("\n") { it.stderr }
-        Notifications.Bus.notify(Notification(NOTIFICATION_GROUP, message, NotificationType.ERROR))
-        return null
+        throw IOException(message)
     } else {
         return this[0].stdout
     }
 }
+
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
 
     data class SingleExecResponse(
@@ -89,24 +86,24 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
     }
 
 
-    @Throws(IOException::class)
-    suspend fun upload(fullName: @NonNls String, code: @NonNls String) {
+    @Throws(IOException::class, CancellationException::class, TimeoutCancellationException::class)
+    suspend fun upload(fullName: @NonNls String, content: ByteArray) {
         val maxDataChunk = 180
         var idx = 0
         val commands = mutableListOf("___f=open('$fullName','wb')")
         val chunk = StringBuilder()
-        while (idx < code.length) {
+        while (idx < content.size) {
             chunk.setLength(0)
-            while (chunk.length < maxDataChunk && idx < code.length) {
-                val c = code[idx++]
+            while (chunk.length < maxDataChunk && idx < content.size) {
+                val b = content[idx++]
                 chunk.append(
-                    when (c) {
-                        '\n' -> "\\n"
-                        '\r' -> "\\r"
-                        '\'' -> "\\'"
-                        '\\' -> "\\\\"
-                        in 0.toChar()..31.toChar(), in 127.toChar()..255.toChar() -> "\\x%02x".format(c)
-                        else -> c
+                    when (b) {
+                        0x0D.toByte() -> "\\n"
+                        0xA.toByte() -> "\\r"
+                        '\''.code.toByte() -> "\\'"
+                        '\\'.code.toByte() -> "\\\\"
+                        in 0..31, in 127..255 -> "\\x%02x".format(b)
+                        else -> b.toInt().toChar()
                     }
                 )
             }
@@ -115,10 +112,21 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         commands.add("___f.close()")
         commands.add("del(___f)")
         commands.add("print(os.stat('$fullName'))")
+
+
         val result = webSocketMutex.withLock {
             doBlindExecute(*commands.toTypedArray())
         }
-        println("result = ${result}")
+        val error = result.mapNotNull { Strings.nullize(it.stderr) }.joinToString(separator = "\n", limit = 1000)
+        if (error.isNotEmpty()) {
+            throw IOException(error)
+        }
+        val filedata = result.last().stdout.split('(', ')', ',').map { it.trim().toIntOrNull() }
+        if (filedata.getOrNull(7) != content.size) {
+            throw IOException("Expected size is ${content.size}, uploaded ${filedata[5]}")
+        } else if (filedata.getOrNull(1) != 32768) {
+            throw IOException("Expected type is 32768, uploaded ${filedata[1]}")
+        }
     }
 
     @Throws(IOException::class)
@@ -126,6 +134,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         ttySuspended = true
         val result = mutableListOf<SingleExecResponse>()
         try {
+
             client?.send("\u0003")
             client?.send("\u0003")
             client?.send("\u0003")
@@ -135,19 +144,27 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
             }
             offTtyBuffer.clear()
             for (command in commands) {
-                command.lines().forEachIndexed { index, s ->
-                    client?.send("$s\n")
-                    delay(SHORT_DELAY)
+                try {
+                    withTimeout(LONG_TIMEOUT) {
+                        command.lines().forEachIndexed { index, s ->
+                            if (index > 0) {
+                                delay(SHORT_DELAY)
+                            }
+                            client?.send("$s\n")
+                        }
+                        client?.send("\u0004")
+                        while (!(offTtyBuffer.startsWith("OK") && offTtyBuffer.endsWith("\u0004>") && offTtyBuffer.count { it == '\u0004' } == 2)) {
+                            delay(SHORT_DELAY)
+                        }
+                        val eotPos = offTtyBuffer.indexOf('\u0004')
+                        val stdout = offTtyBuffer.substring(2, eotPos).trim()
+                        val stderr = offTtyBuffer.substring(eotPos + 1, offTtyBuffer.length - 2).trim()
+                        result.add(SingleExecResponse(stdout, stderr))
+                        offTtyBuffer.clear()
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    throw IOException("Timeout during command execution:$command", e)
                 }
-                client?.send("\u0004")
-                while (!(offTtyBuffer.startsWith("OK") && offTtyBuffer.endsWith("\u0004>") && offTtyBuffer.count { it == '\u0004' } == 2)) {
-                    delay(SHORT_DELAY)
-                }
-                val eotPos = offTtyBuffer.indexOf('\u0004')
-                val stdout = offTtyBuffer.substring(2, eotPos).trim()
-                val stderr = offTtyBuffer.substring(eotPos + 1, offTtyBuffer.length - 2).trim()
-                result.add(SingleExecResponse(stdout, stderr))
-                offTtyBuffer.clear()
             }
             return result
         } finally {
@@ -198,8 +215,8 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                     delay(SHORT_DELAY)
                 }
                 offTtyBuffer.clear()
-                ttySuspended = false
             } finally {
+                ttySuspended = false
                 client?.send("\u0004")
             }
         }
@@ -218,8 +235,8 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                 offTtyBuffer.append(message)
             } else {
                 runBlocking {
-                        outPipe.write(message)
-                        outPipe.flush()
+                    outPipe.write(message)
+                    outPipe.flush()
                 }
             }
         }
@@ -310,10 +327,11 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                                     offTtyBuffer.setLength(PASSWORD_PROMPT.length * 2)
                                     throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
                                 }
+
                                 offTtyBuffer.toString().contains(PASSWORD_PROMPT) -> break
                                 else -> throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                                }
                             }
+                        }
                         offTtyBuffer.clear()
                         newClient.send("$password\n")
                         while (!connected && newClient.isOpen) {
@@ -321,14 +339,15 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                                 offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
                                 offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
                                 else -> delay(SHORT_DELAY)
+                            }
                         }
-                    }
-                    ttySuspended = false
+                        ttySuspended = false
                     }
                 } catch (e: TimeoutCancellationException) {
                     try {
                         newClient.close()
-                    } catch (_: IOException) {}
+                    } catch (_: IOException) {
+                    }
                     throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
                 } finally {
                     offTtyBuffer.clear()
@@ -338,7 +357,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
     }
 
     fun ping() {
-        if(isConnected()) {
+        if (isConnected()) {
             client?.sendPing()
         }
     }

@@ -75,20 +75,17 @@
               description="Run MicroPython REPL in a tool window"
               icon="AllIcons.Actions.Run_anything">
       </action>
-<!--      <action class="com.jetbrains.micropython.actions.RemoveAllFilesFromDeviceAction" id="RemoveAllFilesFromDeviceAction"-->
-<!--              text="Remove All Files from MicroPython Device"/>-->
     </group>
-    <action id="com.jetbrains.micropython.nova.ReplOpen" class="com.jetbrains.micropython.nova.ReplOpen" text="WebRepl Open">
-      <add-to-group group-id="MainToolbarGeneralActionsGroup"/>
-      <add-to-group group-id="ToolsMenu"/>
-      <keyboard-shortcut first-keystroke="control shift R" keymap="Mac OS X 10.5+" />
-      <keyboard-shortcut first-keystroke="alt shift R" keymap="$default" />
-    </action>
     <group id="micropython.repl.FSToolbar">
       <action id="micropython.repl.UploadFile" class="com.jetbrains.micropython.nova.UploadFile"/>
-<!--      <action id="micropython.repl.ResetAfterUpload" class="com.jetbrains.micropython.repl.UploadFileAndReset"/>-->
       <action id="micropython.repl.Refresh" class="com.jetbrains.micropython.nova.Refresh"/>
       <action id="micropython.repl.Delete" class="com.jetbrains.micropython.nova.DeleteFile"/>
+    </group>
+    <group id="micropython.repl.FSContextMenu">
+      <action class="com.jetbrains.micropython.nova.OpenMpyFile" id="micropython.repl.OpenFile"/>
+      <reference ref="micropython.repl.Refresh"/>
+      <separator/>
+      <reference ref="micropython.repl.Delete"/>
     </group>
     <group id="micropython.repl.ReplToolbar">
       <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.nova.InstantRun" text="Instant Run"/>
