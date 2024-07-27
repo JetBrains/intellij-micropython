@@ -1,6 +1,19 @@
 The Changelog
 =============
 
+1.4.5 - 2024-07-27
+------------------
+
+### Fixed
+
+* Don't interrupt program execution when REPL is started right after the upload
+  ([#313](https://github.com/JetBrains/intellij-micropython/pull/313))
+* Update `machine.pyi`
+  ([#291](https://github.com/JetBrains/intellij-micropython/pull/291))
+  (Thanks to [Lucio Rossi](https://github.com/eigen-value))
+* Update `network.pyi`
+  ([#296](https://github.com/JetBrains/intellij-micropython/pull/296))
+
 1.4.4 - 2024-07-13
 ------------------
 
