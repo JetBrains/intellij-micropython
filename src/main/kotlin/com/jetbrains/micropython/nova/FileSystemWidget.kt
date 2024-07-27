@@ -1,28 +1,28 @@
 package com.jetbrains.micropython.nova
 
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_CONTENT
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import java.nio.charset.StandardCharsets
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -46,7 +46,7 @@ gc.collect()
   
 """
 
-private fun fileReadCommand(name:String) = """
+private fun fileReadCommand(name: String) = """
 with open('$name','rb') as f:
     while 1:
           b=f.read(50)
@@ -55,146 +55,201 @@ with open('$name','rb') as f:
 """
 
 class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLayoutPanel() {
-  private val tree: Tree = Tree(newTreeModel())
+    private val tree: Tree = Tree(newTreeModel())
 
-  private fun newTreeModel() = DefaultTreeModel(DirNode("/", "/"), true)
+    private fun newTreeModel() = DefaultTreeModel(DirNode("/", "/"), true)
 
-  init {
-    tree.setCellRenderer(object : ColoredTreeCellRenderer() {
+    init {
+        tree.setCellRenderer(object : ColoredTreeCellRenderer() {
 
-      override fun customizeCellRenderer(
-        tree: JTree, value: Any?, selected: Boolean, expanded: Boolean,
-        leaf: Boolean, row: Int, hasFocus: Boolean,
-      ) {
-        value as FileSystemNode
-        icon = when (value) {
-          is DirNode -> AllIcons.Nodes.Folder
-          is FileNode -> FileTypeRegistry.getInstance().getFileTypeByFileName(value.name).icon
-        }
-        append(value.name)
-        if (value is FileNode) {
-          append("  ${value.size} bytes", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
-        }
+            override fun customizeCellRenderer(
+                tree: JTree, value: Any?, selected: Boolean, expanded: Boolean,
+                leaf: Boolean, row: Int, hasFocus: Boolean,
+            ) {
+                value as FileSystemNode
+                icon = when (value) {
+                    is DirNode -> AllIcons.Nodes.Folder
+                    is FileNode -> FileTypeRegistry.getInstance().getFileTypeByFileName(value.name).icon
+                }
+                append(value.name)
+                if (value is FileNode) {
+                    append("  ${value.size} bytes", SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
+                }
 
-      }
-    })
-    tree.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if(e.button == MouseEvent.BUTTON1 && e.clickCount==2) {
-          tree.getClosestPathForLocation(e.x, e.y)?.lastPathComponent.asSafely<FileNode>()
-          ?.let { fileNode ->
-            runWithModalProgressBlocking(project, "Reading ${fileNode.fullName}") {
-              val result = comm.blindExecute(fileReadCommand(fileNode.fullName)).extractSingleResponse()
-              if (result != null) {
-                val hex = result
-              val text = hex
-                .filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
-                .chunked(2)
-                .map { it.toInt(16).toByte() }
-                .toByteArray()
-                .toString(StandardCharsets.UTF_8)
-              withContext(Dispatchers.EDT) {
-                val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileNode.name)
-                val infoFile = LightVirtualFile("micropython: ${fileNode.fullName}", fileType, text)
-                infoFile.isWritable = false
-                FileEditorManager.getInstance(project).openFile(infoFile, false)
-              }
             }
-            }
-          }
-      }
-    }
-  })
-    val actions = ActionManager.getInstance().getAction("micropython.repl.FSToolbar") as ActionGroup
-    //PopupHandler.installFollowingSelectionTreePopup(this, action as ActionGroup, ActionPlaces.UNKNOWN)
-    addToCenter(tree)
-    val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, actions, true)
-    actionToolbar.targetComponent = tree
-
-    addToTop(actionToolbar.component)
-  }
-
-  suspend fun refresh() {
-    if (!comm.isConnected()) {
-      comm.reconnect()
-    }
-    val newModel = newTreeModel()
-    val dirList = comm.blindExecute(MPY_FS_SCAN).extractSingleResponse() ?:return
-    dirList.lines()
-      .filter { it.isNotBlank() }
-      .forEach { line ->
-        line.split(" ").let { fields ->
-          val flags = fields[0].toInt()
-          val len = fields[1].toInt()
-          val fullName = fields[2]
-          val names = fullName.split('/')
-          val folders = if (flags and 0x4000 == 0) names.dropLast(1) else names
-          var currentFolder = newModel.root as DirNode
-          folders
-            .filter { it.isNotBlank() }
-            .forEach { name ->
-              val child = currentFolder.children().asSequence().find { (it as FileSystemNode).name == name }
-              when (child) {
-                is DirNode -> currentFolder = child
-                is FileNode -> Unit
-                null -> currentFolder = DirNode(fullName, name).also { currentFolder.add(it) }
-              }
-            }
-          if (flags and 0x4000 == 0) {
-            currentFolder.add(FileNode(fullName, names.last(), len))
-          }
+        })
+        val actionManager = ActionManager.getInstance()
+        EditSourceOnDoubleClickHandler.install(tree) {
+            val action = actionManager.getAction("micropython.repl.OpenFile")
+            actionManager.tryToExecute(action, null, tree, TOOLWINDOW_CONTENT, true)
         }
-      }
-    withContext(Dispatchers.EDT) {
-      val expandedPaths = TreeUtil.collectExpandedPaths(tree)
-      val selectedPath = tree.selectionPath
-      tree.model = newModel
-      TreeUtil.restoreExpandedPaths(tree, expandedPaths)
-      TreeUtil.selectPath(tree, selectedPath)
+        val popupActions = actionManager.getAction("micropython.repl.FSContextMenu") as ActionGroup
+        PopupHandler.installFollowingSelectionTreePopup(tree, popupActions, ActionPlaces.UNKNOWN)
+        TreeUtil.installActions(tree)
+        addToCenter(tree)
+
+        val actions = actionManager.getAction("micropython.repl.FSToolbar") as ActionGroup
+        val actionToolbar = actionManager.createActionToolbar(ActionPlaces.TOOLBAR, actions, true)
+        actionToolbar.targetComponent = tree
+
+        addToTop(actionToolbar.component)
     }
-  }
 
-  suspend fun deleteCurrent() {
-    val confirmedFileName = withContext(Dispatchers.EDT) {
-      val fileName = tree.selectionPath?.lastPathComponent.asSafely<FileSystemNode>()?.fullName
-      val sure = if (fileName != null) {
-        MessageDialogBuilder
-          .yesNo(fileName, "Are you sure to delete $fileName?\n\r The operation is not reversible!")
-          .icon(AllIcons.General.Warning).ask(project)
-      } else false
-      if (sure) fileName else null
+    suspend fun refresh() {
+        if (!comm.isConnected()) {
+            comm.reconnect()
+        }
+        val newModel = newTreeModel()
+        val dirList = comm.blindExecute(MPY_FS_SCAN).extractSingleResponse()
+        dirList.lines().filter { it.isNotBlank() }.forEach { line ->
+                line.split(" ").let { fields ->
+                    val flags = fields[0].toInt()
+                    val len = fields[1].toInt()
+                    val fullName = fields[2]
+                    val names = fullName.split('/')
+                    val folders = if (flags and 0x4000 == 0) names.dropLast(1) else names
+                    var currentFolder = newModel.root as DirNode
+                    folders.filter { it.isNotBlank() }.forEach { name ->
+                            val child =
+                                currentFolder.children().asSequence().find { (it as FileSystemNode).name == name }
+                            when (child) {
+                                is DirNode -> currentFolder = child
+                                is FileNode -> Unit
+                                null -> currentFolder = DirNode(fullName, name).also { currentFolder.add(it) }
+                            }
+                        }
+                    if (flags and 0x4000 == 0) {
+                        currentFolder.add(FileNode(fullName, names.last(), len))
+                    }
+                }
+            }
+        withContext(Dispatchers.EDT) {
+            val expandedPaths = TreeUtil.collectExpandedPaths(tree)
+            val selectedPath = tree.selectionPath
+            tree.model = newModel
+            TreeUtil.restoreExpandedPaths(tree, expandedPaths)
+            TreeUtil.selectPath(tree, selectedPath)
+        }
     }
-    if (confirmedFileName != null) {
-      comm.blindExecute("import os\nos.remove('${confirmedFileName}')")
-      refresh()
+
+    suspend fun deleteCurrent() {
+        val confirmedFileSystemNode = withContext(Dispatchers.EDT) {
+            val fileSystemNode =
+                tree.selectionPath
+                    ?.lastPathComponent
+                    .asSafely<FileSystemNode>() ?: return@withContext null
+            val childCount = fileSystemNode.asSafely<DirNode>()?.childCount ?: 0
+            val fileName = fileSystemNode.fullName
+            if (childCount > 0) {
+                Messages.showErrorDialog(project, "Can not delete", "Folder $fileName is not empty")
+                return@withContext null
+            }
+            val sure = MessageDialogBuilder.yesNo(
+                        fileName,
+                        "Are you sure to delete $fileName?\n\r The operation is not reversible!"
+                    ).icon(AllIcons.General.Warning).ask(project)
+            if (sure) fileSystemNode else null
+        }
+        if (confirmedFileSystemNode != null) {
+            val cmd = if(confirmedFileSystemNode is DirNode) "rmdir" else "remove"
+            comm.blindExecute("import os\nos.$cmd('${confirmedFileSystemNode.fullName}')")
+                .extractSingleResponse()
+            refresh()
+        }
     }
-  }
+
+    fun selectedFile(): FileSystemNode? {
+        return tree.selectionPath?.lastPathComponent.asSafely<FileSystemNode>()
+    }
 
 }
 
-internal sealed class FileSystemNode(@NonNls val fullName: String, @NonNls val name: String) : DefaultMutableTreeNode() {
+sealed class FileSystemNode(@NonNls val fullName: String, @NonNls val name: String) : DefaultMutableTreeNode() {
 
-  override fun toString(): String = name
+    override fun toString(): String = name
 
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    return fullName == (other as FileSystemNode).fullName
-  }
+        return fullName == (other as FileSystemNode).fullName
+    }
 
-  override fun hashCode(): Int {
-    return fullName.hashCode()
-  }
+    override fun hashCode(): Int {
+        return fullName.hashCode()
+    }
 
 }
 
-internal class FileNode(fullName: String, name: String, val size: Int) : FileSystemNode(fullName, name) {
-  override fun getAllowsChildren(): Boolean = false
-  override fun isLeaf(): Boolean = true
+class FileNode(fullName: String, name: String, val size: Int) : FileSystemNode(fullName, name) {
+    override fun getAllowsChildren(): Boolean = false
+    override fun isLeaf(): Boolean = true
 }
 
-internal class DirNode(fullName: String, name: String) : FileSystemNode(fullName, name) {
-  override fun getAllowsChildren(): Boolean = true
+class DirNode(fullName: String, name: String) : FileSystemNode(fullName, name) {
+    override fun getAllowsChildren(): Boolean = true
 }
 
+class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
+
+    override val actionDescription: String = "Delete"
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+        fileSystemWidget.deleteCurrent()
+    }
+
+    override fun update(e: AnActionEvent) {
+        val selectedFile = fileSystemWidget(e)?.selectedFile()
+        e.presentation.isEnabled = selectedFile?.fullName !in listOf("/", null)
+        e.presentation.text = if (selectedFile is DirNode) "Delete folder" else "Delete file"
+    }
+}
+
+class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
+
+    override val actionDescription: String = "Run code"
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+    override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = isFileEditorActive(e)
+    }
+
+    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+        val code = withContext(Dispatchers.EDT) {
+            FileEditorManager.getInstance(fileSystemWidget.project).selectedEditor.asSafely<TextEditor>()?.editor?.document?.text
+        }
+        if (code != null) {
+            fileSystemWidget.comm.instantRun(code)
+        }
+    }
+}
+
+class OpenMpyFile : ReplAction("Open file", AllIcons.Actions.MenuOpen) {
+
+    override val actionDescription: String = "Open file"
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+    override fun update(e: AnActionEvent) {
+        e.presentation.isEnabledAndVisible = fileSystemWidget(e)?.selectedFile() is FileNode
+    }
+    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+        val selectedFile = withContext(Dispatchers.EDT) {
+            fileSystemWidget.selectedFile()
+        }
+        if (selectedFile !is FileNode) return
+        val result = fileSystemWidget.comm.blindExecute(fileReadCommand(selectedFile.fullName)).extractSingleResponse()
+        val text =
+            result.filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }.chunked(2).map { it.toInt(16).toByte() }
+                .toByteArray().toString(StandardCharsets.UTF_8)
+        withContext(Dispatchers.EDT) {
+            val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(selectedFile.name)
+            val infoFile = LightVirtualFile("micropython: ${selectedFile.fullName}", fileType, text)
+            infoFile.isWritable = false
+            FileEditorManager.getInstance(fileSystemWidget.project).openFile(infoFile, false)
+        }
+    }
+}
