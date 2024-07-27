@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.net.URI
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.stream.IntStream.range
 
 private const val URL = "ws://192.168.50.68:8266"
 
@@ -19,7 +20,7 @@ private const val PASSWORD = "passwd"
 @Disabled("Works only id a real board is at address $URL having password $PASSWORD")
 class RealConnect {
 
-    lateinit var comm: WebSocketComm
+    private lateinit var comm: WebSocketComm
 
     @BeforeEach
     fun init() {
@@ -39,9 +40,9 @@ class RealConnect {
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
             val responseA = comm.blindExecute("print('Test me')")
-            assertEquals("Test me", responseA)
+            assertEquals("Test me", responseA.extractSingleResponse())
             val responseB = comm.blindExecute("print('Test me 2')")
-            assertEquals("Test me 2", responseB)
+            assertEquals("Test me 2", responseB.extractSingleResponse())
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
         }
@@ -50,14 +51,59 @@ class RealConnect {
     @Test
     @Timeout(5000, unit = MILLISECONDS)
     fun realBlindExecuteLong() {
+        val repeatCount = 60
         runBlocking {
             comm.connect(URI.create(URL), PASSWORD)
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
-            val responseA = comm.blindExecute(
-                "print('Test me ', end='')\n".repeat(60)
+            val response = comm.blindExecute(
+                "print('Test me ', end='')\n".repeat(repeatCount)
             )
-            assertEquals("Test me ".repeat(60).trim(), responseA)
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            assertSingleOkResponse("Test me ".repeat(60).trim(), response)
+        }
+    }
+
+    private fun assertSingleOkResponse(expectedResponse: String, response: ExecResponse) {
+        assertEquals(1, response.size)
+        assertTrue(response[0].stderr.isEmpty())
+        assertEquals(expectedResponse, response[0].stdout)
+    }
+
+    @Test
+    @Timeout(5000, unit = MILLISECONDS)
+    fun realBlindExecuteWrong() {
+        runBlocking {
+            comm.connect(URI.create(URL), PASSWORD)
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            val response = comm.blindExecute(
+                "print('Test me ', end=''\n"
+            )
+            assertEquals(1, response.size)
+            assertTrue(response[0].stdout.isEmpty())
+            assertTrue(response[0].stderr.isNotBlank())
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+        }
+    }
+
+    @Test
+    @Timeout(50000, unit = MILLISECONDS)
+    fun realBlindExecuteMultiple() {
+        val repeatCount = 50
+        runBlocking {
+            comm.connect(URI.create(URL), PASSWORD)
+            assertTrue(comm.isConnected())
+            assertFalse(comm.isTtySuspended())
+            val commands = range(0, repeatCount).mapToObj { "print('Test me $it')" }.toList().toTypedArray()
+            val response = comm.blindExecute(*commands)
+            assertEquals(repeatCount, response.size)
+            for (i in 0 until repeatCount) {
+                assertEquals(response[i].stdout, "Test me $i")
+                assertTrue(response[i].stderr.isEmpty())
+            }
             assertTrue(comm.isConnected())
             assertFalse(comm.isTtySuspended())
         }
@@ -85,7 +131,8 @@ class RealConnect {
         }
     }
 
-    @Test
+    //    @Test
+    @Suppress("unused")
     @Disabled
     fun longRunConnection() {
         runBlocking {
