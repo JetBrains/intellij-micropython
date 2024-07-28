@@ -35,7 +35,12 @@ private const val TIMEOUT = 2000
 private const val LONG_TIMEOUT = 20000L
 private const val SHORT_DELAY = 20L
 
-typealias ExecResponse = List<WebSocketComm.SingleExecResponse>
+data class SingleExecResponse(
+    val stdout: String,
+    val stderr: String
+)
+
+typealias ExecResponse = List<SingleExecResponse>
 
 fun ExecResponse.extractSingleResponse(): String {
     if (this.size != 1 || this[0].stderr.isNotEmpty()) {
@@ -57,13 +62,8 @@ fun ExecResponse.extractResponse(): String {
 
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
 
-    data class SingleExecResponse(
-        val stdout: String,
-        val stderr: String
-    )
-
     @Volatile
-    private var client: WebSocketClient? = null
+    private var client: MpyWebSocketClient? = null
 
     @Volatile
     private var connected: Boolean = false
@@ -317,7 +317,11 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
     }
 
     override fun close() {
-        connected = false
+        try {
+            client?.close()
+            client = null
+        } catch (_: IOException) {
+        }
         try {
             inPipe.close()
         } catch (_: IOException) {
@@ -326,10 +330,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
             outPipe.close()
         } catch (_: IOException) {
         }
-        try {
-            client?.close()
-        } catch (_: IOException) {
-        }
+        connected = false
     }
 
     @Throws(IOException::class)
@@ -379,9 +380,4 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         }
     }
 
-    fun ping() {
-        if (isConnected()) {
-            client?.sendPing()
-        }
-    }
 }
