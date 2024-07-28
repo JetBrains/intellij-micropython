@@ -9,7 +9,6 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTreeCellRenderer
@@ -18,6 +17,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.asSafely
+import com.intellij.util.containers.TreeTraversal
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
 import kotlinx.coroutines.Dispatchers
@@ -138,23 +138,34 @@ class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLa
                 tree.selectionPath
                     ?.lastPathComponent
                     .asSafely<FileSystemNode>() ?: return@withContext null
-            val childCount = fileSystemNode.asSafely<DirNode>()?.childCount ?: 0
             val fileName = fileSystemNode.fullName
-            if (childCount > 0) {
-                Messages.showErrorDialog(project, "Can not delete", "Folder $fileName is not empty")
-                return@withContext null
+            if (fileName in listOf("/", "")) return@withContext null
+            val title: String
+            val message: String
+            if (fileSystemNode is DirNode) {
+                title = "Delete folder $fileName"
+                message = "Are you sure to delete the folder and it's subtree?\n\r The operation can't be undone!"
+            } else {
+                title = "Delete file $fileName"
+                message = "Are you sure to delete the file?\n\r The operation can't be undone!"
             }
-            val sure = MessageDialogBuilder.yesNo(
-                        fileName,
-                        "Are you sure to delete $fileName?\n\r The operation is not reversible!"
-                    ).icon(AllIcons.General.Warning).ask(project)
+            val sure = MessageDialogBuilder.yesNo(title, message).ask(project)
             if (sure) fileSystemNode else null
         }
         if (confirmedFileSystemNode != null) {
-            val cmd = if(confirmedFileSystemNode is DirNode) "rmdir" else "remove"
-            comm.blindExecute("import os\nos.$cmd('${confirmedFileSystemNode.fullName}')")
-                .extractSingleResponse()
-            refresh()
+            val commands = mutableListOf("import os")
+            TreeUtil.treeNodeTraverser(confirmedFileSystemNode)
+                .traverse(TreeTraversal.POST_ORDER_DFS)
+                .mapNotNull {
+                    when (val node = it) {
+                        is DirNode -> "os.rmdir('${node.fullName}')"
+                        is FileNode -> "os.remove('${node.fullName}')"
+                        else -> null
+                    }
+                }
+                .toCollection(commands)
+                comm.blindExecute(*commands.toTypedArray())
+                    .extractResponse()
         }
     }
 
@@ -197,13 +208,17 @@ class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
-        fileSystemWidget.deleteCurrent()
+        try {
+            fileSystemWidget.deleteCurrent()
+        } finally {
+            fileSystemWidget.refresh()
+        }
     }
 
     override fun update(e: AnActionEvent) {
         val selectedFile = fileSystemWidget(e)?.selectedFile()
         e.presentation.isEnabled = selectedFile?.fullName !in listOf("/", null)
-        e.presentation.text = if (selectedFile is DirNode) "Delete folder" else "Delete file"
+        e.presentation.text = if (selectedFile is DirNode) "Delete Folder" else "Delete File"
     }
 }
 

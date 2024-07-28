@@ -3,6 +3,7 @@ package com.jetbrains.micropython.nova
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings
+import com.intellij.util.text.nullize
 import com.jediterm.terminal.TtyConnector
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -43,6 +44,15 @@ fun ExecResponse.extractSingleResponse(): String {
     } else {
         return this[0].stdout
     }
+}
+
+fun ExecResponse.extractResponse(): String {
+    val stderr = this.mapNotNull { it.stderr.nullize(true) }.joinToString("\n")
+    if (stderr.isNotEmpty()) {
+        throw IOException(stderr)
+    }
+    return this.mapNotNull { it.stdout.nullize(true) }.joinToString("\n")
+
 }
 
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
