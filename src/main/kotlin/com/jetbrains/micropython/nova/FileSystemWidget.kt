@@ -9,26 +9,24 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.openapi.util.Key
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.asSafely
 import com.intellij.util.containers.TreeTraversal
-import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
+import java.awt.BorderLayout
 import java.nio.charset.StandardCharsets
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
-
-val FILE_SYSTEM_WIDGET_KEY = Key<FileSystemWidget>(FileSystemWidget::class.java.name)
 
 private const val MPY_FS_SCAN = """
 import os
@@ -54,7 +52,9 @@ with open('$name','rb') as f:
           print(b.hex())
 """
 
-class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLayoutPanel() {
+class FileSystemWidget(val project: Project, val comm: WebSocketComm) :
+    JBPanelWithEmptyText(BorderLayout()) {
+
     private val tree: Tree = Tree(newTreeModel())
 
     private fun newTreeModel() = DefaultTreeModel(DirNode("/", "/"), true)
@@ -86,13 +86,13 @@ class FileSystemWidget(val project: Project, val comm: WebSocketComm) : BorderLa
         val popupActions = actionManager.getAction("micropython.repl.FSContextMenu") as ActionGroup
         PopupHandler.installFollowingSelectionTreePopup(tree, popupActions, ActionPlaces.UNKNOWN)
         TreeUtil.installActions(tree)
-        addToCenter(tree)
 
         val actions = actionManager.getAction("micropython.repl.FSToolbar") as ActionGroup
         val actionToolbar = actionManager.createActionToolbar(ActionPlaces.TOOLBAR, actions, true)
         actionToolbar.targetComponent = tree
 
-        addToTop(actionToolbar.component)
+        add(tree, BorderLayout.CENTER)
+        add(actionToolbar.component, BorderLayout.NORTH)
     }
 
     suspend fun refresh() {
@@ -251,6 +251,7 @@ class OpenMpyFile : ReplAction("Open file", AllIcons.Actions.MenuOpen) {
     override fun update(e: AnActionEvent) {
         e.presentation.isEnabledAndVisible = fileSystemWidget(e)?.selectedFile() is FileNode
     }
+
     override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
         val selectedFile = withContext(Dispatchers.EDT) {
             fileSystemWidget.selectedFile()

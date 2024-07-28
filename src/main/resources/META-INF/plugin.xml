@@ -60,11 +60,10 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <facet.toolWindow id="MicroPython" anchor="bottom" factoryClass="com.jetbrains.micropython.ui.MicroPythonToolWindowFactory"
-                      secondary="false" icon="/icons/micropython_tw.svg"
-                      facetIdList="MicroPython"/>
     <toolWindow factoryClass="com.jetbrains.micropython.nova.MicroPythonToolWindow" id="com.jetbrains.micropython.nova.MicroPythonToolWindow"
-                canCloseContents="true"/>
+                anchor="bottom"
+                icon="/icons/micropython_tw.svg"
+                canCloseContents="false"/>
   </extensions>
 
   <actions>
@@ -91,4 +90,5 @@
       <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.nova.InstantRun" text="Instant Run"/>
     </group>
   </actions>
+  <resource-bundle>messages.Micropython</resource-bundle>
 </idea-plugin>

@@ -19,8 +19,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
-import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.content.ContentFactory
+import com.intellij.util.asSafely
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jediterm.terminal.TerminalMode
 import com.jediterm.terminal.TtyConnector
@@ -39,6 +39,7 @@ import kotlin.coroutines.cancellation.CancellationException
 private const val NOTIFICATION_GROUP = "Micropython"
 
 class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val newDisposable = Disposer.newDisposable(toolWindow.disposable, "Webrepl")
         val comm = WebSocketComm {
@@ -46,15 +47,12 @@ class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
         }
         Disposer.register(newDisposable, comm)
 
-        val tabbedPane = JBTabbedPane()
         val jediTermWidget = jediTermWidget(comm.ttyConnector)
-        tabbedPane.addTab("REPL", jediTermWidget)
+        val termContent = ContentFactory.getInstance().createContent(jediTermWidget, "REPL", true)
         val fileSystemWidget = FileSystemWidget(project, comm)
-        tabbedPane.addTab("File System", fileSystemWidget)
-        val content = ContentFactory.getInstance().createContent(tabbedPane, "WebRepl", true)
-        FILE_SYSTEM_WIDGET_KEY.set(content, fileSystemWidget)
-        content.setDisposer(newDisposable)
-        toolWindow.contentManager.addContent(content)
+        val fileSystemContent = ContentFactory.getInstance().createContent(fileSystemWidget, "File System", true)
+        toolWindow.contentManager.addContent(fileSystemContent)
+        toolWindow.contentManager.addContent(termContent)
         runWithModalProgressBlocking(project, "Initializing WebREPL") {
             comm.connect(URI("ws://192.168.50.68:8266"), "passwd")
             fileSystemWidget.refresh()
@@ -99,6 +97,8 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val fileSystemWidget = fileSystemWidget(project) ?: return
+        fileSystemWidget.isVisible = false
+        try {
         runWithModalProgressBlocking(project, "Board data exchange...") {
             var error: String? = null
             try {
@@ -118,13 +118,17 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
                 Notifications.Bus.notify(Notification(NOTIFICATION_GROUP, error, NotificationType.ERROR), project)
             }
         }
+        } finally {
+            fileSystemWidget.isVisible = true
+        }
     }
 
     private fun fileSystemWidget(project: Project?): FileSystemWidget? {
         return ToolWindowManager.getInstance(project ?: return null)
-            .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")?.contentManager?.selectedContent?.getUserData(
-                FILE_SYSTEM_WIDGET_KEY
-            )
+            .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")
+            ?.contentManager
+            ?.contents
+            ?.firstNotNullOfOrNull { it.component.asSafely<FileSystemWidget>() }
     }
 
     protected  fun fileSystemWidget(e: AnActionEvent): FileSystemWidget? = fileSystemWidget(e.project)
