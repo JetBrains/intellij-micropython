@@ -1,6 +1,5 @@
 package com.jetbrains.micropython.nova
 
-import com.jetbrains.micropython.nova.WebSocketComm.SingleExecResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import org.junit.jupiter.api.*
@@ -17,8 +16,9 @@ class Connect {
 
     @BeforeEach
     fun init() {
-        tcpPort = (50000..60000).random()
+        Thread.sleep(100)
         server = WebSocketTestServer(tcpPort)
+        Thread.sleep(100)
     }
 
     @AfterEach
@@ -37,8 +37,9 @@ class Connect {
             "WebREPL connected" to null,
         )
         test { comm ->
-            comm.connect(URI.create("ws://localhost:$tcpPort"), "pa55wd")
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "pa55wd")
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
         }
     }
@@ -52,7 +53,8 @@ class Connect {
         )
         val ex = assertThrows<ConnectException> {
             test { comm ->
-                comm.connect(URI.create("ws://localhost:$tcpPort"), "pa55wd")
+                comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "pa55wd")
+                comm.connect()
             }
         }
         assertEquals("Access denied", ex.message)
@@ -80,14 +82,15 @@ class Connect {
             "" to null,
         )
         test { comm ->
-            comm.connect(URI.create("ws://localhost:$tcpPort"), "passwd")
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val responseA = comm.blindExecute("print('Test me')")
             assertEquals("Test me", responseA.extractSingleResponse())
             val responseB = comm.blindExecute("print('Test me 2')")
             assertEquals("Test me 2", responseB.extractSingleResponse())
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             delay(300)
         }
@@ -96,7 +99,7 @@ class Connect {
 
     @Test
     @Timeout(5000, unit = MILLISECONDS)
-    fun realInstantRun() {
+    fun instantRun() {
         expect(
             "Password: " to "passwd\n",
             "WebREPL connected" to "\u0003",
@@ -110,11 +113,12 @@ class Connect {
             "Test me\nTest me 2\n>>>" to null
         )
         test { comm ->
-            comm.connect(URI.create("ws://localhost:$tcpPort"), "passwd")
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             comm.instantRun("print('Test me')\nprint('Test me 2')")
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             assertTrue(comm.ttyConnector.isConnected)
             val buf = CharArray(100)
@@ -130,7 +134,7 @@ class Connect {
 
     @Test
     @Timeout(5000, unit = MILLISECONDS)
-    fun realBlindExecuteMultiple() {
+    fun blindExecuteMultiple() {
         expect(
             "Password: " to "passwd\n",
             "WebREPL connected" to "\u0003",
@@ -145,8 +149,9 @@ class Connect {
             "" to null,
         )
         test { comm ->
-            comm.connect(URI.create("ws://localhost:$tcpPort"), "passwd")
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val response = comm.blindExecute("print('Test me 0')", "print('Test me 1')")
             val expected = listOf(
@@ -154,7 +159,7 @@ class Connect {
                 SingleExecResponse("Test me 1", ""),
             )
             assertIterableEquals(expected, response)
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             delay(300)
         }

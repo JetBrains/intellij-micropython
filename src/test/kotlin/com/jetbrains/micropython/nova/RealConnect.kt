@@ -24,7 +24,9 @@ class RealConnect {
 
     @BeforeEach
     fun init() {
-        comm = WebSocketComm { fail(it) }
+        Thread.sleep(200)
+        comm = WebSocketCommTest { fail(it) }
+        Thread.sleep(100)
     }
 
     @AfterEach
@@ -36,14 +38,15 @@ class RealConnect {
     @Timeout(5000, unit = MILLISECONDS)
     fun realBlindExecute() {
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val responseA = comm.blindExecute("print('Test me')")
             assertEquals("Test me", responseA.extractSingleResponse())
             val responseB = comm.blindExecute("print('Test me 2')")
             assertEquals("Test me 2", responseB.extractSingleResponse())
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
         }
     }
@@ -53,13 +56,14 @@ class RealConnect {
     fun realBlindExecuteLong() {
         val repeatCount = 60
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val response = comm.blindExecute(
                 "print('Test me ', end='')\n".repeat(repeatCount)
             )
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             assertSingleOkResponse("Test me ".repeat(60).trim(), response)
         }
@@ -75,8 +79,9 @@ class RealConnect {
     @Timeout(5000, unit = MILLISECONDS)
     fun realBlindExecuteWrong() {
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val response = comm.blindExecute(
                 "print('Test me ', end=''\n"
@@ -84,7 +89,7 @@ class RealConnect {
             assertEquals(1, response.size)
             assertTrue(response[0].stdout.isEmpty())
             assertTrue(response[0].stderr.isNotBlank())
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
         }
     }
@@ -94,8 +99,9 @@ class RealConnect {
     fun realBlindExecuteMultiple() {
         val repeatCount = 50
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             val commands = range(0, repeatCount).mapToObj { "print('Test me $it')" }.toList().toTypedArray()
             val response = comm.blindExecute(*commands)
@@ -104,7 +110,7 @@ class RealConnect {
                 assertEquals(response[i].stdout, "Test me $i")
                 assertTrue(response[i].stderr.isEmpty())
             }
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
         }
     }
@@ -113,11 +119,12 @@ class RealConnect {
     @Timeout(5000, unit = MILLISECONDS)
     fun realInstantRun() {
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             comm.instantRun("print('Test me')\nprint('Test me 2')")
-            assertTrue(comm.isConnected())
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             assertTrue(comm.ttyConnector.isConnected)
             val buf = CharArray(100)
@@ -136,19 +143,20 @@ class RealConnect {
     @Disabled
     fun longRunConnection() {
         runBlocking {
-            comm.connect(URI.create(URL), PASSWORD)
-            assertTrue(comm.isConnected())
+            comm.setConnectionParams(URI.create(URL), PASSWORD)
+            comm.connect()
+            assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
             println("Connected")
             launch {
-                while (comm.isConnected()) {
+                while (State.CONNECTED == comm.state) {
                     delay(20000)
                     println("ping")
                     comm.ping()
                 }
             }
             val start = System.currentTimeMillis()
-            while (comm.isConnected()) {
+            while (State.CONNECTED == comm.state) {
                 delay(1000)
                 println("Still alive")
             }
