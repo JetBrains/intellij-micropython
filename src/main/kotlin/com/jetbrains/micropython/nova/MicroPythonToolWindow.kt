@@ -120,7 +120,7 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
         }
     }
 
-    protected fun fileSystemWidget(project: Project?): FileSystemWidget? {
+    private fun fileSystemWidget(project: Project?): FileSystemWidget? {
         return ToolWindowManager.getInstance(project ?: return null)
             .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")?.contentManager?.selectedContent?.getUserData(
                 FILE_SYSTEM_WIDGET_KEY
