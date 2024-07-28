@@ -76,8 +76,10 @@
       </action>
     </group>
     <group id="micropython.repl.FSToolbar">
-      <action id="micropython.repl.UploadFile" class="com.jetbrains.micropython.nova.UploadFile"/>
+      <action id="micropython.repl.Disconnect" class="com.jetbrains.micropython.nova.Disconnect"/>
+      <action id="micropython.repl.Connect" class="com.jetbrains.micropython.nova.Connect"/>
       <action id="micropython.repl.Refresh" class="com.jetbrains.micropython.nova.Refresh"/>
+      <action id="micropython.repl.UploadFile" class="com.jetbrains.micropython.nova.UploadFile"/>
       <action id="micropython.repl.Delete" class="com.jetbrains.micropython.nova.DeleteFile"/>
     </group>
     <group id="micropython.repl.FSContextMenu">
@@ -87,7 +89,10 @@
       <reference ref="micropython.repl.Delete"/>
     </group>
     <group id="micropython.repl.ReplToolbar">
+      <reference ref="micropython.repl.Connect"/>
+      <reference ref="micropython.repl.Disconnect"/>
       <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.nova.InstantRun" text="Instant Run"/>
+      <reference ref="micropython.repl.Refresh"/>
     </group>
   </actions>
   <resource-bundle>messages.Micropython</resource-bundle>

@@ -23,6 +23,7 @@ import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.properties.Delegates
 
 private const val PASSWORD_PROMPT = "Password:"
 private const val LOGIN_SUCCESS = "WebREPL connected"
@@ -41,6 +42,12 @@ data class SingleExecResponse(
 )
 
 typealias ExecResponse = List<SingleExecResponse>
+
+enum class State {
+    DISCONNECTING, DISCONNECTED, CONNECTING, CONNECTED, TTY_DETACHED
+}
+
+typealias StateListener = (State) -> Unit
 
 fun ExecResponse.extractSingleResponse(): String {
     if (this.size != 1 || this[0].stderr.isNotEmpty()) {
@@ -62,18 +69,12 @@ fun ExecResponse.extractResponse(): String {
 
 class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
 
+    val stateListeners = mutableListOf<StateListener>()
+
     @Volatile
     private var client: MpyWebSocketClient? = null
 
-    @Volatile
-    private var connected: Boolean = false
-
-    fun isConnected(): Boolean = connected
-
-    @Volatile
-    private var ttySuspended: Boolean = true
-
-    fun isTtySuspended(): Boolean = ttySuspended
+    fun isTtySuspended(): Boolean = state == State.TTY_DETACHED
 
     private var offTtyBuffer = StringBuilder()
 
@@ -88,16 +89,19 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
     val ttyConnector: TtyConnector = WebSocketTtyConnector()
 
-    @Throws(IOException::class)
-    suspend fun connect(uri: URI, password: String) {
+    fun setConnectionParams(uri: URI, password: String) {
         this.uri = uri
         this.password = password
-        reconnect()
     }
 
 
+    var state: State by Delegates.observable(State.DISCONNECTED){ _, _, newValue ->
+        stateListeners.forEach { it(newValue) }
+    }
+
     @Throws(IOException::class, CancellationException::class, TimeoutCancellationException::class)
     suspend fun upload(fullName: @NonNls String, content: ByteArray) {
+        checkConnected()
         val commands = mutableListOf<String>()
         var slashIdx = 0
         while (slashIdx >= 0) {
@@ -153,7 +157,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
     @Throws(IOException::class)
     private suspend fun doBlindExecute(vararg commands: String): ExecResponse {
-        ttySuspended = true
+        state = State.TTY_DETACHED
         val result = mutableListOf<SingleExecResponse>()
         try {
 
@@ -192,18 +196,23 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         } finally {
             client?.send("\u0002")
             offTtyBuffer.clear()
-            ttySuspended = false
+            if (state == State.TTY_DETACHED) {
+                state = State.CONNECTED
+            }
+        }
+    }
+
+    fun checkConnected() {
+        when (state) {
+            State.CONNECTED -> {}
+            State.DISCONNECTING, State.DISCONNECTED, State.CONNECTING -> throw IOException("Not connected")
+            State.TTY_DETACHED -> throw IOException("Websocket is busy")
         }
     }
 
     @Throws(IOException::class)
     suspend fun blindExecute(vararg commands: String): ExecResponse {
-        if (!connected) {
-            throw IOException("Not connected")
-        }
-        if (ttySuspended) {
-            throw IOException("Not ready")
-        }
+        checkConnected()
         webSocketMutex.withLock {
             return doBlindExecute(*commands)
         }
@@ -211,14 +220,9 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
     @Throws(IOException::class)
     suspend fun instantRun(command: @NonNls String) {
-        if (!connected) {
-            throw IOException("Not connected")
-        }
-        if (ttySuspended) {
-            throw IOException("Not ready")
-        }
+        checkConnected()
         webSocketMutex.withLock {
-            ttySuspended = true
+            state = State.TTY_DETACHED
             try {
                 client?.send("\u0003")
                 client?.send("\u0003")
@@ -239,7 +243,9 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                 }
                 offTtyBuffer.clear()
             } finally {
-                ttySuspended = false
+                if (state == State.TTY_DETACHED) {
+                    state = State.CONNECTED
+                }
                 client?.send("\u0004")
             }
         }
@@ -254,7 +260,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         override fun onOpen(handshakedata: ServerHandshake) = Unit //Nothing to do
 
         override fun onMessage(message: String) {
-            if (ttySuspended) {
+            if (state == State.TTY_DETACHED) {
                 offTtyBuffer.append(message)
             } else {
                 runBlocking {
@@ -268,12 +274,12 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
         override fun onClose(code: Int, reason: String, remote: Boolean) {
             try {
-                if (remote && connected) {
+                if (remote && state == State.CONNECTED) {
                     //CounterParty closed the connection
                     throw IOException("Connection closed. Code:$code ($reason)")
                 }
             } finally {
-                connected = false
+                state = State.DISCONNECTED
             }
         }
 
@@ -299,7 +305,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
         override fun write(bytes: ByteArray) = write(bytes.toString(StandardCharsets.UTF_8))
 
         override fun write(text: String) {
-            if (connected && !ttySuspended) {
+            if (state == State.CONNECTED) {
                 client?.send(text)
             }
         }
@@ -330,18 +336,21 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
             outPipe.close()
         } catch (_: IOException) {
         }
-        connected = false
+        try {
+            client?.close()
+        } catch (_: IOException) {
+        }
+        state = State.DISCONNECTED
     }
 
+
     @Throws(IOException::class)
-    suspend fun reconnect() {
+    suspend fun connect() {
         val uri = this.uri ?: throw IOException("Not connected")
         webSocketMutex.withLock {
-            connected = false
-            ttySuspended = true
-            client?.close()
             client = MpyWebSocketClient(uri).also { newClient ->
-                newClient.connectBlocking()
+                if (!newClient.connectBlocking()) throw ConnectException("Webrepl connection failed")
+                state = State.TTY_DETACHED
                 try {
                     withTimeout(TIMEOUT.toLong()) {
                         while (newClient.isOpen) {
@@ -358,25 +367,39 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                         }
                         offTtyBuffer.clear()
                         newClient.send("$password\n")
-                        while (!connected && newClient.isOpen) {
+                        while (state == State.CONNECTING && newClient.isOpen) {
                             when {
-                                offTtyBuffer.contains(LOGIN_SUCCESS) -> connected = true
+                                offTtyBuffer.contains(LOGIN_SUCCESS) -> {}
                                 offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
                                 else -> delay(SHORT_DELAY)
                             }
                         }
-                        ttySuspended = false
+                        state = State.CONNECTED
                     }
-                } catch (e: TimeoutCancellationException) {
+                } catch (e: Exception) {
                     try {
                         newClient.close()
                     } catch (_: IOException) {
                     }
-                    throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
+                    state = State.DISCONNECTED
+                    when (e) {
+                        is TimeoutCancellationException -> throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
+                        is InterruptedException -> throw ConnectException("Connection interrupted")
+
+                    }
+
                 } finally {
                     offTtyBuffer.clear()
                 }
             }
+        }
+    }
+
+    suspend fun disconnect() {
+        webSocketMutex.withLock {
+            state = State.DISCONNECTING
+            client?.close()
+            client = null
         }
     }
 
