@@ -221,6 +221,7 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
                     offTtyBuffer.clear()
                     client?.send("$it\n")
                     offTtyBuffer.clear()
+                    delay(SHORT_DELAY)
                 }
                 client?.send("#$BOUNDARY\n")
                 while (!offTtyBuffer.contains(BOUNDARY)) {
