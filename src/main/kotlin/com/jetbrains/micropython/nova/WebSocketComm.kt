@@ -88,14 +88,26 @@ class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposab
 
     @Throws(IOException::class, CancellationException::class, TimeoutCancellationException::class)
     suspend fun upload(fullName: @NonNls String, content: ByteArray) {
-        val maxDataChunk = 180
-        var idx = 0
-        val commands = mutableListOf("___f=open('$fullName','wb')")
+        val commands = mutableListOf<String>()
+        var slashIdx = 0
+        while (slashIdx >= 0) {
+            slashIdx = fullName.indexOf('/', slashIdx + 1)
+            if (slashIdx > 0) {
+                val folderName = fullName.substring(0, slashIdx)
+                commands.add("import errno\n" +
+                        "try: os.mkdir('$folderName'); \n" +
+                        "except OSError as e:\n" +
+                        "\tif e.errno != errno.EEXIST: raise ")
+            }
+        }
+        commands.add("___f=open('$fullName','wb')")
         val chunk = StringBuilder()
-        while (idx < content.size) {
+        val maxDataChunk = 220
+        var contentIdx = 0
+        while (contentIdx < content.size) {
             chunk.setLength(0)
-            while (chunk.length < maxDataChunk && idx < content.size) {
-                val b = content[idx++]
+            while (chunk.length < maxDataChunk && contentIdx < content.size) {
+                val b = content[contentIdx++]
                 chunk.append(
                     when (b) {
                         0x0D.toByte() -> "\\n"
