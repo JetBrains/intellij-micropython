@@ -14,7 +14,6 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jediterm.terminal.TerminalMode
 import com.jediterm.terminal.TtyConnector
-import com.jetbrains.rd.util.URI
 import org.jetbrains.plugins.terminal.JBTerminalSystemSettingsProvider
 import javax.swing.JComponent
 
@@ -28,7 +27,6 @@ class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
         val fileSystemWidget = FileSystemWidget(project, newDisposable)
         val fileSystemContent = ContentFactory.getInstance().createContent(fileSystemWidget, "File System", true)
         fileSystemContent.setDisposer(newDisposable)
-        fileSystemWidget.setConnectionParams(URI("ws://192.168.50.68:8266"), "passwd")
         toolWindow.contentManager.addContent(fileSystemContent)
 
         val jediTermWidget = jediTermWidget(project, newDisposable, fileSystemWidget.ttyConnector)

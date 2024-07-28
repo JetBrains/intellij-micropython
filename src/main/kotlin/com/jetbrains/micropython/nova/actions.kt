@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -27,6 +28,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import javax.swing.Icon
 import kotlin.coroutines.cancellation.CancellationException
@@ -120,11 +122,25 @@ class Connect(text: String = "Connect", icon: Icon = AllIcons.General.ArrowUp) :
     override val actionDescription: String = "Connect"
 
     override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
-        if (fileSystemWidget.state != State.CONNECTED) {
-            fileSystemWidget.connect()
-            fileSystemWidget.refresh()
-            ActivityTracker.getInstance().inc()
+        while (true) {
+            val (url, password) = fileSystemWidget.project.service<ConnectCredentials>().retrieveUrlAndPassword()
+            val (uri, _) = uriOrMessageUrl(url)
+            if (uri == null) {
+                val newCredentials = withContext(Dispatchers.EDT) { askCredentials(fileSystemWidget.project) }
+                if (!newCredentials) {
+                    break
+                }
+            } else {
+                if (fileSystemWidget.state != State.CONNECTED) {
+                    fileSystemWidget.setConnectionParams(URI(url), password)
+                    fileSystemWidget.connect()
+                    fileSystemWidget.refresh()
+                    ActivityTracker.getInstance().inc()
+                }
+                break
+            }
         }
+
     }
 
     override fun update(e: AnActionEvent) {
