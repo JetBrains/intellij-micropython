@@ -17,20 +17,15 @@
 package com.jetbrains.micropython.settings
 
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
-import com.intellij.ui.components.CheckBox
-import com.intellij.util.text.nullize
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import java.awt.BorderLayout
-import javax.swing.JButton
 import javax.swing.JList
 import javax.swing.JPanel
 
@@ -48,25 +43,7 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
       }
     }
   }
-  private val devicePath = TextFieldWithBrowseButton()
-  private val autoDetectDevicePath = CheckBox("Auto-detect device path").apply {
-    addActionListener {
-      update()
-    }
-  }
 
-  private val devicePathPanel: JPanel by lazy {
-    FormBuilder.createFormBuilder()
-        .addLabeledComponent("Device path:", JPanel(BorderLayout()).apply {
-          add(devicePath, BorderLayout.CENTER)
-          add(JButton("Detect").apply {
-            addActionListener {
-              devicePath.text = module.microPythonFacet?.detectDevicePathSynchronously(selectedProvider) ?: ""
-            }
-          }, BorderLayout.EAST)
-        })
-        .panel
-  }
 
   init {
     layout = BorderLayout()
@@ -74,8 +51,6 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
 
     val deviceContentPanel = FormBuilder.createFormBuilder()
         .addLabeledComponent("Device type:", deviceTypeCombo)
-        .addComponent(autoDetectDevicePath)
-        .addComponent(devicePathPanel)
         .addComponent(docsHyperlink)
         .panel
 
@@ -96,37 +71,19 @@ class MicroPythonSettingsPanel(private val module: Module) : JPanel() {
         }
       }
     }
-
-    devicePath.apply {
-      val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
-      addBrowseFolderListener("My Title", null, module.project, descriptor)
-    }
-
-    update()
   }
 
   fun isModified(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet): Boolean =
       deviceTypeCombo.selectedItem != configuration.deviceProvider
-          || devicePath.text.nullize(true) != facet.devicePath
-          || autoDetectDevicePath.isSelected != facet.autoDetectDevicePath
 
   fun getDisplayName(): String = "MicroPython"
 
   fun apply(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     configuration.deviceProvider = selectedProvider
-    facet.devicePath = devicePath.text.nullize(true)
-    facet.autoDetectDevicePath = autoDetectDevicePath.isSelected
   }
 
   fun reset(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     deviceTypeCombo.selectedItem = configuration.deviceProvider
-    devicePath.text = facet.devicePath ?: ""
-    autoDetectDevicePath.isSelected = facet.autoDetectDevicePath
-    update()
-  }
-
-  private fun update() {
-    UIUtil.setEnabled(devicePathPanel, !autoDetectDevicePath.isSelected, true)
   }
 
   private val selectedProvider: MicroPythonDeviceProvider
