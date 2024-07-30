@@ -42,7 +42,6 @@
                          displayName="MicroPython"
                          instance="com.jetbrains.micropython.settings.MicroPythonProjectConfigurable"/>
     <projectService serviceImplementation="com.jetbrains.micropython.settings.MicroPythonDevicesConfiguration"/>
-    <stepsBeforeRunProvider implementation="com.jetbrains.micropython.repl.StopReplBeforeRunTaskProvider"/>
     <localInspection language="Python"
                      displayName="MicroPython requirements inspection"
                      groupName="MicroPython"

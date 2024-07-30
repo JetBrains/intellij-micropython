@@ -16,60 +16,43 @@
 
 package com.jetbrains.micropython.run
 
-import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configuration.AbstractRunConfiguration
+import com.intellij.execution.configuration.EmptyRunProfileState
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RuntimeConfigurationError
-import com.intellij.execution.process.ProcessEvent
-import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessModuleDir
+import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.isFile
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.util.progress.reportSequentialProgress
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
-import com.jetbrains.micropython.repl.MicroPythonReplManager
+import com.jetbrains.micropython.nova.fileSystemWidget
 import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
+import com.jetbrains.python.sdk.PythonSdkUtil
 import org.jdom.Element
+import java.nio.file.Path
 
 /**
  * @author Mikhail Golubev
  */
-
-class RunStateWrapper(private val original: RunProfileState, val block: () -> Unit) : RunProfileState by original {
-  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
-    val result = original.execute(executor, runner)
-
-    result?.processHandler?.addProcessListener(object : ProcessListener {
-      override fun startNotified(event: ProcessEvent) {}
-
-      override fun processTerminated(event: ProcessEvent) {
-        if (event.exitCode == 0) {
-          block()
-        }
-      }
-
-      override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {}
-    })
-
-    return result
-  }
-}
 
 class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactory) : AbstractRunConfiguration(project, factory), RunConfigurationWithSuppressedDefaultDebugAction {
 
@@ -80,20 +63,67 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
 
   override fun getConfigurationEditor() = MicroPythonRunConfigurationEditor(this)
 
-  override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
-    val currentModule = environment.dataContext?.getData(LangDataKeys.MODULE) ?: module
-    val state = currentModule?.microPythonFacet?.configuration?.deviceProvider?.getRunCommandLineState(this, environment)
-//    ComponentManagerImpl
-    if (runReplOnSuccess && state != null) {
-      return RunStateWrapper(state) {
-        ApplicationManager.getApplication().invokeLater {
-          project.service<MicroPythonReplManager>().startOrRestartRepl()
-          ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
-        }
+  private fun getClosestRoot(file: VirtualFile, roots: Set<VirtualFile>, module: Module): VirtualFile? {
+    var parent: VirtualFile? = file
+    while (parent != null) {
+      if (parent in roots) {
+        break
       }
+      parent = parent.parent
+    }
+    return parent ?: module.guessModuleDir()
+  }
+
+  override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
+    val uploadFile = VfsUtil.findFile(Path.of(path), true) ?: return null
+    val currentModule = environment.dataContext?.getData(LangDataKeys.MODULE)
+      ?: module
+      ?: return null
+
+    val roots = mutableSetOf<VirtualFile>().apply {
+      val rootManager = currentModule.rootManager
+      addAll(rootManager.contentRoots)
+      addAll(rootManager.sourceRoots)
     }
 
-    return state
+    val pythonPath = PythonSdkUtil.findPythonSdk(currentModule)?.homeDirectory
+//    val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return null
+    val excludeRoots = listOfNotNull(pythonPath, *ModuleRootManager.getInstance(currentModule).excludeRoots)
+
+    val filesToUpload = mutableListOf<Pair<String, VirtualFile>>()
+    VfsUtil.processFileRecursivelyWithoutIgnored(uploadFile) { file ->
+      if (
+        file.isFile && file.isValid &&
+        excludeRoots.none { VfsUtil.isAncestor(it, file, false) }
+      ) {
+        getClosestRoot(file, roots, currentModule)?.apply {
+          val shortPath = VfsUtil.getRelativePath(file, this)
+          if (shortPath != null) filesToUpload.add(shortPath to file)//todo optimize
+        }
+      }
+      true
+    }
+    //todo optionally open repl
+//    ComponentManagerImpl
+//    if (runReplOnSuccess && state != null) {
+//      return RunStateWrapper(state) {
+//        ApplicationManager.getApplication().invokeLater {
+//          project.service<MicroPythonReplManager>().startOrRestartRepl()
+//          ToolWindowManager.getInstance(project).getToolWindow("MicroPython")?.show()
+//        }
+//      }
+//    }
+    val fileSystemWidget = fileSystemWidget(project) ?: return null
+    runWithModalProgressBlocking(project, "Upload ${filesToUpload.size} files") {
+      reportSequentialProgress(filesToUpload.size) { reporter ->
+        filesToUpload.forEach { (path, file) ->
+          reporter.itemStep(path)
+          fileSystemWidget.upload(path, file.contentsToByteArray())
+        }
+      }
+      fileSystemWidget.refresh()
+    }
+    return EmptyRunProfileState.INSTANCE
   }
 
   override fun checkConfiguration() {
