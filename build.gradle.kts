@@ -2,17 +2,34 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-fun config(name: String) = project.findProperty(name).toString()
-
-val ideaVersion = config("ideaVersion")
-
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 plugins {
     kotlin("jvm") version "1.9.25"
-    id("org.jetbrains.intellij") version "1.17.4"
+    id("org.jetbrains.intellij.platform") version "2.0.0"
+}
+
+dependencies {
+    intellijPlatform {
+        val type = project.property("platformType").toString()
+        val version = project.property("platformVersion").toString()
+        val pythonPlugin = project.property("pythonPlugin").toString()
+
+        create(type, version, useInstaller = false)
+
+        bundledPlugin("org.jetbrains.plugins.terminal")
+
+        when (type) {
+            "PC" -> bundledPlugin("PythonCore")
+            "PY" -> bundledPlugin("Pythonid")
+            else -> plugin(pythonPlugin)
+        }
+    }
 }
 
 java {
@@ -20,19 +37,15 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-intellij {
-    version = ideaVersion
-    pluginName = "intellij-micropython"
-    updateSinceUntilBuild = false
-    instrumentCode = false
-    plugins.add("terminal")
+intellijPlatform {
+    pluginConfiguration {
+        name = "intellij-micropython"
+    }
 
-    if (ideaVersion.contains("PC")) {
-        plugins.add("python-ce")
-    } else if (ideaVersion.contains("PY")) {
-        plugins.add("python")
-    } else {
-        plugins.add(config("pythonPlugin"))
+    instrumentCode = false
+
+    publishing {
+        token = project.property("publishToken").toString()
     }
 }
 
@@ -50,7 +63,7 @@ tasks {
             include("typehints/")
             include("scripts/")
         }
-        into("${intellij.sandboxDir.get()}/plugins/intellij-micropython")
+        into("${intellijPlatform.sandboxContainer.get()}/plugins/intellij-micropython")
     }
     buildSearchableOptions {
         dependsOn(copyStubs)
@@ -63,8 +76,5 @@ tasks {
     }
     runIde {
         dependsOn(copyStubs)
-    }
-    publishPlugin {
-        token = config("publishToken")
     }
 }
