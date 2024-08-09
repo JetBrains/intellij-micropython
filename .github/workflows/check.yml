@@ -23,18 +23,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: corretto
           java-version: 17
 
       - name: Build plugin
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v4
         with:
           arguments: ":buildPlugin -Pversion=SNAPSHOT-${{ github.run_number }}"
 
       - name: Upload plugin archive
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: intellij-micropython-SNAPSHOT-${{ github.run_number }}
           path: build/distributions/intellij-micropython-SNAPSHOT-${{ github.run_number }}.zip
