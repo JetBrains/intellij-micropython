@@ -28,10 +28,11 @@ jobs:
           distribution: corretto
           java-version: 17
 
-      - name: Build plugin
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: ":buildPlugin -Pversion=SNAPSHOT-${{ github.run_number }}"
+
+      - name: Build plugin
+        run: ./gradlew :buildPlugin -Pversion=SNAPSHOT-${{ github.run_number }}
 
       - name: Upload plugin archive
         uses: actions/upload-artifact@v4
