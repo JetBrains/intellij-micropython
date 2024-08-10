@@ -106,6 +106,7 @@ internal fun askCredentials(project: Project): Boolean {
 }
 
 class ConnectionParameters : DumbAwareAction("Connection", null, AllIcons.General.User) {
+    //todo move to setup page?
     override fun actionPerformed(e: AnActionEvent) {
         e.project?.apply { askCredentials(this) }
     }
