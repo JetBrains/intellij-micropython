@@ -103,7 +103,9 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
       }
       true
     }
+    //todo low priority create empty folders
     //todo optionally open repl
+    //todo skip .idea
 //    ComponentManagerImpl
 //    if (runReplOnSuccess && state != null) {
 //      return RunStateWrapper(state) {

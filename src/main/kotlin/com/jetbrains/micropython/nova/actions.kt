@@ -33,6 +33,14 @@ import java.nio.charset.StandardCharsets
 import javax.swing.Icon
 import kotlin.coroutines.cancellation.CancellationException
 
+fun fileSystemWidget(project: Project?): FileSystemWidget? {
+    return ToolWindowManager.getInstance(project ?: return null)
+        .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")
+        ?.contentManager
+        ?.contents
+        ?.firstNotNullOfOrNull { it.component.asSafely<FileSystemWidget>() }
+}
+
 abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", icon) {
 
     abstract val actionDescription: String
@@ -72,13 +80,6 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
         }
     }
 
-    private fun fileSystemWidget(project: Project?): FileSystemWidget? {
-        return ToolWindowManager.getInstance(project ?: return null)
-            .getToolWindow("com.jetbrains.micropython.nova.MicroPythonToolWindow")
-            ?.contentManager
-            ?.contents
-            ?.firstNotNullOfOrNull { it.component.asSafely<FileSystemWidget>() }
-    }
 
     protected fun fileSystemWidget(e: AnActionEvent): FileSystemWidget? = fileSystemWidget(e.project)
     fun enableIfConnected(e: AnActionEvent) {
@@ -101,6 +102,7 @@ class Refresh : ReplAction("Refresh", AllIcons.Actions.Refresh) {
 }
 
 class Disconnect(text: String = "Disconnect", icon: Icon = AllIcons.General.Remove) : ReplAction(text, icon) {
+//todo better icon
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -116,7 +118,8 @@ class Disconnect(text: String = "Disconnect", icon: Icon = AllIcons.General.Remo
 }
 
 class Connect(text: String = "Connect", icon: Icon = AllIcons.General.ArrowUp) : ReplAction(text, icon) {
-
+//todo better icon
+//todo fix not connected behavior
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override val actionDescription: String = "Connect"
@@ -173,9 +176,10 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
         e.presentation.isEnabled = selectedFile?.fullName !in listOf("/", null)
     }
 }
-
+//todo better place for connection parameters
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
-
+//todo add to file editor context menu
+    //todo swithc to repl
     override val actionDescription: String = "Run code"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -240,6 +244,8 @@ with open('$name','rb') as f:
 
 open class UploadFile(text: String = "Upload File", icon: Icon = AllIcons.Actions.Upload) : ReplAction(text, icon) {
     //todo move out of MPY toolwindow
+    //todo add to project tree context menu
+    //todo add to editor context menu
     override val actionDescription: String = "Upload"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
