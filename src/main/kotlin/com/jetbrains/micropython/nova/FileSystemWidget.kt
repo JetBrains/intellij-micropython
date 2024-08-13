@@ -168,26 +168,32 @@ class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     suspend fun deleteCurrent() {
 
         comm.checkConnected()
-        val confirmedFileSystemNode = withContext(Dispatchers.EDT) {
-            val fileSystemNode =
-                tree.selectionPath
-                    ?.lastPathComponent
-                    .asSafely<FileSystemNode>() ?: return@withContext null
-            val fileName = fileSystemNode.fullName
-            if (fileName in listOf("/", "")) return@withContext null
+        val confirmedFileSystemNodes = withContext(Dispatchers.EDT) {
+            val fileSystemNodes = tree.selectionPaths?.mapNotNull { it.lastPathComponent.asSafely<FileSystemNode>() }
+                ?.filter { it.fullName != "" && it.fullName != "/" } ?: emptyList()
             val title: String
             val message: String
-            if (fileSystemNode is DirNode) {
-                title = "Delete folder $fileName"
-                message = "Are you sure to delete the folder and it's subtree?\n\r The operation can't be undone!"
+            if (fileSystemNodes.isEmpty()) {
+                return@withContext emptyList()
+            } else if (fileSystemNodes.size == 1) {
+                val fileName = fileSystemNodes[0].fullName
+                if (fileSystemNodes[0] is DirNode) {
+                    title = "Delete folder $fileName"
+                    message = "Are you sure to delete the folder and it's subtree?\n\r The operation can't be undone!"
+                } else {
+                    title = "Delete file $fileName"
+                    message = "Are you sure to delete the file?\n\r The operation can't be undone!"
+                }
             } else {
-                title = "Delete file $fileName"
-                message = "Are you sure to delete the file?\n\r The operation can't be undone!"
+                title = "Delete multiple objects"
+                message =
+                    "Are you sure to delete ${fileSystemNodes.size} items?\n\r The operation can't be undone!"
             }
+
             val sure = MessageDialogBuilder.yesNo(title, message).ask(project)
-            if (sure) fileSystemNode else null
+            if (sure) fileSystemNodes else emptyList()
         }
-        if (confirmedFileSystemNode != null) {
+        for (confirmedFileSystemNode in confirmedFileSystemNodes) {
             val commands = mutableListOf("import os")
             TreeUtil.treeNodeTraverser(confirmedFileSystemNode)
                 .traverse(TreeTraversal.POST_ORDER_DFS)

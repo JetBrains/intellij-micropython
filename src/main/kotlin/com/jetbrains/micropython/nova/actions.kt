@@ -151,8 +151,7 @@ class Connect(text: String = "Connect", icon: Icon = AllIcons.General.ArrowUp) :
     }
 }
 
-class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
-
+class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
     override val actionDescription: String = "Delete"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -172,7 +171,6 @@ class DeleteFile : ReplAction("Delete File", AllIcons.General.Remove) {
         }
         val selectedFile = fileSystemWidget(e)?.selectedFile()
         e.presentation.isEnabled = selectedFile?.fullName !in listOf("/", null)
-        e.presentation.text = if (selectedFile is DirNode) "Delete Folder" else "Delete File"
     }
 }
 
