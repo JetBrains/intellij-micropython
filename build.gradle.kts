@@ -9,6 +9,8 @@ repositories {
     }
 }
 
+val pluginName = "intellij-micropython"
+
 plugins {
     kotlin("jvm") version "1.9.25"
     id("org.jetbrains.intellij.platform") version "2.0.1"
@@ -39,7 +41,7 @@ java {
 
 intellijPlatform {
     pluginConfiguration {
-        name = "intellij-micropython"
+        name = pluginName
     }
 
     instrumentCode = false
@@ -57,24 +59,11 @@ tasks {
             apiVersion = KotlinVersion.KOTLIN_1_9
         }
     }
-    val copyStubs = register<Copy>("copyStubs") {
-        dependsOn("prepareSandbox")
-        from(projectDir) {
+    prepareSandbox {
+        from("$rootDir") {
+            into(pluginName)
             include("typehints/")
             include("scripts/")
         }
-        into("${intellijPlatform.sandboxContainer.get()}/plugins/intellij-micropython")
-    }
-    buildSearchableOptions {
-        dependsOn(copyStubs)
-    }
-    buildPlugin {
-        dependsOn(copyStubs)
-    }
-    verifyPlugin {
-        dependsOn(copyStubs)
-    }
-    runIde {
-        dependsOn(copyStubs)
     }
 }
