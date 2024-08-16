@@ -30,9 +30,10 @@ class MicroPythonToolWindow : ToolWindowFactory, DumbAware {
         toolWindow.contentManager.addContent(fileSystemContent)
 
         val jediTermWidget = jediTermWidget(project, newDisposable, fileSystemWidget.ttyConnector)
-        val termContent = ContentFactory.getInstance().createContent(jediTermWidget, "REPL", true)
-        termContent.setDisposer(newDisposable)
-        toolWindow.contentManager.addContent(termContent)
+        val terminalContent = ContentFactory.getInstance().createContent(jediTermWidget, "REPL", true)
+        terminalContent.setDisposer(newDisposable)
+        toolWindow.contentManager.addContent(terminalContent)
+        fileSystemWidget.terminalContent = terminalContent
     }
 
     private fun jediTermWidget(project: Project, disposable: Disposable, connector: TtyConnector): JComponent {

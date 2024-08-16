@@ -49,10 +49,6 @@ abstract class ReplAction(text: String, icon: Icon? = null) : DumbAwareAction(te
 
     abstract val actionDescription: String
 
-    protected fun isFileEditorActive(e: AnActionEvent): Boolean {
-        return e.project?.let { FileEditorManager.getInstance(it).selectedEditor } != null
-    }
-
     @Throws(IOException::class, TimeoutCancellationException::class, CancellationException::class)
     abstract suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget)
 
@@ -181,9 +177,8 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
     }
 }
 //todo better place for connection parameters
+
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
-//todo add to file editor context menu
-    //todo switch to repl
     override val actionDescription: String = "Run code"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -193,7 +188,7 @@ class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
             e.presentation.isEnabled = false
             return
         }
-        e.presentation.isEnabled = isFileEditorActive(e)
+        e.presentation.isEnabled = e.project?.let { FileEditorManager.getInstance(it).selectedEditor } != null
     }
 
     override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
