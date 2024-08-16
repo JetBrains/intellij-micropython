@@ -88,10 +88,12 @@
     <group id="micropython.repl.ReplToolbar">
       <reference ref="micropython.repl.Connect"/>
       <reference ref="micropython.repl.Disconnect"/>
-      <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.nova.InstantRun" text="Instant Run"/>
       <reference ref="micropython.repl.Refresh"/>
       <reference ref="micropython.repl.ConnectionParameters"/>
     </group>
+    <action id="micropython.repl.InstantRun" class="com.jetbrains.micropython.nova.InstantRun" text="Instant Run">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="ExecuteInPyConsoleAction" />
+    </action>
   </actions>
   <resource-bundle>messages.Micropython</resource-bundle>
 </idea-plugin>

@@ -19,6 +19,7 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.content.Content
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
 import com.intellij.util.ExceptionUtil
@@ -54,6 +55,7 @@ gc.collect()
 
 class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     JBPanelWithEmptyText(BorderLayout()) {
+    var terminalContent: Content? = null
     val ttyConnector: TtyConnector
         get() = comm.ttyConnector
     private val tree: Tree = Tree(newTreeModel())
@@ -223,7 +225,12 @@ class FileSystemWidget(val project: Project, newDisposable: Disposable) :
         comm.upload(relativeName, contentsToByteArray)
 
     @Throws(IOException::class)
-    suspend fun instantRun(code: @NonNls String) = comm.instantRun(code)
+    suspend fun instantRun(code: @NonNls String) {
+        withContext(Dispatchers.EDT) {
+            terminalContent?.apply { manager?.setSelectedContent(this) }
+        }
+        comm.instantRun(code)
+    }
 
     @Throws(IOException::class)
     suspend fun blindExecute(vararg commands: String): ExecResponse = comm.blindExecute(*commands)
