@@ -67,41 +67,45 @@ fun uriOrMessageUrl(url: String): Pair<URI?,@Nls String?> {
 
 internal fun askCredentials(project: Project): Boolean {
     var (url, password) = project.service<ConnectCredentials>().retrieveUrlAndPassword()
-    val confirmation =
-        with(Disposer.newDisposable()) {
-            val panel = panel {
-                row {
-                    textField().bindText({ url }, { url = it })
-                        .label("URL: ").columns(40)
-                        .validationInfo { field ->
-                            val (_, msg) = uriOrMessageUrl(field.text)
-                            msg?.let { error(it).withOKEnabled() }
-                        }
+    val disposable = Disposer.newDisposable()
+    try {
 
-                }.layout(RowLayout.LABEL_ALIGNED)
-                row {
-                    passwordField()
-                        .bindText({ password }, { password = it })
-                        .label("Password (4..9 symbols): ").columns(40)
-                        .validationInfo { field ->
-                            if (field.password.size !in PASSWORD_LENGHT) error("Allowed password length is $PASSWORD_LENGHT").withOKEnabled() else null
-                        }
-                }.layout(RowLayout.LABEL_ALIGNED)
+        val panel = panel {
+            row {
+                textField().bindText({ url }, { url = it })
+                    .label("URL: ").columns(40)
+                    .validationInfo { field ->
+                        val (_, msg) = uriOrMessageUrl(field.text)
+                        msg?.let { error(it).withOKEnabled() }
+                    }
 
-            }.apply {
-                registerValidators(this@with)
-                validateAll()
-            }
+            }.layout(RowLayout.LABEL_ALIGNED)
+            row {
+                passwordField()
+                    .bindText({ password }, { password = it })
+                    .label("Password (4..9 symbols): ").columns(40)
+                    .validationInfo { field ->
+                        if (field.password.size !in PASSWORD_LENGHT) error("Allowed password length is $PASSWORD_LENGHT").withOKEnabled() else null
+                    }
+            }.layout(RowLayout.LABEL_ALIGNED)
+
+        }.apply {
+            registerValidators(disposable)
+            validateAll()
+        }
+        val confirmation =
             DialogBuilder(project).centerPanel(panel).apply {
                 addOkAction()
                 addCancelAction()
             }.show()
+        if (confirmation == OK_EXIT_CODE) {
+            project.service<ConnectCredentials>().saveUrlPassword(url, password)
+            return true
+        } else {
+            return false
         }
-    if (confirmation == OK_EXIT_CODE) {
-        project.service<ConnectCredentials>().saveUrlPassword(url, password)
-        return true
-    } else {
-        return false
+    } finally {
+        Disposer.dispose(disposable)
     }
 }
 
