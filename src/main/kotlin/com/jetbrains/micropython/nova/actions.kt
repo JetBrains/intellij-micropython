@@ -7,6 +7,8 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.service
@@ -15,6 +17,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
@@ -23,6 +26,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.asSafely
+import com.jetbrains.micropython.settings.microPythonFacet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
@@ -41,7 +45,7 @@ fun fileSystemWidget(project: Project?): FileSystemWidget? {
         ?.firstNotNullOfOrNull { it.component.asSafely<FileSystemWidget>() }
 }
 
-abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", icon) {
+abstract class ReplAction(text: String, icon: Icon? = null) : DumbAwareAction(text, "", icon) {
 
     abstract val actionDescription: String
 
@@ -50,15 +54,15 @@ abstract class ReplAction(text: String, icon: Icon) : DumbAwareAction(text, "", 
     }
 
     @Throws(IOException::class, TimeoutCancellationException::class, CancellationException::class)
-    abstract suspend fun performAction(fileSystemWidget: FileSystemWidget)
+    abstract suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget)
 
-    override fun actionPerformed(e: AnActionEvent) {
+    final override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val fileSystemWidget = fileSystemWidget(project) ?: return
         runWithModalProgressBlocking(project, "Board data exchange...") {
             var error: String? = null
             try {
-                performAction(fileSystemWidget)
+                performAction(e, fileSystemWidget)
             } catch (e: TimeoutCancellationException) {
                 error = "$actionDescription timed out"
                 thisLogger().info(error, e)
@@ -98,33 +102,33 @@ class Refresh : ReplAction("Refresh", AllIcons.Actions.Refresh) {
 
     override fun update(e: AnActionEvent) = enableIfConnected(e)
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) = fileSystemWidget.refresh()
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) = fileSystemWidget.refresh()
 }
 
-class Disconnect(text: String = "Disconnect", icon: Icon = AllIcons.General.Remove) : ReplAction(text, icon) {
-//todo better icon
+class Disconnect(text: String = "Disconnect") : ReplAction(text), Toggleable {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override val actionDescription: String = "Disconnect"
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) = fileSystemWidget.disconnect()
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) = fileSystemWidget.disconnect()
 
     override fun update(e: AnActionEvent) {
         if (fileSystemWidget(e)?.state != State.CONNECTED) {
             e.presentation.isEnabledAndVisible = false
+        } else {
+            Toggleable.setSelected(e.presentation, true)
         }
     }
 }
 
-class Connect(text: String = "Connect", icon: Icon = AllIcons.General.ArrowUp) : ReplAction(text, icon) {
-//todo better icon
+class Connect(text: String = "Connect") : ReplAction(text) {
 //todo fix not connected behavior
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override val actionDescription: String = "Connect"
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
         while (true) {
             val (url, password) = fileSystemWidget.project.service<ConnectCredentials>().retrieveUrlAndPassword()
             val (uri, _) = uriOrMessageUrl(url)
@@ -159,7 +163,7 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
         try {
             fileSystemWidget.deleteCurrent()
         } finally {
@@ -179,7 +183,7 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
 //todo better place for connection parameters
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
 //todo add to file editor context menu
-    //todo swithc to repl
+    //todo switch to repl
     override val actionDescription: String = "Run code"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -192,7 +196,7 @@ class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
         e.presentation.isEnabled = isFileEditorActive(e)
     }
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
         val code = withContext(Dispatchers.EDT) {
             FileEditorManager.getInstance(fileSystemWidget.project).selectedEditor.asSafely<TextEditor>()?.editor?.document?.text
         }
@@ -216,7 +220,7 @@ class OpenMpyFile : ReplAction("Open file", AllIcons.Actions.MenuOpen) {
         e.presentation.isEnabledAndVisible = fileSystemWidget(e)?.selectedFile() is FileNode
     }
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
         fun fileReadCommand(name: String) = """
 with open('$name','rb') as f:
     while 1:
@@ -243,19 +247,27 @@ with open('$name','rb') as f:
 }
 
 open class UploadFile(text: String = "Upload File", icon: Icon = AllIcons.Actions.Upload) : ReplAction(text, icon) {
-    //todo move out of MPY toolwindow
-    //todo add to project tree context menu
-    //todo add to editor context menu
+    //todo upload a folder
     override val actionDescription: String = "Upload"
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    override suspend fun performAction(fileSystemWidget: FileSystemWidget) {
-        val file = withContext(Dispatchers.EDT) {
+    override fun update(e: AnActionEvent) {
+        val project = e.project
+        var enabled = false
+        val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if(project!=null &&file!= null) {
+            val module = ModuleUtil.findModuleForFile(file, project)
+            enabled = module?.microPythonFacet!=null && file.isInLocalFileSystem
+        }
+        e.presentation.isEnabledAndVisible = enabled
+    }
+
+    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
+        val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?:return
+        withContext(Dispatchers.EDT) {
             FileDocumentManager.getInstance().saveAllDocuments()
-            FileEditorManager.getInstance(fileSystemWidget.project).selectedEditor
-                ?.file
-        } ?: return
+        }
         val relativeName = readAction<@NonNls String?> {
             ProjectRootManagerEx.getInstance(fileSystemWidget.project)
                 .contentRoots
