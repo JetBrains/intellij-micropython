@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings
 import com.intellij.util.text.nullize
+import com.jediterm.core.util.TermSize
 import com.jediterm.terminal.TtyConnector
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -299,6 +300,8 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
         override fun ready(): Boolean {
             return inPipe.ready() || client?.hasBufferedData() ?: false
         }
+
+        override fun resize(termSize: TermSize) = Unit
 
         override fun waitFor(): Int = 0
 
