@@ -10,15 +10,20 @@ LOG_VERBOSE: Final[int] = ...
 
 def flash_size():
     """Read the total size of the flash memory."""
+    ...
 
 def flash_user_start():
     """Read the memory offset at which the user flash space begins."""
+    ...
 
 def flash_read(byte_offset, length_or_buffer):
+    ...
 
 def flash_write(byte_offset, bytes):
+    ...
 
 def flash_erase(sector_no):
+    ...
 
 def osdebug(level: Optional[int]):
     """
@@ -33,3 +38,4 @@ def osdebug(level: Optional[int]):
     * ``LOG_DEBUG`` – Extra information which is not necessary for normal use (values, pointers, sizes, etc)
     * ``LOG_VERBOSE`` – Bigger chunks of debugging information, or frequent messages which can potentially flood the output
     """
+    ...
