@@ -41,6 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.isFile
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.reportSequentialProgress
+import com.intellij.project.stateStore
 import com.intellij.util.PathUtil
 import com.intellij.util.PlatformUtils
 import com.jetbrains.micropython.nova.fileSystemWidget
@@ -73,22 +74,28 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     }
     return parent ?: module.guessModuleDir()
   }
-
+//todo upload folder or project
   override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
     val uploadFile = VfsUtil.findFile(Path.of(path), true) ?: return null
     val currentModule = environment.dataContext?.getData(LangDataKeys.MODULE)
       ?: module
       ?: return null
 
-    val roots = mutableSetOf<VirtualFile>().apply {
-      val rootManager = currentModule.rootManager
-      addAll(rootManager.contentRoots)
-      addAll(rootManager.sourceRoots)
+    val roots = mutableSetOf<VirtualFile>()
+    val rootManager = currentModule.rootManager
+    roots.addAll(rootManager.sourceRoots)
+    if (roots.isEmpty()) {
+      roots.addAll(rootManager.contentRoots)
     }
 
     val pythonPath = PythonSdkUtil.findPythonSdk(currentModule)?.homeDirectory
 //    val devicePath = facet.getOrDetectDevicePathSynchronously() ?: return null
-    val excludeRoots = listOfNotNull(pythonPath, *ModuleRootManager.getInstance(currentModule).excludeRoots)
+    val ideaDir = project.stateStore.directoryStorePath?.let { VfsUtil.findFile(it, false) }
+    val excludeRoots = listOfNotNull(
+      pythonPath,
+      ideaDir,
+      *ModuleRootManager.getInstance(currentModule).excludeRoots
+    )
 
     val filesToUpload = mutableListOf<Pair<String, VirtualFile>>()
     VfsUtil.processFileRecursivelyWithoutIgnored(uploadFile) { file ->
@@ -105,7 +112,6 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     }
     //todo low priority create empty folders
     //todo optionally open repl
-    //todo skip .idea
 //    ComponentManagerImpl
 //    if (runReplOnSuccess && state != null) {
 //      return RunStateWrapper(state) {
