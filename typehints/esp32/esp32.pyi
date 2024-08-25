@@ -1,5 +1,5 @@
 from machine import Pin
-from typing import Optional
+from typing import Optional, overload
 from typing import Final
 
 HEAP_DATA: Final[int] = ...
@@ -105,7 +105,7 @@ class Partition:
         """
 
     @classmethod
-    def find(self, type=TYPE_APP, subtype=0xff, label=None, block_size=4096) -> list:
+    def find(self, type=TYPE_APP, subtype=0xFF, label=None, block_size=4096) -> list:
         """
         Find a partition specified by type, subtype and label.
 
@@ -120,14 +120,14 @@ class Partition:
         :return: A 6-tuple ``(type, subtype, addr, size, label, encrypted)``.
         """
 
-    def readblocks(self, block_num, buf):
-
-    def readblocks(self, block_num, buf, offset):
-
-    def writeblocks(self, block_num, buf):
-
-    def writeblocks(self, block_num, buf, offset):
-
+    @overload
+    def readblocks(self, block_num, buf): ...
+    @overload
+    def readblocks(self, block_num, buf, offset): ...
+    @overload
+    def writeblocks(self, block_num, buf): ...
+    @overload
+    def writeblocks(self, block_num, buf, offset): ...
     def ioctl(self, cmd, arg):
         """These methods implement the simple and extended block protocol defined by ``os.AbstractBlockDev``."""
 
@@ -227,7 +227,7 @@ class RMT:
         """
 
     @staticmethod
-    def bitstream_channel([value]) -> int:
+    def bitstream_channel(value:int|None) -> int:
         """
         Select which RMT channel is used by the ``machine.bitstream`` implementation.
 
