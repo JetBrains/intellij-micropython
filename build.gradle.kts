@@ -12,7 +12,7 @@ repositories {
 val pluginName = "intellij-micropython"
 
 plugins {
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.0.20"
     id("org.jetbrains.intellij.platform") version "2.0.1"
 }
 
@@ -56,7 +56,7 @@ tasks {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_17
             languageVersion = KotlinVersion.DEFAULT
-            apiVersion = KotlinVersion.KOTLIN_1_9
+            apiVersion = KotlinVersion.KOTLIN_2_0
         }
     }
     prepareSandbox {
