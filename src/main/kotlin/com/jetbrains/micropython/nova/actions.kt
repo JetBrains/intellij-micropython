@@ -10,7 +10,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -20,17 +19,15 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.asSafely
+import com.jetbrains.micropython.run.MicroPythonRunConfiguration
 import com.jetbrains.micropython.settings.microPythonFacet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.NonNls
 import java.io.IOException
 import java.net.URI
 import java.nio.charset.StandardCharsets
@@ -241,39 +238,25 @@ with open('$name','rb') as f:
     }
 }
 
-open class UploadFile(text: String = "Upload File", icon: Icon = AllIcons.Actions.Upload) : ReplAction(text, icon) {
-    //todo upload a folder
-    override val actionDescription: String = "Upload"
-
+open class UploadFile(text: String = "Upload File(s)", icon: Icon = AllIcons.Actions.Upload) :
+    DumbAwareAction(text, "", icon) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
         val project = e.project
         var enabled = false
         val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        if(project!=null &&file!= null) {
+        if (project != null && file != null) {
             val module = ModuleUtil.findModuleForFile(file, project)
-            enabled = module?.microPythonFacet!=null && file.isInLocalFileSystem
+            enabled = module?.microPythonFacet != null && file.isInLocalFileSystem
         }
         e.presentation.isEnabledAndVisible = enabled
     }
 
-    override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
-        val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?:return
-        withContext(Dispatchers.EDT) {
+    override fun actionPerformed(e: AnActionEvent) {
             FileDocumentManager.getInstance().saveAllDocuments()
-        }
-        val relativeName = readAction<@NonNls String?> {
-            ProjectRootManagerEx.getInstance(fileSystemWidget.project)
-                .contentRoots
-                .firstNotNullOfOrNull {
-                    VfsUtil.getRelativePath(file, it)
-                }
-        } ?: return
-        try {
-            fileSystemWidget.upload(relativeName, file.contentsToByteArray())
-        } finally {
-            fileSystemWidget.refresh()
-        }
+        val files = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)
+        if (files.isNullOrEmpty()) return
+        MicroPythonRunConfiguration.uploadMultipleFiles(e.project ?: return, null, files.toList())
     }
 }
