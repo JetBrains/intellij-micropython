@@ -9,8 +9,6 @@ repositories {
     }
 }
 
-val pluginName = "intellij-micropython"
-
 plugins {
     kotlin("jvm") version "2.0.20"
     id("org.jetbrains.intellij.platform") version "2.0.1"
@@ -41,7 +39,7 @@ java {
 
 intellijPlatform {
     pluginConfiguration {
-        name = pluginName
+        name = "MicroPython"
     }
 
     instrumentCode = false
@@ -61,7 +59,7 @@ tasks {
     }
     prepareSandbox {
         from("$rootDir") {
-            into(pluginName)
+            into("intellij-micropython")
             include("typehints/")
             include("scripts/")
         }
