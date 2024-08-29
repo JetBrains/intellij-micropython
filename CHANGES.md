@@ -1,6 +1,12 @@
 The Changelog
 =============
 
+1.4.6 - 2024-08-28
+------------------
+
+* Support for 2024.2 IDE versions
+  ([#295](https://github.com/JetBrains/intellij-micropython/issues/295))
+
 1.4.5 - 2024-07-27
 ------------------
 
