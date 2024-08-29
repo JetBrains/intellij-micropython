@@ -1,5 +1,6 @@
 from machine import Pin
-from typing import Optional, overload
+from typing import Optional
+from typing import overload
 from typing import Final
 
 HEAP_DATA: Final[int] = ...
@@ -128,6 +129,7 @@ class Partition:
     def writeblocks(self, block_num, buf): ...
     @overload
     def writeblocks(self, block_num, buf, offset): ...
+
     def ioctl(self, cmd, arg):
         """These methods implement the simple and extended block protocol defined by ``os.AbstractBlockDev``."""
 
@@ -227,7 +229,7 @@ class RMT:
         """
 
     @staticmethod
-    def bitstream_channel(value:int|None) -> int:
+    def bitstream_channel(value: Optional[int]) -> int:
         """
         Select which RMT channel is used by the ``machine.bitstream`` implementation.
 
