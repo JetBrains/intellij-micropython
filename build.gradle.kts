@@ -54,7 +54,7 @@ tasks {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_17
             languageVersion = KotlinVersion.DEFAULT
-            apiVersion = KotlinVersion.KOTLIN_2_0
+            apiVersion = KotlinVersion.KOTLIN_1_9
         }
     }
     prepareSandbox {
