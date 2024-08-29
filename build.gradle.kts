@@ -33,8 +33,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 intellijPlatform {
@@ -52,7 +52,7 @@ intellijPlatform {
 tasks {
     withType<KotlinCompile> {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_17
+            jvmTarget = JvmTarget.JVM_21
             languageVersion = KotlinVersion.DEFAULT
             apiVersion = KotlinVersion.KOTLIN_1_9
         }
