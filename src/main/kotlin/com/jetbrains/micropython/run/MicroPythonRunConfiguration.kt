@@ -156,6 +156,8 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
 
     fun uploadMultipleFiles(project: Project, currentModule: Module?, toUpload: List<VirtualFile>): Boolean {
       val filesToUpload = mutableListOf<Pair<String, VirtualFile>>()
+      val fileSystemWidget = fileSystemWidget(project) ?: return false
+      runWithModalProgressBlocking(project, "Upload ${filesToUpload.size} files") {
       for (uploadFile in toUpload) {
         val roots = mutableSetOf<VirtualFile>()
         val module =
@@ -190,8 +192,6 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
         }
       }
       //todo low priority create empty folders
-      val fileSystemWidget = fileSystemWidget(project) ?: return false
-      runWithModalProgressBlocking(project, "Upload ${filesToUpload.size} files") {
         reportSequentialProgress(filesToUpload.size) { reporter ->
           filesToUpload.forEach { (path, file) ->
             reporter.itemStep(path)
