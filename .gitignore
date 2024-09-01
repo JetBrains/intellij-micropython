@@ -9,3 +9,4 @@ out/
 
 # IntelliJ Platform Gradle Plugin
 .intellijPlatform/
+.kotlin
