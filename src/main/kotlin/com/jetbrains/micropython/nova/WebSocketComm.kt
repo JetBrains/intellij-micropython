@@ -1,8 +1,10 @@
 package com.jetbrains.micropython.nova
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings
+import com.intellij.platform.util.progress.withProgressText
 import com.intellij.util.text.nullize
 import com.jediterm.core.util.TermSize
 import com.jediterm.terminal.TtyConnector
@@ -295,10 +297,10 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
 
     inner class WebSocketTtyConnector : TtyConnector {
         override fun getName(): String = (uri ?: "---").toString()
-        override fun close() = Disposer.dispose(this@WebSocketComm)//todo Am I right?
+        override fun close() = Disposer.dispose(this@WebSocketComm)
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
-            return inPipe.ready() || client?.hasBufferedData() ?: false
+            return inPipe.ready() || client?.hasBufferedData() == true
         }
 
         override fun resize(termSize: TermSize) = Unit
@@ -317,8 +319,11 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
             while (isConnected) {
                 try {
                     return inPipe.read(text, offset, length)
-                } catch (ex: IOException) {
-                    Thread.sleep(SHORT_DELAY)
+                } catch (_: IOException) {
+                    try {
+                        Thread.sleep(SHORT_DELAY)
+                    } catch (_: InterruptedException) {
+                    }
                 }
             }
             return -1
@@ -355,10 +360,21 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
             client = createClient(uri).also { newClient ->
                 state = State.CONNECTING
                 offTtyBuffer.clear()
-                if (!newClient.connectBlocking()) throw ConnectException("Webrepl connection failed")
-
+                newClient.connect()
                 try {
-                    withTimeout(TIMEOUT + 1000000.toLong()) {
+                    var time = LONG_TIMEOUT
+                    withProgressText("Connecting to $uri") {
+                        while (!newClient.isOpen && time > 0) {
+                            checkCanceled()
+                            delay(SHORT_DELAY)
+                            time -= SHORT_DELAY.toInt()
+                        }
+                        if (!newClient.isOpen) {
+                            throw ConnectException("Webrepl connection failed")
+                        }
+                    }
+
+                    withTimeout(TIMEOUT.toLong()) {
                         while (newClient.isOpen) {
                             when {
                                 offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)

@@ -119,7 +119,7 @@ class Disconnect(text: String = "Disconnect") : ReplAction(text), Toggleable {
 }
 
 class Connect(text: String = "Connect") : ReplAction(text) {
-//todo fix not connected behavior
+
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override val actionDescription: String = "Connect"
@@ -192,7 +192,6 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
 
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
     override val actionDescription: String = "Run code"
-
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun update(e: AnActionEvent) {
@@ -259,13 +258,18 @@ open class UploadFile(text: String = "Upload File(s)", icon: Icon = AllIcons.Act
 
     override fun update(e: AnActionEvent) {
         val project = e.project
-        var enabled = false
         val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        var visible = false
+        var enabled = false
         if (project != null && file != null) {
             val module = ModuleUtil.findModuleForFile(file, project)
-            enabled = module?.microPythonFacet != null && file.isInLocalFileSystem
+            if (module?.microPythonFacet != null && file.isInLocalFileSystem) {
+                visible = true
+                enabled = fileSystemWidget(project)?.state == State.CONNECTED
+            }
         }
-        e.presentation.isEnabledAndVisible = enabled
+        e.presentation.isVisible = visible
+        e.presentation.isEnabled = enabled
     }
 
     override fun actionPerformed(e: AnActionEvent) {
