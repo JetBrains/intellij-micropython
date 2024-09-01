@@ -260,3 +260,10 @@ open class UploadFile(text: String = "Upload File(s)", icon: Icon = AllIcons.Act
         MicroPythonRunConfiguration.uploadMultipleFiles(e.project ?: return, null, files.toList())
     }
 }
+
+class OpenSettingsAction : DumbAwareAction("Settings", null, AllIcons.General.Gear) {
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.project ?: return
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, MicroPythonProjectConfigurable::class.java)
+    }
+}

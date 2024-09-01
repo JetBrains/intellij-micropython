@@ -71,7 +71,7 @@
       <action id="micropython.repl.Connect" class="com.jetbrains.micropython.nova.Connect" icon="/icons/connectActive.svg"/>
       <action id="micropython.repl.Refresh" class="com.jetbrains.micropython.nova.Refresh"/>
       <action id="micropython.repl.Delete" class="com.jetbrains.micropython.nova.DeleteFiles"/>
-      <action id="micropython.repl.ConnectionParameters" class="com.jetbrains.micropython.nova.ConnectionParameters"/>
+      <action id="micropython.repl.ConnectionParameters" class="com.jetbrains.micropython.nova.OpenSettingsAction"/>
     </group>
     <group id="micropython.repl.FSContextMenu">
       <action class="com.jetbrains.micropython.nova.OpenMpyFile" id="micropython.repl.OpenFile"/>
