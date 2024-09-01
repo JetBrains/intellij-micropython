@@ -17,6 +17,7 @@
 package com.jetbrains.micropython.settings
 
 import com.intellij.facet.ui.FacetEditorTab
+import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
 /**
@@ -24,8 +25,14 @@ import javax.swing.JComponent
  */
 class MicroPythonFacetEditorTab(val configuration: MicroPythonFacetConfiguration,
                                 private val facet: MicroPythonFacet) : FacetEditorTab() {
+  private val disposable = Disposer.newDisposable()
+  override fun disposeUIResources() {
+    super.disposeUIResources()
+    Disposer.dispose(disposable)
+  }
+
   private val panel: MicroPythonSettingsPanel by lazy {
-    MicroPythonSettingsPanel(facet.module)
+    MicroPythonSettingsPanel(facet, disposable)
   }
 
   override fun isModified(): Boolean = panel.isModified(configuration, facet)

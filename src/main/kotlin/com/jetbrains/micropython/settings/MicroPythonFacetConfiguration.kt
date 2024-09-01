@@ -27,8 +27,12 @@ import org.jdom.Element
 /**
  * @author vlan
  */
+private const val DEFAULT_WEBREWPL_URL = "ws://192.168.4.1:8266"
+
+
 class MicroPythonFacetConfiguration : FacetConfiguration {
   var deviceProvider = MicroPythonDeviceProvider.default
+  var webReplUrl:String  = DEFAULT_WEBREWPL_URL
 
   override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> {
     val facet = editorContext.facet as MicroPythonFacet
@@ -40,15 +44,18 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
 
   @Deprecated("Deprecated in Java")
   override fun readExternal(element: Element?) {
-    val deviceName = element?.getChild("device")?.getAttribute("name")?.value
+    val deviceElement = element?.getChild("device")
+    val deviceName = deviceElement?.getAttribute("name")?.value
     val device = MicroPythonDeviceProvider.providers.firstOrNull { it.persistentName == deviceName }
     deviceProvider = device ?: MicroPythonDeviceProvider.default
+    webReplUrl = deviceElement?.getAttributeValue("web-repl-url") ?: DEFAULT_WEBREWPL_URL
   }
 
   @Deprecated("Deprecated in Java")
   override fun writeExternal(element: Element?) {
     val deviceElement = Element("device")
     deviceElement.setAttribute("name", deviceProvider.persistentName)
+    deviceElement.setAttribute("web-repl-url",webReplUrl)
     element?.addContent(deviceElement)
   }
 }

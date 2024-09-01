@@ -17,19 +17,22 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.asSafely
 import com.jetbrains.micropython.run.MicroPythonRunConfiguration
+import com.jetbrains.micropython.settings.MicroPythonProjectConfigurable
 import com.jetbrains.micropython.settings.microPythonFacet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import javax.swing.Icon
 import kotlin.coroutines.cancellation.CancellationException
@@ -122,25 +125,38 @@ class Connect(text: String = "Connect") : ReplAction(text) {
     override val actionDescription: String = "Connect"
 
     override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
-        while (true) {
-            val (url, password) = fileSystemWidget.project.service<ConnectCredentials>().retrieveUrlAndPassword()
-            val (uri, _) = uriOrMessageUrl(url)
-            if (uri == null) {
-                val newCredentials = withContext(Dispatchers.EDT) { askCredentials(fileSystemWidget.project) }
-                if (!newCredentials) {
-                    break
+        val facet = fileSystemWidget.project.modules.mapNotNull { it.microPythonFacet }.firstOrNull() ?: return
+        val url = facet.configuration.webReplUrl
+        val password = fileSystemWidget.project.service<ConnectCredentials>().retrievePassword(url)
+        var (uri, msg) = uriOrMessageUrl(url)
+        if (password.isBlank()) {
+            uri = null
+            msg = "Empty password"
+        }
+        if (uri == null || password.isBlank()) {
+            withContext(Dispatchers.EDT) {
+                val result = Messages.showIdeaMessageDialog(
+                    fileSystemWidget.project,
+                    msg,
+                    "Cannot Connect",
+                    arrayOf("OK", "Settings..."),
+                    1,
+                    AllIcons.General.ErrorDialog,
+                    null
+                )
+                if (result == 1) {
+                    ShowSettingsUtil.getInstance()
+                        .showSettingsDialog(fileSystemWidget.project, MicroPythonProjectConfigurable::class.java)
                 }
-            } else {
-                if (fileSystemWidget.state != State.CONNECTED) {
-                    fileSystemWidget.setConnectionParams(URI(url), password)
-                    fileSystemWidget.connect()
-                    fileSystemWidget.refresh()
-                    ActivityTracker.getInstance().inc()
-                }
-                break
+            }
+        } else {
+            if (fileSystemWidget.state != State.CONNECTED) {
+                fileSystemWidget.setConnectionParams(uri, password)
+                fileSystemWidget.connect()
+                fileSystemWidget.refresh()
+                ActivityTracker.getInstance().inc()
             }
         }
-
     }
 
     override fun update(e: AnActionEvent) {
@@ -173,7 +189,6 @@ class DeleteFiles : ReplAction("Delete Item(s)", AllIcons.Actions.GC) {
         e.presentation.isEnabled = selectedFile?.fullName !in listOf("/", null)
     }
 }
-//todo better place for connection parameters
 
 class InstantRun : ReplAction("Instant Run", AllIcons.Actions.Rerun) {
     override val actionDescription: String = "Run code"

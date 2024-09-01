@@ -20,6 +20,7 @@ import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.JCheckBox
@@ -30,8 +31,16 @@ import javax.swing.JPanel
  * @author vlan
  */
 class MicroPythonModuleConfigurable(private val module: Module) : Configurable {
+
+  private val disposable = Disposer.newDisposable()
+
+  override fun disposeUIResources() {
+    super.disposeUIResources()
+    Disposer.dispose(disposable)
+  }
+
   private val panel: MicroPythonSettingsPanel by lazy {
-    MicroPythonSettingsPanel(module)
+    MicroPythonSettingsPanel(module.microPythonFacet!!, disposable)
   }
 
   private val enabledCheckbox by lazy {
