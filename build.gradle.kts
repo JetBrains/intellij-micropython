@@ -3,9 +3,11 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 repositories {
-    mavenCentral()
+    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    maven("https://cache-redirector.jetbrains.com/maven-central")
     intellijPlatform {
         defaultRepositories()
+        jetbrainsRuntime()
     }
 }
 
@@ -15,6 +17,7 @@ plugins {
 }
 
 dependencies {
+
     intellijPlatform {
         val type = project.property("platformType").toString()
         val version = project.property("platformVersion").toString()
@@ -30,6 +33,14 @@ dependencies {
             else -> plugin(pythonPlugin)
         }
     }
+
+    implementation("org.java-websocket:Java-WebSocket:1.5.5")
+    implementation("io.github.java-native:jssc:2.9.6") {
+        exclude("org.slf4j", "slf4j-api")
+    }
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
@@ -47,13 +58,6 @@ intellijPlatform {
     publishing {
         token = project.property("publishToken").toString()
     }
-}
-
-dependencies {
-    implementation("org.java-websocket:Java-WebSocket:1.5.5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {

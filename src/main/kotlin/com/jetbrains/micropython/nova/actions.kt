@@ -125,7 +125,7 @@ class Connect(text: String = "Connect") : ReplAction(text) {
     override val actionDescription: String = "Connect"
 
     override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
-        val facet = fileSystemWidget.project.modules.mapNotNull { it.microPythonFacet }.firstOrNull() ?: return
+        val facet = fileSystemWidget.project.modules.firstNotNullOfOrNull { it.microPythonFacet } ?: return
         val url = facet.configuration.webReplUrl
         val password = fileSystemWidget.project.service<ConnectCredentials>().retrievePassword(url)
         var (uri, msg) = uriOrMessageUrl(url)

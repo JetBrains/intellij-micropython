@@ -21,9 +21,13 @@
   <version>SNAPSHOT</version>
   <vendor>JetBrains</vendor>
 
-  <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.modules.python</depends>
-  <depends>org.jetbrains.plugins.terminal</depends>
+  <dependencies>
+      <plugin id="com.intellij.modules.lang"/>
+      <plugin id="com.intellij.modules.python"/>
+      <plugin id="org.jetbrains.plugins.terminal"/>
+      <plugin id="com.intellij.modules.platform"/>
+ </dependencies>
+
 
   <idea-version since-build="242" until-build="242.*"/>
 
