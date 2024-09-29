@@ -52,6 +52,7 @@ del ___FSScan
 gc.collect()
   
 """
+data class ConnectionParameters(val uart: Boolean, val uri:URI, val password: String, val portName:String)
 
 class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     JBPanelWithEmptyText(BorderLayout()) {
@@ -60,7 +61,7 @@ class FileSystemWidget(val project: Project, newDisposable: Disposable) :
         get() = comm.ttyConnector
     private val tree: Tree = Tree(newTreeModel())
 
-    private val comm: WebSocketComm = WebSocketComm {
+    private val comm: MpyComm = MpyComm {
         thisLogger().warn(it)
         Notifications.Bus.notify(
             Notification(
@@ -236,7 +237,8 @@ class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     suspend fun blindExecute(vararg commands: String): ExecResponse = comm.blindExecute(*commands)
 
     suspend fun connect() = comm.connect()
-    fun setConnectionParams(uri: URI, password: String) = comm.setConnectionParams(uri, password)
+
+    fun setConnectionParams(connectionParameters: ConnectionParameters) = comm.setConnectionParams(connectionParameters)
 
 }
 

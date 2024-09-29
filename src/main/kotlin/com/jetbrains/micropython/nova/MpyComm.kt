@@ -14,8 +14,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.handshake.ServerHandshake
 import org.jetbrains.annotations.NonNls
 import java.io.Closeable
 import java.io.IOException
@@ -23,7 +21,6 @@ import java.io.PipedReader
 import java.io.PipedWriter
 import java.net.ConnectException
 import java.net.URI
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
@@ -70,14 +67,14 @@ fun ExecResponse.extractResponse(): String {
 
 }
 
-open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
+open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Closeable {
 
     val stateListeners = mutableListOf<StateListener>()
 
     @Volatile
-    private var client: MpyWebSocketClient? = null
+    private var client: Client? = null
 
-    fun isTtySuspended(): Boolean = state == State.TTY_DETACHED
+    protected open fun isTtySuspended(): Boolean = state == State.TTY_DETACHED
 
     private var offTtyBuffer = StringBuilder()
 
@@ -87,18 +84,11 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
 
     private val inPipe = PipedReader(outPipe, 1000)
 
-    private var uri: URI? = null
-    private var password: String? = null
+    private var connectionParameters: ConnectionParameters = ConnectionParameters(true, URI("http://127.0.0.1:8266"),"","")
 
     val ttyConnector: TtyConnector = WebSocketTtyConnector()
 
-    fun setConnectionParams(uri: URI, password: String) {
-        this.uri = uri
-        this.password = password
-    }
-
-
-    var state: State by Delegates.observable(State.DISCONNECTED){ _, _, newValue ->
+    var state: State by Delegates.observable(State.DISCONNECTED) { _, _, newValue ->
         stateListeners.forEach { it(newValue) }
     }
 
@@ -111,10 +101,12 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
             slashIdx = fullName.indexOf('/', slashIdx + 1)
             if (slashIdx > 0) {
                 val folderName = fullName.substring(0, slashIdx)
-                commands.add("import errno\n" +
-                        "try: os.mkdir('$folderName'); \n" +
-                        "except OSError as e:\n" +
-                        "\tif e.errno != errno.EEXIST: raise ")
+                commands.add(
+                    "import errno\n" +
+                            "try: os.mkdir('$folderName'); \n" +
+                            "except OSError as e:\n" +
+                            "\tif e.errno != errno.EEXIST: raise "
+                )
             }
         }
         commands.add("___f=open('$fullName','wb')")
@@ -150,11 +142,11 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
         if (error.isNotEmpty()) {
             throw IOException(error)
         }
-        val filedata = result.last().stdout.split('(', ')', ',').map { it.trim().toIntOrNull() }
-        if (filedata.getOrNull(7) != content.size) {
-            throw IOException("Expected size is ${content.size}, uploaded ${filedata[5]}")
-        } else if (filedata.getOrNull(1) != 32768) {
-            throw IOException("Expected type is 32768, uploaded ${filedata[1]}")
+        val fileData = result.last().stdout.split('(', ')', ',').map { it.trim().toIntOrNull() }
+        if (fileData.getOrNull(7) != content.size) {
+            throw IOException("Expected size is ${content.size}, uploaded ${fileData[5]}")
+        } else if (fileData.getOrNull(1) != 32768) {
+            throw IOException("Expected type is 32768, uploaded ${fileData[1]}")
         }
     }
 
@@ -254,53 +246,17 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
         }
     }
 
-    open inner class MpyWebSocketClient(uri: URI) : WebSocketClient(uri) {
-        init {
-            isTcpNoDelay = true
-            connectionLostTimeout = 0
-        }
-
-        override fun onOpen(handshakedata: ServerHandshake) = Unit //Nothing to do
-
-        override fun onMessage(message: String) {
-            if (state == State.TTY_DETACHED || state == State.CONNECTING) {
-                offTtyBuffer.append(message)
-            } else {
-                runBlocking {
-                    outPipe.write(message)
-                    outPipe.flush()
-                }
-            }
-        }
-
-        override fun onMessage(bytes: ByteBuffer) = onMessage(String(bytes.array(), StandardCharsets.UTF_8))
-
-        override fun onClose(code: Int, reason: String, remote: Boolean) {
-            try {
-                if (remote && state == State.CONNECTED) {
-                    //CounterParty closed the connection
-                    throw IOException("Connection closed. Code:$code ($reason)")
-                }
-            } finally {
-                state = State.DISCONNECTED
-            }
-        }
-
-        override fun onError(ex: Exception) {
-            errorLogger(ex)
-        }
-    }
 
     override fun dispose() {
         close()
     }
 
     inner class WebSocketTtyConnector : TtyConnector {
-        override fun getName(): String = (uri ?: "---").toString()
-        override fun close() = Disposer.dispose(this@WebSocketComm)
+        override fun getName(): String = (connectionParameters.uri).toString()
+        override fun close() = Disposer.dispose(this@MpyComm)
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
-            return inPipe.ready() || client?.hasBufferedData() == true
+            return inPipe.ready() || client?.hasPendingData() == true
         }
 
         override fun resize(termSize: TermSize) = Unit
@@ -351,31 +307,34 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
         state = State.DISCONNECTED
     }
 
-    protected open fun createClient(uri: URI): MpyWebSocketClient = MpyWebSocketClient(uri)
+    protected open fun createClient(uri: URI): MpyWebSocketClient = MpyWebSocketClient(uri, this)
 
     @Throws(IOException::class)
     suspend fun connect() {
-        val uri = this.uri ?: throw IOException("Not connected")
+        val name = with(connectionParameters) {
+            if(uart) portName else uri.toString()
+        }
+        state = State.CONNECTING
+        offTtyBuffer.clear()
         webSocketMutex.withLock {
-            client = createClient(uri).also { newClient ->
-                state = State.CONNECTING
-                offTtyBuffer.clear()
+            client = createClient(connectionParameters.uri).also { newClient ->
                 newClient.connect()
                 try {
                     var time = LONG_TIMEOUT
-                    withProgressText("Connecting to $uri") {
-                        while (!newClient.isOpen && time > 0) {
+                    withProgressText("Connecting to $name") {
+                        while (!newClient.isConnected && time > 0) {
+                            @Suppress("UnstableApiUsage")
                             checkCanceled()
                             delay(SHORT_DELAY)
                             time -= SHORT_DELAY.toInt()
                         }
-                        if (!newClient.isOpen) {
+                        if (!newClient.isConnected) {
                             throw ConnectException("Webrepl connection failed")
                         }
                     }
 
                     withTimeout(TIMEOUT.toLong()) {
-                        while (newClient.isOpen) {
+                        while (newClient.isConnected) {
                             when {
                                 offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)
                                 offTtyBuffer.length > PASSWORD_PROMPT.length * 2 -> {
@@ -388,8 +347,8 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
                             }
                         }
                         offTtyBuffer.clear()
-                        newClient.send("$password\n")
-                        while (state == State.CONNECTING && newClient.isOpen) {
+                        newClient.send("${connectionParameters.password}\n")
+                        while (state == State.CONNECTING && newClient.isConnected) {
                             when {
                                 offTtyBuffer.contains(LOGIN_SUCCESS) -> break
                                 offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
@@ -428,6 +387,25 @@ open class WebSocketComm(private val errorLogger: (Throwable) -> Any = {}) : Dis
     fun ping() {
         if (state == State.CONNECTED) {
             client?.sendPing()
+        }
+    }
+
+    fun setConnectionParams(parameters: ConnectionParameters) {
+        this.connectionParameters = parameters
+    }
+    fun setConnectionParams(uri: URI, password: String) {
+        this.setConnectionParams(ConnectionParameters(false,uri = uri,password=password, portName = ""))
+    }
+
+    fun dataReceived(s: String) {
+        when (state) {
+            State.TTY_DETACHED, State.CONNECTING -> offTtyBuffer.append(s)
+            else -> {
+                runBlocking {
+                    outPipe.write(s)
+                    outPipe.flush()
+                }
+            }
         }
     }
 

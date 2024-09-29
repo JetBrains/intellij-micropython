@@ -151,7 +151,7 @@ class Connect(text: String = "Connect") : ReplAction(text) {
             }
         } else {
             if (fileSystemWidget.state != State.CONNECTED) {
-                fileSystemWidget.setConnectionParams(uri, password)
+                fileSystemWidget.setConnectionParams(ConnectionParameters(false, uri, password, ""))
                 fileSystemWidget.connect()
                 fileSystemWidget.refresh()
                 ActivityTracker.getInstance().inc()

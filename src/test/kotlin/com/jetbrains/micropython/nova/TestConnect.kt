@@ -8,7 +8,7 @@ import java.net.ConnectException
 import java.net.URI
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-class Connect {
+class TestConnect {
 
     private var tcpPort = 58756
 
@@ -27,7 +27,7 @@ class Connect {
     }
 
     private fun expect(vararg sentences: Pair<String, String?>) = server.expect(*sentences)
-    private fun test(block: suspend CoroutineScope.(WebSocketComm) -> Unit) = server.test(block)
+    private fun test(block: suspend CoroutineScope.(MpyCommForTest) -> Unit) = server.test(block)
 
     @Test
     @Timeout(5000, unit = MILLISECONDS)

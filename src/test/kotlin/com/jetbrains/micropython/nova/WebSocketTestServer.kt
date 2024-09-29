@@ -4,7 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
-import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.server.WebSocketServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.Closeable
@@ -71,7 +70,7 @@ class WebSocketTestServer(tcpPort: Int) :
         }
     }
 
-    fun test(block: suspend CoroutineScope.(WebSocketComm) -> Unit) {
+    fun test(block: suspend CoroutineScope.(MpyCommForTest) -> Unit) {
         start()
         while (!started) {
             Thread.sleep(100)
@@ -87,21 +86,18 @@ class WebSocketTestServer(tcpPort: Int) :
 }
 
 
-class WebSocketCommTest(errorLogger: (Throwable) -> Any = {}) : WebSocketComm(errorLogger) {
-    inner class MpyWebSocketClientTest(uri: URI) : MpyWebSocketClient(uri) {
-        override fun onError(ex: Exception) {
+class WebSocketCommTest(errorLogger: (Throwable) -> Any = {}) : MpyCommForTest(errorLogger) {
+    inner class MpyWebSocketClientTest(uri: URI) : MpyWebSocketClient(uri,this) {
+        override fun error(ex: Exception) {
             println("== ON ERROR ==")
-            super.onError(ex)
         }
 
-        override fun onMessage(message: String) {
+        override fun message(message: String) {
             logMessage(">>", message)
-            super.onMessage(message)
         }
 
-        override fun onClose(code: Int, reason: String, remote: Boolean) {
+        override fun close(code: Int, reason: String, remote: Boolean) {
             println("== ON CLOSE ==")
-            super.onClose(code, reason, remote)
         }
 
         override fun send(text: String) {
@@ -109,9 +105,8 @@ class WebSocketCommTest(errorLogger: (Throwable) -> Any = {}) : WebSocketComm(er
             super.send(text)
         }
 
-        override fun onOpen(handshakedata: ServerHandshake) {
+        override fun open() {
             println("== ON OPEN ==")
-            super.onOpen(handshakedata)
         }
     }
 

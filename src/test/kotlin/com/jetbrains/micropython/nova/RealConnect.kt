@@ -20,7 +20,7 @@ private const val PASSWORD = "passwd"
 @Disabled("Works only id a real board is at address $URL having password $PASSWORD")
 class RealConnect {
 
-    private lateinit var comm: WebSocketComm
+    private lateinit var comm: MpyCommForTest
 
     @BeforeEach
     fun init() {
