@@ -236,6 +236,7 @@ class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     @Throws(IOException::class)
     suspend fun blindExecute(vararg commands: String): ExecResponse = comm.blindExecute(*commands)
 
+    @Throws(IOException::class)
     suspend fun connect() = comm.connect()
 
     fun setConnectionParams(connectionParameters: ConnectionParameters) = comm.setConnectionParams(connectionParameters)

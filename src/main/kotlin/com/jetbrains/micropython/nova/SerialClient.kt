@@ -27,7 +27,7 @@ class SerialClient(serialPortName: String, private val comm: MpyComm) : Client<S
         }
     }
 
-    override fun connect():SerialClient {
+    override suspend fun connect(progressIndicatorText: String):SerialClient {
         port.flowControlMode = FLOWCONTROL_RTSCTS_IN or FLOWCONTROL_RTSCTS_OUT
         port.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
         port.openPort()

@@ -1,10 +1,8 @@
 package com.jetbrains.micropython.nova
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings
-import com.intellij.platform.util.progress.withProgressText
 import com.intellij.util.text.nullize
 import com.jediterm.core.util.TermSize
 import com.jediterm.terminal.TtyConnector
@@ -19,22 +17,18 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.PipedReader
 import java.io.PipedWriter
-import java.net.ConnectException
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 
-private const val PASSWORD_PROMPT = "Password:"
-private const val LOGIN_SUCCESS = "WebREPL connected"
-private const val LOGIN_FAIL = "Access denied"
 
 private const val BOUNDARY = "*********FSOP************"
 
 
-private const val TIMEOUT = 2000
-private const val LONG_TIMEOUT = 20000L
-private const val SHORT_DELAY = 20L
+internal const val TIMEOUT = 2000
+internal const val LONG_TIMEOUT = 20000L
+internal const val SHORT_DELAY = 20L
 
 data class SingleExecResponse(
     val stdout: String,
@@ -84,7 +78,7 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
 
     private val inPipe = PipedReader(outPipe, 1000)
 
-    private var connectionParameters: ConnectionParameters = ConnectionParameters(true, URI("http://127.0.0.1:8266"),"","")
+    internal var connectionParameters: ConnectionParameters = ConnectionParameters(true, URI("http://127.0.0.1:8266"),"","")
 
     val ttyConnector: TtyConnector = WebSocketTtyConnector()
 
@@ -317,62 +311,7 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
         state = State.CONNECTING
         offTtyBuffer.clear()
         webSocketMutex.withLock {
-            client = createClient(connectionParameters.uri).also { newClient ->
-                newClient.connect()
-                try {
-                    var time = LONG_TIMEOUT
-                    withProgressText("Connecting to $name") {
-                        while (!newClient.isConnected && time > 0) {
-                            @Suppress("UnstableApiUsage")
-                            checkCanceled()
-                            delay(SHORT_DELAY)
-                            time -= SHORT_DELAY.toInt()
-                        }
-                        if (!newClient.isConnected) {
-                            throw ConnectException("Webrepl connection failed")
-                        }
-                    }
-
-                    withTimeout(TIMEOUT.toLong()) {
-                        while (newClient.isConnected) {
-                            when {
-                                offTtyBuffer.length < PASSWORD_PROMPT.length -> delay(SHORT_DELAY)
-                                offTtyBuffer.length > PASSWORD_PROMPT.length * 2 -> {
-                                    offTtyBuffer.setLength(PASSWORD_PROMPT.length * 2)
-                                    throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                                }
-
-                                offTtyBuffer.toString().contains(PASSWORD_PROMPT) -> break
-                                else -> throw ConnectException("Password exchange error. Received prompt: $offTtyBuffer")
-                            }
-                        }
-                        offTtyBuffer.clear()
-                        newClient.send("${connectionParameters.password}\n")
-                        while (state == State.CONNECTING && newClient.isConnected) {
-                            when {
-                                offTtyBuffer.contains(LOGIN_SUCCESS) -> break
-                                offTtyBuffer.contains(LOGIN_FAIL) -> throw ConnectException("Access denied")
-                                else -> delay(SHORT_DELAY)
-                            }
-                        }
-                        state = State.CONNECTED
-                    }
-                } catch (e: Exception) {
-                    try {
-                        newClient.close()
-                    } catch (_: IOException) {
-                    }
-                    state = State.DISCONNECTED
-                    when (e) {
-                        is TimeoutCancellationException -> throw ConnectException("Password exchange timeout. Received prompt: $offTtyBuffer")
-                        is InterruptedException -> throw ConnectException("Connection interrupted")
-                        else -> throw e
-                    }
-
-                } finally {
-                    offTtyBuffer.clear()
-                }
-            }
+            client = createClient(connectionParameters.uri).connect("Connecting to $name")
         }
     }
 
