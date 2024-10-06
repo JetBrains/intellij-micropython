@@ -78,7 +78,7 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
 
     private val inPipe = PipedReader(outPipe, 1000)
 
-    internal var connectionParameters: ConnectionParameters = ConnectionParameters(true, URI("http://127.0.0.1:8266"),"","")
+    internal var connectionParameters: ConnectionParameters = ConnectionParameters("http://192.168.4.1:8266","")
 
     val ttyConnector: TtyConnector = WebSocketTtyConnector()
 
@@ -246,7 +246,7 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
     }
 
     inner class WebSocketTtyConnector : TtyConnector {
-        override fun getName(): String = (connectionParameters.uri).toString()
+        override fun getName(): String = connectionParameters.url
         override fun close() = Disposer.dispose(this@MpyComm)
         override fun isConnected(): Boolean = true
         override fun ready(): Boolean {
@@ -301,17 +301,24 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
         state = State.DISCONNECTED
     }
 
-    protected open fun createClient(uri: URI): MpyWebSocketClient = MpyWebSocketClient(uri, this)
+    protected open fun createClient(): Client {
+        return if(connectionParameters.uart) SerialClient(this) else MpyWebSocketClient(this)
+    }
 
     @Throws(IOException::class)
     suspend fun connect() {
         val name = with(connectionParameters) {
-            if(uart) portName else uri.toString()
+            if(uart) portName else url
         }
         state = State.CONNECTING
         offTtyBuffer.clear()
         webSocketMutex.withLock {
-            client = createClient(connectionParameters.uri).connect("Connecting to $name")
+            try {
+                client = createClient().connect("Connecting to $name")
+            } catch (e: Exception) {
+                state = State.DISCONNECTED
+                throw e
+            }
         }
     }
 
@@ -331,9 +338,6 @@ open class MpyComm(val errorLogger: (Throwable) -> Any = {}) : Disposable, Close
 
     fun setConnectionParams(parameters: ConnectionParameters) {
         this.connectionParameters = parameters
-    }
-    fun setConnectionParams(uri: URI, password: String) {
-        this.setConnectionParams(ConnectionParameters(false,uri = uri,password=password, portName = ""))
     }
 
     fun dataReceived(s: String) {

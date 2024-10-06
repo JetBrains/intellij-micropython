@@ -25,15 +25,13 @@ import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
-import com.intellij.ui.dsl.builder.RowLayout
-import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.columns
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.micropython.devices.MicroPythonDeviceProvider
 import com.jetbrains.micropython.nova.ConnectCredentials
-import com.jetbrains.micropython.nova.uriOrMessageUrl
+import com.jetbrains.micropython.nova.ConnectionParameters
+import com.jetbrains.micropython.nova.messageForBrokenUrl
 import java.awt.BorderLayout
 import javax.swing.JList
 import javax.swing.JPanel
@@ -47,14 +45,19 @@ class MicroPythonSettingsPanel(private val facet: MicroPythonFacet, disposable: 
   var deviceProviderUrl = ""
   private var docsHyperlink = ActionLink("") { BrowserUtil.browse(deviceProviderUrl) }
 
-  private var url: String = facet.configuration.webReplUrl
-  private var password: String = ""
+  private val parameters = ConnectionParameters(
+    uart = facet.configuration.uart,
+    url = facet.configuration.webReplUrl,
+    password = "",
+    portName = facet.configuration.portName,
+  )
   val connectionPanel:DialogPanel
 
   init {
     border = IdeBorderFactory.createEmptyBorder(UIUtil.PANEL_SMALL_INSETS)
     runWithModalProgressBlocking(facet.module.project, "Save password") {
-      password = facet.module.project.service<ConnectCredentials>().retrievePassword(url)
+      parameters.password =
+        facet.module.project.service<ConnectCredentials>().retrievePassword(parameters.url)
     }
     val deviceContentPanel = FormBuilder.createFormBuilder()
       .addLabeledComponent("Device type:", deviceTypeCombo)
@@ -62,23 +65,37 @@ class MicroPythonSettingsPanel(private val facet: MicroPythonFacet, disposable: 
       .panel
 
     connectionPanel = panel {
-      row {
-        textField().bindText({ url }, { url = it })
+      buttonsGroup("Connection") {
+        row {
+          radioButton("Serial")
+            .bindSelected(parameters::uart)
+        }
+        row {
+          textField()
+            .label("Port")
+            .bindText(parameters::portName)
+        }
+        row {
+          radioButton("WebREPL").bindSelected({ !parameters.uart }, { parameters.uart = !it })
+        }
+        row {
+          textField()
+            .bindText(parameters::url)
           .label("URL: ").columns(40)
           .validationInfo { field ->
-            val (_, msg) = uriOrMessageUrl(field.text)
+            val msg = messageForBrokenUrl(field.text)
             msg?.let { error(it).withOKEnabled() }
           }
-
       }.layout(RowLayout.LABEL_ALIGNED)
       row {
         passwordField()
-          .bindText({ password }, { password = it })
+          .bindText(parameters::password)
           .label("Password (4..9 symbols): ").columns(40)
           .validationInfo { field ->
             if (field.password.size !in PASSWORD_LENGHT) error("Allowed password length is $PASSWORD_LENGHT").withOKEnabled() else null
           }
       }.layout(RowLayout.LABEL_ALIGNED)
+      }
 
     }.apply {
       registerValidators(disposable)
@@ -113,9 +130,11 @@ class MicroPythonSettingsPanel(private val facet: MicroPythonFacet, disposable: 
   fun apply(configuration: MicroPythonFacetConfiguration, facet: MicroPythonFacet) {
     configuration.deviceProvider = selectedProvider
     connectionPanel.apply()
-    configuration.webReplUrl = url
+    configuration.webReplUrl = parameters.url
+    configuration.uart = parameters.uart
+    configuration.portName = parameters.portName
     runWithModalProgressBlocking(facet.module.project, "Save password") {
-      facet.module.project.service<ConnectCredentials>().savePassword(url, password)
+      facet.module.project.service<ConnectCredentials>().savePassword(configuration.webReplUrl, parameters.password)
     }
   }
 

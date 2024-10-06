@@ -33,6 +33,8 @@ private const val DEFAULT_WEBREWPL_URL = "ws://192.168.4.1:8266"
 class MicroPythonFacetConfiguration : FacetConfiguration {
   var deviceProvider = MicroPythonDeviceProvider.default
   var webReplUrl:String  = DEFAULT_WEBREWPL_URL
+  var uart: Boolean  = true
+  var portName: String  = "COM1"
 
   override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> {
     val facet = editorContext.facet as MicroPythonFacet
@@ -49,6 +51,8 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
     val device = MicroPythonDeviceProvider.providers.firstOrNull { it.persistentName == deviceName }
     deviceProvider = device ?: MicroPythonDeviceProvider.default
     webReplUrl = deviceElement?.getAttributeValue("web-repl-url") ?: DEFAULT_WEBREWPL_URL
+    uart = deviceElement?.getAttributeBooleanValue("uart-connection") ?: true
+    portName = deviceElement?.getAttributeValue("port") ?: "COM1"
   }
 
   @Deprecated("Deprecated in Java")
@@ -56,6 +60,8 @@ class MicroPythonFacetConfiguration : FacetConfiguration {
     val deviceElement = Element("device")
     deviceElement.setAttribute("name", deviceProvider.persistentName)
     deviceElement.setAttribute("web-repl-url",webReplUrl)
+    deviceElement.setAttribute("uart-connection",uart.toString())
+    deviceElement.setAttribute("port",portName)
     element?.addContent(deviceElement)
   }
 }

@@ -5,7 +5,6 @@ import kotlinx.coroutines.delay
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.net.ConnectException
-import java.net.URI
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
 class TestConnect {
@@ -37,7 +36,7 @@ class TestConnect {
             "WebREPL connected" to null,
         )
         test { comm ->
-            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "pa55wd")
+            comm.setConnectionParams(ConnectionParameters("ws://localhost:$tcpPort", "pa55wd"))
             comm.connect()
             assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
@@ -53,7 +52,7 @@ class TestConnect {
         )
         val ex = assertThrows<ConnectException> {
             test { comm ->
-                comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "pa55wd")
+                comm.setConnectionParams(ConnectionParameters("ws://localhost:$tcpPort", "pa55wd"))
                 comm.connect()
             }
         }
@@ -82,7 +81,7 @@ class TestConnect {
             "" to null,
         )
         test { comm ->
-            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.setConnectionParams(ConnectionParameters("ws://localhost:$tcpPort", "passwd"))
             comm.connect()
             assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
@@ -113,7 +112,7 @@ class TestConnect {
             "Test me\nTest me 2\n>>>" to null
         )
         test { comm ->
-            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.setConnectionParams(ConnectionParameters("ws://localhost:$tcpPort", "passwd"))
             comm.connect()
             assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())
@@ -149,7 +148,7 @@ class TestConnect {
             "" to null,
         )
         test { comm ->
-            comm.setConnectionParams(URI.create("ws://localhost:$tcpPort"), "passwd")
+            comm.setConnectionParams(ConnectionParameters("ws://localhost:$tcpPort", "passwd"))
             comm.connect()
             assertEquals(State.CONNECTED, comm.state )
             assertFalse(comm.isTtySuspended())

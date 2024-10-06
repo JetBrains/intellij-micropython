@@ -87,7 +87,7 @@ class WebSocketTestServer(tcpPort: Int) :
 
 
 class WebSocketCommTest(errorLogger: (Throwable) -> Any = {}) : MpyCommForTest(errorLogger) {
-    inner class MpyWebSocketClientTest(uri: URI) : MpyWebSocketClient(uri,this) {
+    inner class MpyWebSocketClientTest() : MpyWebSocketClient(this) {
         override fun error(ex: Exception) {
             println("== ON ERROR ==")
         }
@@ -110,9 +110,6 @@ class WebSocketCommTest(errorLogger: (Throwable) -> Any = {}) : MpyCommForTest(e
         }
     }
 
-    override fun createClient(uri: URI): MpyWebSocketClient {
-        return MpyWebSocketClientTest(uri)
-    }
-
+    override fun createClient(): MpyWebSocketClient = MpyWebSocketClientTest()
 
 }

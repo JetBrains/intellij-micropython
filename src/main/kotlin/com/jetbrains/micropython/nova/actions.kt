@@ -35,6 +35,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import javax.swing.Icon
+import kotlin.Throws
 import kotlin.coroutines.cancellation.CancellationException
 
 fun fileSystemWidget(project: Project?): FileSystemWidget? {
@@ -125,15 +126,32 @@ class Connect(text: String = "Connect") : ReplAction(text) {
     override val actionDescription: String = "Connect"
 
     override suspend fun performAction(e: AnActionEvent, fileSystemWidget: FileSystemWidget) {
+        if (fileSystemWidget.state == State.CONNECTED) return
         val facet = fileSystemWidget.project.modules.firstNotNullOfOrNull { it.microPythonFacet } ?: return
-        val url = facet.configuration.webReplUrl
-        val password = fileSystemWidget.project.service<ConnectCredentials>().retrievePassword(url)
-        var (uri, msg) = uriOrMessageUrl(url)
-        if (password.isBlank()) {
-            uri = null
-            msg = "Empty password"
+        var msg: String? = null
+        val connectionParameters: ConnectionParameters?
+        if (facet.configuration.uart) {
+            val portName = facet.configuration.portName
+            if (portName.isBlank()) {
+                msg = "Port is not selected"
+                connectionParameters = null
+            } else {
+                connectionParameters = ConnectionParameters(portName)
+            }
+
+        } else {
+            val url = facet.configuration.webReplUrl
+            val password = fileSystemWidget.project.service<ConnectCredentials>().retrievePassword(url)
+            msg = messageForBrokenUrl(url)
+            if (password.isBlank()) {
+                msg = "Empty password"
+                connectionParameters = null
+            } else {
+                connectionParameters = ConnectionParameters(url, password)
+            }
+
         }
-        if (uri == null || password.isBlank()) {
+        if (msg != null) {
             withContext(Dispatchers.EDT) {
                 val result = Messages.showIdeaMessageDialog(
                     fileSystemWidget.project,
@@ -150,8 +168,8 @@ class Connect(text: String = "Connect") : ReplAction(text) {
                 }
             }
         } else {
-            if (fileSystemWidget.state != State.CONNECTED) {
-                fileSystemWidget.setConnectionParams(ConnectionParameters(false, uri, password, ""))
+            if (connectionParameters != null) {
+                fileSystemWidget.setConnectionParams(connectionParameters)
                 fileSystemWidget.connect()
                 fileSystemWidget.refresh()
                 ActivityTracker.getInstance().inc()

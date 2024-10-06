@@ -1,15 +1,17 @@
 package com.jetbrains.micropython.nova
 
+import com.intellij.openapi.diagnostic.thisLogger
 import jssc.SerialPort
-import jssc.SerialPort.FLOWCONTROL_RTSCTS_IN
-import jssc.SerialPort.FLOWCONTROL_RTSCTS_OUT
+import jssc.SerialPort.FLOWCONTROL_NONE
 import jssc.SerialPortEvent
 import jssc.SerialPortEventListener
+import jssc.SerialPortException
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 
-class SerialClient(serialPortName: String, private val comm: MpyComm) : Client<SerialClient> {
+class SerialClient(private val comm: MpyComm) : Client {
 
-    private val port = SerialPort(serialPortName)
+    private val port = SerialPort(comm.connectionParameters.portName)
     override fun send(string: String) {
         port.writeString(string)
     }
@@ -27,12 +29,23 @@ class SerialClient(serialPortName: String, private val comm: MpyComm) : Client<S
         }
     }
 
+    @Throws(IOException::class)
     override suspend fun connect(progressIndicatorText: String):SerialClient {
-        port.flowControlMode = FLOWCONTROL_RTSCTS_IN or FLOWCONTROL_RTSCTS_OUT
-        port.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
-        port.openPort()
-        port.addEventListener(listener)
-        return this
+        try {
+            port.openPort()
+            port.addEventListener(listener, SerialPort.MASK_RXCHAR)
+            port.setParams(
+                SerialPort.BAUDRATE_115200,
+                SerialPort.DATABITS_8,
+                SerialPort.STOPBITS_1,
+                SerialPort.PARITY_NONE
+            )
+            port.flowControlMode = FLOWCONTROL_NONE
+            comm.state = State.CONNECTED
+            return this
+        } catch (e: SerialPortException) {
+            throw IOException("${e.port.portName}: ${e.exceptionType}")
+        }
     }
 
     override fun closeBlocking() {

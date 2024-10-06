@@ -17,7 +17,7 @@ private const val PASSWORD_PROMPT = "Password:"
 private const val LOGIN_SUCCESS = "WebREPL connected"
 private const val LOGIN_FAIL = "Access denied"
 
-open class MpyWebSocketClient(uri: URI, private val comm: MpyComm) : Client<MpyWebSocketClient> {
+open class MpyWebSocketClient(private val comm: MpyComm) : Client {
 
     protected open fun open() = Unit
     protected open fun close(code: Int, reason: String, remote: Boolean) = Unit
@@ -29,7 +29,7 @@ open class MpyWebSocketClient(uri: URI, private val comm: MpyComm) : Client<MpyW
     @Volatile
     private var connectInProcess = true
 
-    val webSocketClient = object : WebSocketClient(uri) {
+    val webSocketClient = object : WebSocketClient(URI(comm.connectionParameters.url)) {
         override fun onOpen(handshakedata: ServerHandshake) = open() //Nothing to do
 
         override fun onMessage(message: String) {

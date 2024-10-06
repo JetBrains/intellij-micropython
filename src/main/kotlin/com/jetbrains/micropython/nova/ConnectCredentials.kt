@@ -40,14 +40,14 @@ class ConnectCredentials {
     }
 }
 
-fun uriOrMessageUrl(url: String): Pair<URI?,@Nls String?> {
+fun messageForBrokenUrl(url: String): @Nls String? {
     try {
         val uri = URI(url)
         if (uri.scheme !in arrayOf("ws", "wss")) {
-            return null to "URL format is ws://host:port or wss://host:port"
+            return "URL format has to be ws://host:port or wss://host:port\n but was $url"
         }
-        return uri to null
+        return null
     } catch (_: URISyntaxException) {
-        return null to "Malformed URL"
+        return "Malformed URL $url"
     }
 }

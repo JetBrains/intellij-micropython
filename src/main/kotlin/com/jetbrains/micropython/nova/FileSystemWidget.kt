@@ -27,7 +27,6 @@ import com.intellij.util.asSafely
 import com.intellij.util.containers.TreeTraversal
 import com.intellij.util.ui.tree.TreeUtil
 import com.jediterm.terminal.TtyConnector
-import com.jetbrains.rd.util.URI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
@@ -52,7 +51,16 @@ del ___FSScan
 gc.collect()
   
 """
-data class ConnectionParameters(val uart: Boolean, val uri:URI, val password: String, val portName:String)
+
+data class ConnectionParameters(
+    var uart: Boolean = true,
+    var url: String,
+    var password: String,
+    var portName: String
+) {
+    constructor(portName: String) : this(uart = true, url = "ws://192.168.4.1", password = "", portName = portName)
+    constructor(url: String, password: String) : this(uart = false, url = url, password = password, portName = "")
+}
 
 class FileSystemWidget(val project: Project, newDisposable: Disposable) :
     JBPanelWithEmptyText(BorderLayout()) {
