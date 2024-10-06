@@ -157,7 +157,7 @@ class MicroPythonRunConfiguration(project: Project, factory: ConfigurationFactor
     fun uploadMultipleFiles(project: Project, currentModule: Module?, toUpload: List<VirtualFile>): Boolean {
       val filesToUpload = mutableListOf<Pair<String, VirtualFile>>()
       val fileSystemWidget = fileSystemWidget(project) ?: return false
-      runWithModalProgressBlocking(project, "Upload ${filesToUpload.size} files") {
+      runWithModalProgressBlocking(project, "Upload files") {
       for (uploadFile in toUpload) {
         val roots = mutableSetOf<VirtualFile>()
         val module =
