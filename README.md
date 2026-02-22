@@ -10,6 +10,10 @@
 The Python code development plugin for [MicroPython](http://micropython.org/) devices in
 [PyCharm](https://www.jetbrains.com/pycharm/) and [IntelliJ](https://www.jetbrains.com/idea/).
 
+## Discontinued
+
+- The project is discontinued and is no longer maintained
+- Kindly use [MicroPython Tools](https://plugins.jetbrains.com/plugin/26227-micropython-tools/) instead
 
 ## Supported devices
 
